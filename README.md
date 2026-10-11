@@ -25,7 +25,7 @@ EvidenceLab is an **Evidence Laboratory**. Its central object is the researcher-
 
 EvidenceLab provides a repeatable path from a research question to an auditable Evidence result:
 
-![Evidencelab-architecture](images\EvidenceResult.jpg)
+![Evidencelab-architecture](images/EvidenceResult.jpg)
 
 The path is not a claim that every experiment must begin with a dataset or Joern. EvidenceLab can validate and run an Evidence definition against an already-normalized graph. Joern is an important supported analysis integration, but the canonical Evidence contract is designed to keep Evidence definitions independent of one analyzer's raw syntax.
 
