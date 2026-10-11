@@ -8,7 +8,7 @@ The project does not require one corpus or one analyzer to define the central mo
 
 ## High-level architecture
 
-![evidencelab-architecture](..\images\architecture.jpg)
+![evidencelab-architecture](../images/architecture.jpg)
 
 ## Principal components
 
