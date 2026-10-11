@@ -1,0 +1,97 @@
+{
+  "schema_version": "1.0",
+  "format": "evidencelab-canonical-graph",
+  "metadata": {
+    "format": "json",
+    "parser": "synthetic-corpus",
+    "completeness": "partial",
+    "parse_health": "OK",
+    "case_variant": "missing_reference"
+  },
+  "nodes": [
+    {
+      "id": "u4_s",
+      "type": "METHOD_PARAMETER_IN",
+      "properties": {
+        "name": "u4",
+        "code": "char *u4",
+        "typeFullName": "char*",
+        "derived": {
+          "name": "u4",
+          "storage_duration": "PARAMETER"
+        }
+      }
+    },
+    {
+      "id": "u4_k",
+      "type": "CALL",
+      "properties": {
+        "name": "strcpy",
+        "code": "strcpy(buf_u4, u4)",
+        "methodFullName": "strcpy",
+        "derived": {
+          "name": "strcpy",
+          "call_name": "strcpy",
+          "unbounded_write_like": true
+        }
+      }
+    },
+    {
+      "id": "u4_d",
+      "type": "IDENTIFIER",
+      "properties": {
+        "name": "buf_u4",
+        "code": "buf_u4",
+        "typeFullName": "char[32]",
+        "derived": {
+          "name": "buf_u4",
+          "type_full_name": "char[32]"
+        }
+      }
+    },
+    {
+      "id": "u4_t",
+      "type": "LOCAL",
+      "properties": {
+        "code": "char buf_u4[32]",
+        "name": "buf_u4",
+        "typeFullName": "char[32]",
+        "derived": {
+          "name": "buf_u4",
+          "is_array": true,
+          "length": 32,
+          "storage_duration": "AUTOMATIC",
+          "stack_candidate": true,
+          "physical_stack_region": "UNKNOWN"
+        }
+      }
+    },
+    {
+      "id": "u4_e",
+      "type": "IDENTIFIER",
+      "properties": {
+        "name": "unknown_len",
+        "code": "unknown_len",
+        "derived": {}
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "e1",
+      "source": "u4_k",
+      "target": "u4_d",
+      "type": "ARGUMENT",
+      "properties": {
+        "argumentIndex": 1
+      }
+    },
+    {
+      "id": "e3",
+      "source": "u4_s",
+      "target": "u4_d",
+      "type": "REACHING_DEF",
+      "properties": {}
+    }
+  ]
+}

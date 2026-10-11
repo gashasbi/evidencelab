@@ -1,0 +1,104 @@
+{
+  "schema_version": "1.0",
+  "format": "evidencelab-canonical-graph",
+  "metadata": {
+    "format": "json",
+    "parser": "synthetic-corpus",
+    "completeness": "declared",
+    "parse_health": "OK",
+    "case_variant": "unknown_extent_alpha_rename"
+  },
+  "nodes": [
+    {
+      "id": "s",
+      "type": "METHOD_PARAMETER_IN",
+      "properties": {
+        "name": "data",
+        "code": "char *data",
+        "typeFullName": "char*",
+        "derived": {
+          "name": "data",
+          "storage_duration": "PARAMETER"
+        }
+      }
+    },
+    {
+      "id": "k",
+      "type": "CALL",
+      "properties": {
+        "name": "memcpy",
+        "code": "memcpy(buf, data, n)",
+        "methodFullName": "memcpy",
+        "derived": {
+          "name": "memcpy",
+          "call_name": "memcpy",
+          "unbounded_write_like": false
+        }
+      }
+    },
+    {
+      "id": "d",
+      "type": "IDENTIFIER",
+      "properties": {
+        "name": "buf",
+        "code": "buf",
+        "typeFullName": "char[32]",
+        "derived": {
+          "name": "buf",
+          "type_full_name": "char[32]"
+        }
+      }
+    },
+    {
+      "id": "t",
+      "type": "LOCAL",
+      "properties": {
+        "code": "char buf[24]",
+        "name": "buf",
+        "typeFullName": "char[24]",
+        "derived": {
+          "name": "buf",
+          "is_array": true,
+          "length": 24,
+          "storage_duration": "AUTOMATIC",
+          "stack_candidate": true,
+          "physical_stack_region": "UNKNOWN"
+        }
+      }
+    },
+    {
+      "id": "e",
+      "type": "IDENTIFIER",
+      "properties": {
+        "name": "n",
+        "code": "n",
+        "derived": {}
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "e1",
+      "source": "k",
+      "target": "d",
+      "type": "ARGUMENT",
+      "properties": {
+        "argumentIndex": 1
+      }
+    },
+    {
+      "id": "e2",
+      "source": "d",
+      "target": "t",
+      "type": "REF",
+      "properties": {}
+    },
+    {
+      "id": "e3",
+      "source": "s",
+      "target": "d",
+      "type": "REACHING_DEF",
+      "properties": {}
+    }
+  ]
+}

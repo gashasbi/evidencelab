@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/gashasbi/evidencelab/schemas/canonical-graph.schema.json",
+  "title": "EvidenceLab Canonical Graph 1.0",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "format",
+    "canonical_version",
+    "digest",
+    "metadata",
+    "nodes",
+    "edges"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "format": {
+      "const": "evidencelab-canonical-graph"
+    },
+    "canonical_version": {
+      "const": "1.0"
+    },
+    "digest": {
+      "type": "string",
+      "minLength": 64,
+      "maxLength": 64
+    },
+    "metadata": {
+      "type": "object",
+      "required": [
+        "canonical",
+        "semantic_layer",
+        "analysis_completeness"
+      ]
+    },
+    "nodes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "type",
+          "properties"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "properties": {
+            "type": "object"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "edges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "source",
+          "target",
+          "type",
+          "properties"
+        ],
+        "properties": {
+          "id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "source": {
+            "type": "string"
+          },
+          "target": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "properties": {
+            "type": "object"
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}

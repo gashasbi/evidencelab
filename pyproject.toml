@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "evidencelab"
+version = "1.0.0"
+description = "Evidence-first vulnerability research, proof, benchmark, and graph-evidence evaluation framework"
+requires-python = ">=3.11"
+readme = "README.md"
+license = "MIT"
+authors = [{name = "EvidenceLab contributors"}]
+dependencies = ["jsonschema>=4.21,<5"]
+keywords = ["software-security", "sast", "vulnerability-research", "evidence-engineering", "program-analysis", "static-analysis", "research-framework"]
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Science/Research",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Topic :: Security",
+  "Topic :: Software Development :: Testing"
+]
+license-files = ["LICENSE"]
+
+[project.scripts]
+evidencelab = "evidencelab.cli:main"
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+tef = ["PyYAML>=6.0"]
+realdata = ["pyarrow>=16"]
+
+[tool.setuptools.packages.find]
+include = ["evidencelab*"]

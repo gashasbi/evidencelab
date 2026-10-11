@@ -1,0 +1,163 @@
+{
+  "profile_id": "research-publication-c-cpp-joern",
+  "profile_version": "1.0",
+  "policy_status": "RESEARCH_POLICY_NOT_A_UNIVERSAL_STATISTICAL_STANDARD",
+  "policy_note": "Numeric thresholds are explicit EvidenceLab acceptance policy. They are not claimed to be mandated universal standards. EvidenceLab 1.0.0 additionally requires explicit analyzer attestation and leakage-aware grouping where enabled.",
+  "task": {
+    "cwe": "ANY",
+    "language": "C/C++",
+    "substrate": "Joern"
+  },
+  "audit": {
+    "min_required_claims": 10,
+    "min_concepts": 6,
+    "min_required_claim_kinds": 6,
+    "min_provenance": 10,
+    "min_coverage_dimensions": 16,
+    "require_counter_evidence": true,
+    "require_coverage": true,
+    "require_query_provenance": true,
+    "require_relation_edge_types": true,
+    "signature_only_is_error": true,
+    "require_unknown_policy": true
+  },
+  "gates": {
+    "min_total": 200,
+    "min_positive": 60,
+    "min_negative": 60,
+    "min_unknown": 30,
+    "min_precision": 0.95,
+    "min_recall": 0.9,
+    "min_f1": 0.92,
+    "min_specificity": 0.95,
+    "max_false_positive_rate": 0.05,
+    "min_balanced_accuracy": 0.925,
+    "min_ci_lower_bounds": {
+      "precision": 0.9,
+      "recall": 0.9,
+      "specificity": 0.9
+    },
+    "min_independent_total": 160,
+    "min_independent_positive": 60,
+    "min_independent_negative": 60,
+    "min_independent_unknown": 30
+  },
+  "dimension_minima": {
+    "dataflow": 30,
+    "object_identity": 20,
+    "counter_evidence": 25,
+    "control_conditions": 20,
+    "analysis_completeness": 20,
+    "adversarial": 30,
+    "interprocedural": 15,
+    "cross_file": 10,
+    "real_world": 80,
+    "mutation": 30,
+    "provenance": 40
+  },
+  "required_claim_kinds": [
+    "node",
+    "relation",
+    "property",
+    "compare",
+    "semantic",
+    "same_object"
+  ],
+  "required_dimensions": [
+    "positive",
+    "negative",
+    "unknown",
+    "counter_evidence",
+    "adversarial",
+    "dataflow",
+    "object_identity",
+    "control_conditions",
+    "analysis_completeness",
+    "interprocedural",
+    "cross_file",
+    "real_world",
+    "mutation",
+    "provenance"
+  ],
+  "required_metadata": [
+    "research_question",
+    "evidence_definition_version"
+  ],
+  "require_hidden_validation": true,
+  "require_real_world_validation": true,
+  "require_independent_witness_validation": true,
+  "require_provenance": true,
+  "require_unique_graphs": true,
+  "require_no_placeholders": true,
+  "require_label_provenance": true,
+  "require_case_identity": true,
+  "require_real_world_label_authority": 40,
+  "min_real_world_label_authority": 40,
+  "require_stored_witness_replay": true,
+  "require_split_artifacts": true,
+  "enforce_quality_gates": true,
+  "min_real_world_cases": 80,
+  "min_dataset_sources": 2,
+  "min_repositories": 10,
+  "min_projects": 8,
+  "min_cves": 20,
+  "required_split_strategies": [
+    "repository",
+    "chronological"
+  ],
+  "evidence_quality_gates": {
+    "witness_completeness_rate": 0.95,
+    "witness_coherence_rate": 0.95,
+    "counter_evidence_evaluation_rate": 0.95,
+    "provenance_trace_rate": 0.95,
+    "localization_rate": 0.9,
+    "independent_replay_rate": 0.95,
+    "minimality_rate": 0.9,
+    "relevance_rate": 0.9,
+    "witness_search_complete_rate": 0.95
+  },
+  "max_actual_partial": 0,
+  "research_claim_policy": {
+    "point_metrics_are_not_sufficient": true,
+    "hidden_validation_is_external": true,
+    "synthetic_only_is_not_publication_grade": true,
+    "copies_or_relabels_do_not_increase_effective_corpus_size": true,
+    "mutation_children_do_not_count_as_independent_cases": true,
+    "unknown_is_not_false": true,
+    "missing_provenance_blocks_known_label_claim": true,
+    "independent_replay_does_not_search_for_new_candidates": true,
+    "real_world_label_authority_must_be_traceable": true,
+    "paired_revisions_are_not_mutations": true,
+    "independent_sample_counts_exclude_mutation_descendants": true,
+    "publication_requires_independent_hidden_evaluation": true
+  },
+  "performance": {
+    "repeats": 1,
+    "max_case_seconds": 120,
+    "record_resource_usage": true,
+    "max_case_memory_bytes": 2147483648,
+    "record_search_cost": true
+  },
+  "require_hidden_hmac": true,
+  "hidden_policy": {
+    "require_external_origin": true,
+    "require_hmac": true,
+    "require_redacted_source_metadata": true,
+    "forbid_hidden_under_public_root": true
+  },
+  "min_semantic_independence_ratio": 0.7,
+  "min_independence_clusters": 8,
+  "require_cluster_aware_statistics": true,
+  "require_research_ledgers": true,
+  "require_canonical_graph": true,
+  "require_analyzer_independent_patterns": true,
+  "require_failure_taxonomy": true,
+  "require_negative_basis": true,
+  "require_performance_evaluation": true,
+  "require_analyzer_attestation": true,
+  "require_source_similarity_audit": true,
+  "leakage_policy": {
+    "exact_source_overlap_is_error": true,
+    "normalized_source_similarity_threshold": 0.92
+  }
+}

@@ -1,0 +1,104 @@
+{
+  "schema_version": "1.0",
+  "format": "evidencelab-canonical-graph",
+  "metadata": {
+    "format": "json",
+    "parser": "synthetic-corpus",
+    "completeness": "declared",
+    "parse_health": "OK",
+    "case_variant": "negative_discriminator"
+  },
+  "nodes": [
+    {
+      "id": "local1_s",
+      "type": "LOCAL",
+      "properties": {
+        "name": "local1",
+        "code": "char *local1",
+        "typeFullName": "char*",
+        "derived": {
+          "name": "local1",
+          "storage_duration": "AUTOMATIC"
+        }
+      }
+    },
+    {
+      "id": "local1_k",
+      "type": "CALL",
+      "properties": {
+        "name": "strcpy",
+        "code": "strcpy(buf_local1, local1)",
+        "methodFullName": "strcpy",
+        "derived": {
+          "name": "strcpy",
+          "call_name": "strcpy",
+          "unbounded_write_like": true
+        }
+      }
+    },
+    {
+      "id": "local1_d",
+      "type": "IDENTIFIER",
+      "properties": {
+        "name": "buf_local1",
+        "code": "buf_local1",
+        "typeFullName": "char[32]",
+        "derived": {
+          "name": "buf_local1",
+          "type_full_name": "char[32]"
+        }
+      }
+    },
+    {
+      "id": "local1_t",
+      "type": "LOCAL",
+      "properties": {
+        "code": "char buf_local1[32]",
+        "name": "buf_local1",
+        "typeFullName": "char[32]",
+        "derived": {
+          "name": "buf_local1",
+          "is_array": true,
+          "length": 32,
+          "storage_duration": "AUTOMATIC",
+          "stack_candidate": true,
+          "physical_stack_region": "UNKNOWN"
+        }
+      }
+    },
+    {
+      "id": "local1_e",
+      "type": "IDENTIFIER",
+      "properties": {
+        "name": "unknown_len",
+        "code": "unknown_len",
+        "derived": {}
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "e1",
+      "source": "local1_k",
+      "target": "local1_d",
+      "type": "ARGUMENT",
+      "properties": {
+        "argumentIndex": 1
+      }
+    },
+    {
+      "id": "e2",
+      "source": "local1_d",
+      "target": "local1_t",
+      "type": "REF",
+      "properties": {}
+    },
+    {
+      "id": "e3",
+      "source": "local1_s",
+      "target": "local1_d",
+      "type": "REACHING_DEF",
+      "properties": {}
+    }
+  ]
+}

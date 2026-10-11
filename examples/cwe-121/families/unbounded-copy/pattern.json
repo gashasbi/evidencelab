@@ -1,0 +1,441 @@
+{
+  "schema_version": "1.0",
+  "pattern_id": "cwe-121-unbounded-copy-001",
+  "cwe": "CWE-121",
+  "name": "Unbounded string copy into an automatic local array",
+  "version": "1.0.0",
+  "language": "C/C++",
+  "description": "Evidence family for an unbounded string-copy-like sink writing into an automatic local array. This family intentionally does not claim a numeric overflow length unless a separate numeric evidence family proves it. This EvidenceLab 1.0.0 definition consumes canonical semantic categories and keeps analyzer-specific observations behind the canonical adapter.",
+  "unknown_policy": "unknown",
+  "counter_unknown_policy": "ignore",
+  "metadata": {
+    "research_question": "What graph evidence is sufficient to establish one coherent unbounded string-copy-like write into an automatic local array, without pretending that runtime source length is numerically proven?",
+    "evidence_definition_version": "1.0",
+    "scope": "C/C++ + Joern",
+    "physical_stack_note": "Automatic storage duration is proven from CPG LOCAL semantics; physical stack residency remains UNKNOWN.",
+    "evidence_class": "REFERENCE_EXECUTABLE_FAMILY",
+    "analyzer_scope": "Joern observations normalized through EvidenceLab canonical semantic layer",
+    "cwe_boundary_reference": "https://cwe.mitre.org/data/definitions/121.html"
+  },
+  "provenance": [
+    {
+      "kind": "cwe",
+      "source": "MITRE CWE-121",
+      "url": "https://cwe.mitre.org/data/definitions/121.html"
+    },
+    {
+      "kind": "tool",
+      "source": "Joern",
+      "url": "https://docs.joern.io/"
+    },
+    {
+      "kind": "query",
+      "source": "reachableBy / reachableByFlows / ARGUMENT / REF / AST observations"
+    },
+    {
+      "kind": "dataset",
+      "source": "NIST SAMATE SARD — Juliet C/C++ 1.3.1 with extra support",
+      "url": "https://samate.nist.gov/SARD/test-suites/116"
+    },
+    {
+      "kind": "cwe_view",
+      "source": "MITRE CWE-121 definition and relationships",
+      "url": "https://cwe.mitre.org/data/definitions/121.html"
+    },
+    {
+      "kind": "tool_spec",
+      "source": "Joern Code Property Graph specification",
+      "url": "https://cpg.joern.io/",
+      "supports": [
+        "node/edge/property schema"
+      ]
+    },
+    {
+      "kind": "query",
+      "source": "Joern CPGQL dataflow: reachableBy and reachableByFlows",
+      "url": "https://docs.joern.io/cpgql/data-flow-steps/",
+      "supports": [
+        "source-to-sink dataflow observations"
+      ]
+    },
+    {
+      "kind": "dataset",
+      "source": "NIST SAMATE SARD — Juliet C/C++ 1.3.1 with extra support",
+      "url": "https://samate.nist.gov/SARD/test-suites/116",
+      "supports": [
+        "benchmark provenance"
+      ]
+    },
+    {
+      "kind": "methodology",
+      "source": "EvidenceLab research methodology",
+      "artifact": "docs/research-methodology.md",
+      "supports": [
+        "tri-state evidence",
+        "witness validation",
+        "provenance"
+      ]
+    },
+    {
+      "kind": "methodology",
+      "source": "EvidenceLab canonical semantic contract",
+      "artifact": "docs/architecture.md",
+      "supports": [
+        "analyzer-independent semantic layer"
+      ]
+    },
+    {
+      "kind": "literature",
+      "source": "Yamaguchi, Gold, Arp, Rieck. Modeling and Discovering Vulnerabilities with Code Property Graphs (IEEE S&P 2014)",
+      "url": "https://www.ieee-security.org/TC/SP2014/papers/ModelingandDiscoveringVulnerabilitieswithCodePropertyGraphs.pdf",
+      "doi": "10.1109/SP.2014.44",
+      "supports": [
+        "graph-based vulnerability templates",
+        "AST/CFG/PDG integration",
+        "buffer-overflow pattern modeling"
+      ]
+    },
+    {
+      "kind": "methodology",
+      "source": "EvidenceLab evidence-first research methodology",
+      "artifact": "docs/architecture.md",
+      "supports": [
+        "canonical semantic layer",
+        "strict outcome lattice",
+        "reproducibility"
+      ]
+    }
+  ],
+  "coverage": {
+    "required_dimensions": [
+      "positive",
+      "negative",
+      "unknown",
+      "direct",
+      "interprocedural",
+      "cross_file",
+      "counter_evidence",
+      "unbounded_semantics",
+      "heap_discriminator",
+      "static_discriminator",
+      "semantic_dataflow",
+      "object_identity",
+      "control_conditions",
+      "analysis_completeness",
+      "adversarial",
+      "mutation",
+      "provenance"
+    ],
+    "research_variants": [
+      "direct_strcpy",
+      "direct_strcat",
+      "small_array",
+      "unknown_string_length",
+      "static_discriminator",
+      "heap_discriminator",
+      "interprocedural",
+      "argument_role_binding",
+      "alpha_renaming",
+      "missing_destination_binding",
+      "missing_dataflow"
+    ],
+    "requires_adversarial_mutations": true,
+    "minimum_public_cases": 40,
+    "minimum_hidden_cases": 40
+  },
+  "concepts": {
+    "source_parameter": {
+      "selectors": [
+        {
+          "canonical_type_any": [
+            "PARAMETER"
+          ]
+        }
+      ]
+    },
+    "memory_write": {
+      "selectors": [
+        {
+          "canonical_type_any": [
+            "CALL"
+          ],
+          "properties": {
+            "derived.unbounded_write_like": true
+          }
+        }
+      ]
+    },
+    "destination_expression": {
+      "selectors": [
+        {
+          "canonical_type_any": [
+            "IDENTIFIER",
+            "CALL"
+          ]
+        }
+      ]
+    },
+    "automatic_array": {
+      "selectors": [
+        {
+          "canonical_type_any": [
+            "LOCAL"
+          ],
+          "properties": {
+            "derived.is_array": true,
+            "derived.storage_duration": "AUTOMATIC"
+          }
+        }
+      ]
+    },
+    "write_extent": {
+      "selectors": [
+        {
+          "canonical_type_any": [
+            "LITERAL",
+            "IDENTIFIER",
+            "CALL"
+          ]
+        }
+      ]
+    },
+    "object_identity": {
+      "selectors": [
+        {
+          "canonical_type_any": [
+            "IDENTIFIER",
+            "LOCAL",
+            "PARAMETER"
+          ]
+        }
+      ]
+    }
+  },
+  "slots": [
+    {
+      "id": "source",
+      "concept": "source_parameter",
+      "max_matches": 100
+    },
+    {
+      "id": "sink",
+      "concept": "memory_write",
+      "max_matches": 100
+    },
+    {
+      "id": "destination",
+      "concept": "destination_expression",
+      "max_matches": 300
+    },
+    {
+      "id": "target",
+      "concept": "automatic_array",
+      "max_matches": 100
+    }
+  ],
+  "claims": [
+    {
+      "id": "C1",
+      "kind": "node",
+      "required": true,
+      "slot": "source",
+      "description": "An input parameter exists."
+    },
+    {
+      "id": "C2",
+      "kind": "node",
+      "required": true,
+      "slot": "sink",
+      "description": "An unbounded string-copy-like sink exists."
+    },
+    {
+      "id": "C3",
+      "kind": "node",
+      "required": true,
+      "slot": "destination",
+      "description": "A concrete destination expression exists."
+    },
+    {
+      "id": "C4",
+      "kind": "node",
+      "required": true,
+      "slot": "target",
+      "description": "The destination resolves to an automatic local array."
+    },
+    {
+      "id": "C5",
+      "kind": "edge",
+      "required": true,
+      "source": "sink",
+      "target": "destination",
+      "edge_types": [
+        "ARGUMENT"
+      ],
+      "description": "The destination is the sink destination argument."
+    },
+    {
+      "id": "C6",
+      "kind": "relation",
+      "required": true,
+      "source": "source",
+      "target": "destination",
+      "relation": "DATA_FLOW",
+      "max_hops": 12,
+      "description": "Input reaches destination."
+    },
+    {
+      "id": "C7",
+      "kind": "edge",
+      "required": true,
+      "source": "destination",
+      "target": "target",
+      "direction": "either",
+      "edge_types": [
+        "REF"
+      ],
+      "description": "Destination resolves to target object."
+    },
+    {
+      "id": "C8",
+      "kind": "property",
+      "required": true,
+      "slot": "target",
+      "equals": {
+        "derived.storage_duration": "AUTOMATIC"
+      },
+      "description": "Target has automatic storage duration."
+    },
+    {
+      "id": "C9",
+      "kind": "property",
+      "required": true,
+      "slot": "target",
+      "equals": {
+        "derived.is_array": true
+      },
+      "description": "Target is an array."
+    },
+    {
+      "id": "C10",
+      "kind": "property",
+      "required": true,
+      "slot": "sink",
+      "equals": {
+        "derived.unbounded_write_like": true
+      },
+      "description": "Sink is semantically unbounded."
+    },
+    {
+      "id": "C11",
+      "kind": "compare",
+      "required": true,
+      "left": {
+        "slot": "sink",
+        "property": "derived.unbounded_write_like"
+      },
+      "operator": "==",
+      "right": {
+        "value": true
+      },
+      "description": "The bound sink carries explicit unbounded-write semantics."
+    },
+    {
+      "id": "C12",
+      "kind": "semantic",
+      "required": true,
+      "slot": "sink",
+      "equals": {
+        "derived.unbounded_write_like": true
+      },
+      "description": "The sink is semantically classified as unbounded rather than merely matching a function name."
+    },
+    {
+      "id": "C13",
+      "kind": "same_object",
+      "required": true,
+      "source": "destination",
+      "target": "target",
+      "description": "Destination and target resolve to the same memory object."
+    }
+  ],
+  "counter_evidence": [
+    {
+      "id": "X1",
+      "kind": "property",
+      "required": false,
+      "slot": "target",
+      "equals": {
+        "derived.storage_duration": "STATIC_LOCAL"
+      },
+      "description": "Static target is outside this automatic-storage family."
+    }
+  ],
+  "witnesses": [
+    {
+      "id": "W1",
+      "slots": [
+        "source",
+        "sink",
+        "destination",
+        "target"
+      ],
+      "claims": [
+        "C1",
+        "C2",
+        "C3",
+        "C4",
+        "C5",
+        "C6",
+        "C7",
+        "C8",
+        "C9",
+        "C10",
+        "C11",
+        "C12",
+        "C13"
+      ],
+      "counter_claims": [
+        "X1"
+      ],
+      "required": true,
+      "distinct_slots": true,
+      "max_combinations": 50000
+    }
+  ],
+  "required_claim_groups": [],
+  "family_id": "cwe-121-unbounded-copy-001",
+  "evidence_contract": {
+    "unknown_policy": "unknown",
+    "counter_unknown_policy": "ignore",
+    "tri_state": true,
+    "counter_evidence_binding": "same_witness",
+    "minimum_sufficient_witness": true,
+    "required_analysis_dimensions": [],
+    "researcher_authored": false,
+    "requires_review": true
+  },
+  "semantic_contract": {
+    "canonical_graph_required": true,
+    "analyzer_independent": true,
+    "required_analysis_dimensions": [],
+    "canonical_semantic_layer": "EvidenceLab-Canonical-Semantic-1"
+  },
+  "relevance_policy": {
+    "minimum_sufficient_witness": true,
+    "max_path_hops": 12,
+    "reject_unrelated_bindings": true,
+    "same_object_binding_required": true
+  },
+  "path_budget": {
+    "max_hops": 12,
+    "max_paths_per_claim": 100
+  },
+  "provenance_policy": {
+    "derived_facts_require_inputs": true,
+    "literature_linkage": true,
+    "artifact_hashes": true,
+    "require_query_hash": true,
+    "cwe_boundary_traceable": true,
+    "case_identity_required": true
+  }
+}

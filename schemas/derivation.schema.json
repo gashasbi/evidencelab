@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/gashasbi/evidencelab/schemas/derivation.schema.json",
+  "title": "EvidenceLab Derivation 1.0",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "derivation_id",
+    "timestamp_utc",
+    "method",
+    "inputs",
+    "output",
+    "state"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "derivation_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "timestamp_utc": {
+      "type": "string",
+      "minLength": 1
+    },
+    "hypothesis_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "method": {
+      "type": "string",
+      "minLength": 1
+    },
+    "inputs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "output": {
+      "type": "object"
+    },
+    "assumptions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "state": {
+      "type": "string",
+      "enum": [
+        "PROVEN",
+        "DISPROVEN",
+        "UNKNOWN",
+        "NOT_APPLICABLE",
+        "DOCUMENTED"
+      ]
+    },
+    "evidence_definition": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "replay": {
+      "type": "object"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "previous": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "digest": {
+      "type": "string",
+      "minLength": 64,
+      "maxLength": 64
+    }
+  }
+}

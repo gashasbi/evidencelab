@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/gashasbi/evidencelab/schemas/evaluation.schema.json",
+  "title": "EvidenceLab Evaluation 1.0",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "format",
+    "benchmark",
+    "pattern",
+    "metrics",
+    "performance",
+    "stored_case_reports",
+    "independent_replay"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "format": {
+      "const": "evidencelab-evaluation"
+    },
+    "created_at_utc": {
+      "type": "string"
+    },
+    "tool": {
+      "type": "object"
+    },
+    "benchmark": {
+      "type": "object"
+    },
+    "pattern": {
+      "type": "object"
+    },
+    "partition": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "metrics": {
+      "type": "object"
+    },
+    "benchmark_meta": {
+      "type": "object"
+    },
+    "coverage_matrix": {
+      "type": "object"
+    },
+    "performance": {
+      "type": "object"
+    },
+    "stored_case_reports": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "independent_replay": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "environment": {
+      "type": "object"
+    },
+    "evaluation_sha256": {
+      "type": "string"
+    }
+  }
+}

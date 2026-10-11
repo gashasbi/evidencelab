@@ -1,0 +1,9 @@
+cff-version: 1.2.0
+message: "If you use EvidenceLab in research or software, please cite this release."
+title: "EvidenceLab"
+version: 1.0.0
+date-released: 2026-10-07
+license: MIT
+type: software
+authors:
+  - name: "EvidenceLab contributors"

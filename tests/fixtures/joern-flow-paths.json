@@ -1,0 +1,1 @@
+[{"elements":[{"name":"input","_id":1,"_label":"METHOD_PARAMETER_IN","typeFullName":"char*","lineNumber":3,"code":"char *input"},{"name":"input","_id":2,"_label":"IDENTIFIER","typeFullName":"char*","lineNumber":6,"code":"input"},{"name":"buffer","_id":3,"_label":"IDENTIFIER","typeFullName":"char[32]","lineNumber":6,"code":"buffer"}]}]

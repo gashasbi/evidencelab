@@ -1,0 +1,104 @@
+{
+  "schema_version": "1.0",
+  "format": "evidencelab-canonical-graph",
+  "metadata": {
+    "format": "json",
+    "parser": "synthetic-corpus",
+    "completeness": "declared",
+    "parse_health": "OK",
+    "case_variant": "positive_storage_and_sink_variant"
+  },
+  "nodes": [
+    {
+      "id": "5_s",
+      "type": "METHOD_PARAMETER_IN",
+      "properties": {
+        "name": "input_5",
+        "code": "char *input_5",
+        "typeFullName": "char*",
+        "derived": {
+          "name": "input_5",
+          "storage_duration": "PARAMETER"
+        }
+      }
+    },
+    {
+      "id": "5_k",
+      "type": "CALL",
+      "properties": {
+        "name": "wcscpy",
+        "code": "wcscpy(buf_5, input_5)",
+        "methodFullName": "wcscpy",
+        "derived": {
+          "name": "wcscpy",
+          "call_name": "wcscpy",
+          "unbounded_write_like": true
+        }
+      }
+    },
+    {
+      "id": "5_d",
+      "type": "IDENTIFIER",
+      "properties": {
+        "name": "buf_5",
+        "code": "buf_5",
+        "typeFullName": "char[96]",
+        "derived": {
+          "name": "buf_5",
+          "type_full_name": "char[96]"
+        }
+      }
+    },
+    {
+      "id": "5_t",
+      "type": "LOCAL",
+      "properties": {
+        "code": "char buf_5[96]",
+        "name": "buf_5",
+        "typeFullName": "char[96]",
+        "derived": {
+          "name": "buf_5",
+          "is_array": true,
+          "length": 96,
+          "storage_duration": "AUTOMATIC",
+          "stack_candidate": true,
+          "physical_stack_region": "UNKNOWN"
+        }
+      }
+    },
+    {
+      "id": "5_e",
+      "type": "IDENTIFIER",
+      "properties": {
+        "name": "unknown_len",
+        "code": "unknown_len",
+        "derived": {}
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "e1",
+      "source": "5_k",
+      "target": "5_d",
+      "type": "ARGUMENT",
+      "properties": {
+        "argumentIndex": 1
+      }
+    },
+    {
+      "id": "e2",
+      "source": "5_d",
+      "target": "5_t",
+      "type": "REF",
+      "properties": {}
+    },
+    {
+      "id": "e3",
+      "source": "5_s",
+      "target": "5_d",
+      "type": "REACHING_DEF",
+      "properties": {}
+    }
+  ]
+}

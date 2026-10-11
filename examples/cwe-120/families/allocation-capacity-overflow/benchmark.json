@@ -1,0 +1,1195 @@
+{
+  "allow_duplicate_graphs": false,
+  "cases": [
+    {
+      "expected": "MATCH",
+      "graph": "graphs/pos_01.json",
+      "id": "pos_01",
+      "partition": "public",
+      "tags": [
+        "positive",
+        "direct",
+        "counter_evidence",
+        "interprocedural",
+        "baseline",
+        "storage_automatic",
+        "dataflow",
+        "object_identity",
+        "source_control",
+        "capacity"
+      ]
+    },
+    {
+      "expected": "MATCH",
+      "graph": "graphs/pos_02.json",
+      "id": "pos_02",
+      "partition": "public",
+      "tags": [
+        "positive",
+        "direct",
+        "counter_evidence",
+        "cross_file",
+        "baseline",
+        "storage_static",
+        "dataflow",
+        "object_identity",
+        "source_control",
+        "capacity"
+      ]
+    },
+    {
+      "expected": "MATCH",
+      "graph": "graphs/pos_03.json",
+      "id": "pos_03",
+      "partition": "public",
+      "tags": [
+        "positive",
+        "direct",
+        "counter_evidence",
+        "pointer_alias",
+        "baseline",
+        "storage_heap",
+        "dataflow",
+        "object_identity",
+        "source_control",
+        "capacity"
+      ]
+    },
+    {
+      "expected": "MATCH",
+      "graph": "graphs/pos_04.json",
+      "id": "pos_04",
+      "partition": "public",
+      "tags": [
+        "positive",
+        "direct",
+        "counter_evidence",
+        "same_function",
+        "baseline",
+        "storage_automatic",
+        "dataflow",
+        "object_identity",
+        "source_control",
+        "capacity"
+      ]
+    },
+    {
+      "expected": "MATCH",
+      "graph": "graphs/pos_05.json",
+      "id": "pos_05",
+      "partition": "public",
+      "tags": [
+        "positive",
+        "direct",
+        "counter_evidence",
+        "interprocedural",
+        "baseline",
+        "storage_static",
+        "dataflow",
+        "object_identity",
+        "source_control",
+        "capacity"
+      ]
+    },
+    {
+      "expected": "MATCH",
+      "graph": "graphs/pos_06.json",
+      "id": "pos_06",
+      "partition": "public",
+      "tags": [
+        "positive",
+        "direct",
+        "counter_evidence",
+        "cross_file",
+        "baseline",
+        "storage_heap",
+        "dataflow",
+        "object_identity",
+        "source_control",
+        "capacity"
+      ]
+    },
+    {
+      "expected": "MATCH",
+      "graph": "graphs/pos_07.json",
+      "id": "pos_07",
+      "partition": "public",
+      "tags": [
+        "positive",
+        "direct",
+        "counter_evidence",
+        "pointer_alias",
+        "baseline",
+        "storage_automatic",
+        "dataflow",
+        "object_identity",
+        "source_control",
+        "capacity"
+      ]
+    },
+    {
+      "expected": "MATCH",
+      "graph": "graphs/pos_08.json",
+      "id": "pos_08",
+      "partition": "public",
+      "tags": [
+        "positive",
+        "direct",
+        "counter_evidence",
+        "same_function",
+        "baseline",
+        "storage_static",
+        "dataflow",
+        "object_identity",
+        "source_control",
+        "capacity"
+      ]
+    },
+    {
+      "expected": "MATCH",
+      "graph": "graphs/pos_09.json",
+      "id": "pos_09",
+      "partition": "public",
+      "tags": [
+        "positive",
+        "direct",
+        "counter_evidence",
+        "interprocedural",
+        "baseline",
+        "storage_heap",
+        "dataflow",
+        "object_identity",
+        "source_control",
+        "capacity"
+      ]
+    },
+    {
+      "expected": "MATCH",
+      "graph": "graphs/pos_10.json",
+      "id": "pos_10",
+      "partition": "public",
+      "tags": [
+        "positive",
+        "direct",
+        "counter_evidence",
+        "cross_file",
+        "baseline",
+        "storage_automatic",
+        "dataflow",
+        "object_identity",
+        "source_control",
+        "capacity"
+      ]
+    },
+    {
+      "expected": "MATCH",
+      "graph": "graphs/pos_11.json",
+      "id": "pos_11",
+      "partition": "public",
+      "tags": [
+        "positive",
+        "direct",
+        "counter_evidence",
+        "pointer_alias",
+        "baseline",
+        "storage_static",
+        "dataflow",
+        "object_identity",
+        "source_control",
+        "capacity"
+      ]
+    },
+    {
+      "expected": "MATCH",
+      "graph": "graphs/pos_12.json",
+      "id": "pos_12",
+      "partition": "public",
+      "tags": [
+        "positive",
+        "direct",
+        "counter_evidence",
+        "same_function",
+        "baseline",
+        "storage_heap",
+        "dataflow",
+        "object_identity",
+        "source_control",
+        "capacity"
+      ]
+    },
+    {
+      "expected": "MATCH",
+      "graph": "graphs/pos_13.json",
+      "id": "pos_13",
+      "partition": "public",
+      "tags": [
+        "positive",
+        "direct",
+        "counter_evidence",
+        "interprocedural",
+        "baseline",
+        "storage_automatic",
+        "dataflow",
+        "object_identity",
+        "source_control",
+        "capacity"
+      ]
+    },
+    {
+      "expected": "MATCH",
+      "graph": "graphs/pos_14.json",
+      "id": "pos_14",
+      "partition": "public",
+      "tags": [
+        "positive",
+        "direct",
+        "counter_evidence",
+        "cross_file",
+        "baseline",
+        "storage_static",
+        "dataflow",
+        "object_identity",
+        "source_control",
+        "capacity"
+      ]
+    },
+    {
+      "expected": "MATCH",
+      "graph": "graphs/pos_15.json",
+      "id": "pos_15",
+      "partition": "public",
+      "tags": [
+        "positive",
+        "direct",
+        "counter_evidence",
+        "pointer_alias",
+        "baseline",
+        "storage_heap",
+        "dataflow",
+        "object_identity",
+        "source_control",
+        "capacity"
+      ]
+    },
+    {
+      "expected": "MATCH",
+      "graph": "graphs/pos_16.json",
+      "id": "pos_16",
+      "partition": "public",
+      "tags": [
+        "positive",
+        "direct",
+        "counter_evidence",
+        "same_function",
+        "baseline",
+        "storage_automatic",
+        "dataflow",
+        "object_identity",
+        "source_control",
+        "capacity"
+      ]
+    },
+    {
+      "expected": "MATCH",
+      "graph": "graphs/pos_17.json",
+      "id": "pos_17",
+      "partition": "public",
+      "tags": [
+        "positive",
+        "direct",
+        "counter_evidence",
+        "interprocedural",
+        "baseline",
+        "storage_static",
+        "dataflow",
+        "object_identity",
+        "source_control",
+        "capacity"
+      ]
+    },
+    {
+      "expected": "MATCH",
+      "graph": "graphs/pos_18.json",
+      "id": "pos_18",
+      "partition": "public",
+      "tags": [
+        "positive",
+        "direct",
+        "counter_evidence",
+        "cross_file",
+        "baseline",
+        "storage_heap",
+        "dataflow",
+        "object_identity",
+        "source_control",
+        "capacity"
+      ]
+    },
+    {
+      "expected": "MATCH",
+      "graph": "graphs/pos_19.json",
+      "id": "pos_19",
+      "partition": "public",
+      "tags": [
+        "positive",
+        "direct",
+        "counter_evidence",
+        "pointer_alias",
+        "baseline",
+        "storage_automatic",
+        "dataflow",
+        "object_identity",
+        "source_control",
+        "capacity"
+      ]
+    },
+    {
+      "expected": "MATCH",
+      "graph": "graphs/pos_20.json",
+      "id": "pos_20",
+      "partition": "public",
+      "tags": [
+        "positive",
+        "direct",
+        "counter_evidence",
+        "same_function",
+        "baseline",
+        "storage_static",
+        "dataflow",
+        "object_identity",
+        "source_control",
+        "capacity"
+      ]
+    },
+    {
+      "expected": "NO_MATCH",
+      "graph": "graphs/neg_01.json",
+      "id": "neg_01",
+      "partition": "public",
+      "tags": [
+        "negative",
+        "direct",
+        "counter_evidence",
+        "wrong_sink",
+        "baseline",
+        "storage_automatic",
+        "dataflow",
+        "object_identity",
+        "source_control",
+        "capacity"
+      ]
+    },
+    {
+      "expected": "NO_MATCH",
+      "graph": "graphs/neg_02.json",
+      "id": "neg_02",
+      "partition": "public",
+      "tags": [
+        "negative",
+        "direct",
+        "counter_evidence",
+        "safe_bound",
+        "baseline",
+        "storage_automatic",
+        "dataflow",
+        "object_identity",
+        "source_control",
+        "capacity"
+      ]
+    },
+    {
+      "expected": "NO_MATCH",
+      "graph": "graphs/neg_03.json",
+      "id": "neg_03",
+      "partition": "public",
+      "tags": [
+        "negative",
+        "direct",
+        "counter_evidence",
+        "safe_bound",
+        "baseline",
+        "storage_automatic",
+        "dataflow",
+        "object_identity",
+        "source_control",
+        "capacity"
+      ]
+    },
+    {
+      "expected": "NO_MATCH",
+      "graph": "graphs/neg_04.json",
+      "id": "neg_04",
+      "partition": "public",
+      "tags": [
+        "negative",
+        "direct",
+        "counter_evidence",
+        "safe_bound",
+        "baseline",
+        "storage_automatic",
+        "dataflow",
+        "object_identity",
+        "source_control",
+        "capacity"
+      ]
+    },
+    {
+      "expected": "NO_MATCH",
+      "graph": "graphs/neg_05.json",
+      "id": "neg_05",
+      "partition": "public",
+      "tags": [
+        "negative",
+        "direct",
+        "counter_evidence",
+        "safe_bound",
+        "baseline",
+        "storage_automatic",
+        "dataflow",
+        "object_identity",
+        "source_control",
+        "capacity"
+      ]
+    },
+    {
+      "expected": "NO_MATCH",
+      "graph": "graphs/neg_06.json",
+      "id": "neg_06",
+      "partition": "public",
+      "tags": [
+        "negative",
+        "direct",
+        "counter_evidence",
+        "safe_bound",
+        "baseline",
+        "storage_automatic",
+        "dataflow",
+        "object_identity",
+        "source_control",
+        "capacity"
+      ]
+    },
+    {
+      "expected": "NO_MATCH",
+      "graph": "graphs/neg_07.json",
+      "id": "neg_07",
+      "partition": "public",
+      "tags": [
+        "negative",
+        "direct",
+        "counter_evidence",
+        "wrong_sink",
+        "baseline",
+        "storage_automatic",
+        "dataflow",
+        "object_identity",
+        "source_control",
+        "capacity"
+      ]
+    },
+    {
+      "expected": "NO_MATCH",
+      "graph": "graphs/neg_08.json",
+      "id": "neg_08",
+      "partition": "public",
+      "tags": [
+        "negative",
+        "direct",
+        "counter_evidence",
+        "safe_bound",
+        "baseline",
+        "storage_automatic",
+        "dataflow",
+        "object_identity",
+        "source_control",
+        "capacity"
+      ]
+    },
+    {
+      "expected": "NO_MATCH",
+      "graph": "graphs/neg_09.json",
+      "id": "neg_09",
+      "partition": "public",
+      "tags": [
+        "negative",
+        "direct",
+        "counter_evidence",
+        "safe_bound",
+        "baseline",
+        "storage_automatic",
+        "dataflow",
+        "object_identity",
+        "source_control",
+        "capacity"
+      ]
+    },
+    {
+      "expected": "NO_MATCH",
+      "graph": "graphs/neg_10.json",
+      "id": "neg_10",
+      "partition": "public",
+      "tags": [
+        "negative",
+        "direct",
+        "counter_evidence",
+        "safe_bound",
+        "baseline",
+        "storage_automatic",
+        "dataflow",
+        "object_identity",
+        "source_control",
+        "capacity"
+      ]
+    },
+    {
+      "expected": "NO_MATCH",
+      "graph": "graphs/neg_11.json",
+      "id": "neg_11",
+      "partition": "public",
+      "tags": [
+        "negative",
+        "direct",
+        "counter_evidence",
+        "safe_bound",
+        "baseline",
+        "storage_automatic",
+        "dataflow",
+        "object_identity",
+        "source_control",
+        "capacity"
+      ]
+    },
+    {
+      "expected": "NO_MATCH",
+      "graph": "graphs/neg_12.json",
+      "id": "neg_12",
+      "partition": "public",
+      "tags": [
+        "negative",
+        "direct",
+        "counter_evidence",
+        "safe_bound",
+        "baseline",
+        "storage_automatic",
+        "dataflow",
+        "object_identity",
+        "source_control",
+        "capacity"
+      ]
+    },
+    {
+      "expected": "NO_MATCH",
+      "graph": "graphs/neg_13.json",
+      "id": "neg_13",
+      "partition": "public",
+      "tags": [
+        "negative",
+        "direct",
+        "counter_evidence",
+        "wrong_sink",
+        "baseline",
+        "storage_automatic",
+        "dataflow",
+        "object_identity",
+        "source_control",
+        "capacity"
+      ]
+    },
+    {
+      "expected": "NO_MATCH",
+      "graph": "graphs/neg_14.json",
+      "id": "neg_14",
+      "partition": "public",
+      "tags": [
+        "negative",
+        "direct",
+        "counter_evidence",
+        "safe_bound",
+        "baseline",
+        "storage_automatic",
+        "dataflow",
+        "object_identity",
+        "source_control",
+        "capacity"
+      ]
+    },
+    {
+      "expected": "NO_MATCH",
+      "graph": "graphs/neg_15.json",
+      "id": "neg_15",
+      "partition": "public",
+      "tags": [
+        "negative",
+        "direct",
+        "counter_evidence",
+        "safe_bound",
+        "baseline",
+        "storage_automatic",
+        "dataflow",
+        "object_identity",
+        "source_control",
+        "capacity"
+      ]
+    },
+    {
+      "expected": "NO_MATCH",
+      "graph": "graphs/neg_16.json",
+      "id": "neg_16",
+      "partition": "public",
+      "tags": [
+        "negative",
+        "direct",
+        "counter_evidence",
+        "safe_bound",
+        "baseline",
+        "storage_automatic",
+        "dataflow",
+        "object_identity",
+        "source_control",
+        "capacity"
+      ]
+    },
+    {
+      "expected": "NO_MATCH",
+      "graph": "graphs/neg_17.json",
+      "id": "neg_17",
+      "partition": "public",
+      "tags": [
+        "negative",
+        "direct",
+        "counter_evidence",
+        "safe_bound",
+        "baseline",
+        "storage_automatic",
+        "dataflow",
+        "object_identity",
+        "source_control",
+        "capacity"
+      ]
+    },
+    {
+      "expected": "NO_MATCH",
+      "graph": "graphs/neg_18.json",
+      "id": "neg_18",
+      "partition": "public",
+      "tags": [
+        "negative",
+        "direct",
+        "counter_evidence",
+        "safe_bound",
+        "baseline",
+        "storage_automatic",
+        "dataflow",
+        "object_identity",
+        "source_control",
+        "capacity"
+      ]
+    },
+    {
+      "expected": "NO_MATCH",
+      "graph": "graphs/neg_19.json",
+      "id": "neg_19",
+      "partition": "public",
+      "tags": [
+        "negative",
+        "direct",
+        "counter_evidence",
+        "wrong_sink",
+        "baseline",
+        "storage_automatic",
+        "dataflow",
+        "object_identity",
+        "source_control",
+        "capacity"
+      ]
+    },
+    {
+      "expected": "NO_MATCH",
+      "graph": "graphs/neg_20.json",
+      "id": "neg_20",
+      "partition": "public",
+      "tags": [
+        "negative",
+        "direct",
+        "counter_evidence",
+        "safe_bound",
+        "baseline",
+        "storage_automatic",
+        "dataflow",
+        "object_identity",
+        "source_control",
+        "capacity"
+      ]
+    },
+    {
+      "expected": "UNKNOWN",
+      "graph": "graphs/unknown_01.json",
+      "id": "unknown_01",
+      "partition": "public",
+      "tags": [
+        "unknown",
+        "direct",
+        "counter_evidence",
+        "incomplete_analysis",
+        "baseline",
+        "storage_automatic",
+        "dataflow",
+        "object_identity",
+        "source_control",
+        "capacity"
+      ]
+    },
+    {
+      "expected": "UNKNOWN",
+      "graph": "graphs/unknown_02.json",
+      "id": "unknown_02",
+      "partition": "public",
+      "tags": [
+        "unknown",
+        "direct",
+        "counter_evidence",
+        "incomplete_analysis",
+        "baseline",
+        "storage_automatic",
+        "dataflow",
+        "object_identity",
+        "source_control",
+        "capacity"
+      ]
+    },
+    {
+      "expected": "UNKNOWN",
+      "graph": "graphs/unknown_03.json",
+      "id": "unknown_03",
+      "partition": "public",
+      "tags": [
+        "unknown",
+        "direct",
+        "counter_evidence",
+        "unknown_extent",
+        "baseline",
+        "storage_automatic",
+        "dataflow",
+        "object_identity",
+        "source_control",
+        "capacity"
+      ]
+    },
+    {
+      "expected": "UNKNOWN",
+      "graph": "graphs/unknown_04.json",
+      "id": "unknown_04",
+      "partition": "public",
+      "tags": [
+        "unknown",
+        "direct",
+        "counter_evidence",
+        "incomplete_analysis",
+        "baseline",
+        "storage_automatic",
+        "dataflow",
+        "object_identity",
+        "source_control",
+        "capacity"
+      ]
+    },
+    {
+      "expected": "UNKNOWN",
+      "graph": "graphs/unknown_05.json",
+      "id": "unknown_05",
+      "partition": "public",
+      "tags": [
+        "unknown",
+        "direct",
+        "counter_evidence",
+        "incomplete_analysis",
+        "baseline",
+        "storage_automatic",
+        "dataflow",
+        "object_identity",
+        "source_control",
+        "capacity"
+      ]
+    },
+    {
+      "expected": "UNKNOWN",
+      "graph": "graphs/unknown_06.json",
+      "id": "unknown_06",
+      "partition": "public",
+      "tags": [
+        "unknown",
+        "direct",
+        "counter_evidence",
+        "unknown_extent",
+        "baseline",
+        "storage_automatic",
+        "dataflow",
+        "object_identity",
+        "source_control",
+        "capacity"
+      ]
+    },
+    {
+      "expected": "UNKNOWN",
+      "graph": "graphs/unknown_07.json",
+      "id": "unknown_07",
+      "partition": "public",
+      "tags": [
+        "unknown",
+        "direct",
+        "counter_evidence",
+        "incomplete_analysis",
+        "baseline",
+        "storage_automatic",
+        "dataflow",
+        "object_identity",
+        "source_control",
+        "capacity"
+      ]
+    },
+    {
+      "expected": "UNKNOWN",
+      "graph": "graphs/unknown_08.json",
+      "id": "unknown_08",
+      "partition": "public",
+      "tags": [
+        "unknown",
+        "direct",
+        "counter_evidence",
+        "incomplete_analysis",
+        "baseline",
+        "storage_automatic",
+        "dataflow",
+        "object_identity",
+        "source_control",
+        "capacity"
+      ]
+    },
+    {
+      "expected": "UNKNOWN",
+      "graph": "graphs/unknown_09.json",
+      "id": "unknown_09",
+      "partition": "public",
+      "tags": [
+        "unknown",
+        "direct",
+        "counter_evidence",
+        "unknown_extent",
+        "baseline",
+        "storage_automatic",
+        "dataflow",
+        "object_identity",
+        "source_control",
+        "capacity"
+      ]
+    },
+    {
+      "expected": "UNKNOWN",
+      "graph": "graphs/unknown_10.json",
+      "id": "unknown_10",
+      "partition": "public",
+      "tags": [
+        "unknown",
+        "direct",
+        "counter_evidence",
+        "incomplete_analysis",
+        "baseline",
+        "storage_automatic",
+        "dataflow",
+        "object_identity",
+        "source_control",
+        "capacity"
+      ]
+    },
+    {
+      "expected": "UNKNOWN",
+      "graph": "graphs/unknown_11.json",
+      "id": "unknown_11",
+      "partition": "public",
+      "tags": [
+        "unknown",
+        "direct",
+        "counter_evidence",
+        "incomplete_analysis",
+        "baseline",
+        "storage_automatic",
+        "dataflow",
+        "object_identity",
+        "source_control",
+        "capacity"
+      ]
+    },
+    {
+      "expected": "UNKNOWN",
+      "graph": "graphs/unknown_12.json",
+      "id": "unknown_12",
+      "partition": "public",
+      "tags": [
+        "unknown",
+        "direct",
+        "counter_evidence",
+        "unknown_extent",
+        "baseline",
+        "storage_automatic",
+        "dataflow",
+        "object_identity",
+        "source_control",
+        "capacity"
+      ]
+    },
+    {
+      "changed_dimension": "mutate_extent_only",
+      "expected": "NO_MATCH",
+      "expected_relation": "flip",
+      "graph": "graphs/adv_01.json",
+      "id": "adv_01",
+      "mutation_of": "pos_01",
+      "partition": "public",
+      "tags": [
+        "negative",
+        "direct",
+        "counter_evidence",
+        "mutate_extent_only",
+        "adversarial",
+        "storage_automatic",
+        "dataflow",
+        "object_identity",
+        "source_control",
+        "capacity"
+      ]
+    },
+    {
+      "changed_dimension": "mutate_extent_only",
+      "expected": "NO_MATCH",
+      "expected_relation": "flip",
+      "graph": "graphs/adv_02.json",
+      "id": "adv_02",
+      "mutation_of": "pos_02",
+      "partition": "public",
+      "tags": [
+        "negative",
+        "direct",
+        "counter_evidence",
+        "mutate_extent_only",
+        "adversarial",
+        "storage_automatic",
+        "dataflow",
+        "object_identity",
+        "source_control",
+        "capacity"
+      ]
+    },
+    {
+      "changed_dimension": "mutate_extent_only",
+      "expected": "NO_MATCH",
+      "expected_relation": "flip",
+      "graph": "graphs/adv_03.json",
+      "id": "adv_03",
+      "mutation_of": "pos_03",
+      "partition": "public",
+      "tags": [
+        "negative",
+        "direct",
+        "counter_evidence",
+        "mutate_extent_only",
+        "adversarial",
+        "storage_automatic",
+        "dataflow",
+        "object_identity",
+        "source_control",
+        "capacity"
+      ]
+    },
+    {
+      "changed_dimension": "mutate_extent_only",
+      "expected": "NO_MATCH",
+      "expected_relation": "flip",
+      "graph": "graphs/adv_04.json",
+      "id": "adv_04",
+      "mutation_of": "pos_04",
+      "partition": "public",
+      "tags": [
+        "negative",
+        "direct",
+        "counter_evidence",
+        "mutate_extent_only",
+        "adversarial",
+        "storage_automatic",
+        "dataflow",
+        "object_identity",
+        "source_control",
+        "capacity"
+      ]
+    },
+    {
+      "changed_dimension": "mutate_object_only",
+      "expected": "NO_MATCH",
+      "expected_relation": "flip",
+      "graph": "graphs/adv_05.json",
+      "id": "adv_05",
+      "mutation_of": "pos_01",
+      "partition": "public",
+      "tags": [
+        "negative",
+        "direct",
+        "counter_evidence",
+        "mutate_object_only",
+        "adversarial",
+        "storage_automatic",
+        "dataflow",
+        "missing_object_identity",
+        "source_control",
+        "capacity"
+      ]
+    },
+    {
+      "changed_dimension": "mutate_object_only",
+      "expected": "NO_MATCH",
+      "expected_relation": "flip",
+      "graph": "graphs/adv_06.json",
+      "id": "adv_06",
+      "mutation_of": "pos_02",
+      "partition": "public",
+      "tags": [
+        "negative",
+        "direct",
+        "counter_evidence",
+        "mutate_object_only",
+        "adversarial",
+        "storage_automatic",
+        "dataflow",
+        "missing_object_identity",
+        "source_control",
+        "capacity"
+      ]
+    },
+    {
+      "changed_dimension": "mutate_object_only",
+      "expected": "NO_MATCH",
+      "expected_relation": "flip",
+      "graph": "graphs/adv_07.json",
+      "id": "adv_07",
+      "mutation_of": "pos_03",
+      "partition": "public",
+      "tags": [
+        "negative",
+        "direct",
+        "counter_evidence",
+        "mutate_object_only",
+        "adversarial",
+        "storage_automatic",
+        "dataflow",
+        "missing_object_identity",
+        "source_control",
+        "capacity"
+      ]
+    },
+    {
+      "changed_dimension": "mutate_object_only",
+      "expected": "NO_MATCH",
+      "expected_relation": "flip",
+      "graph": "graphs/adv_08.json",
+      "id": "adv_08",
+      "mutation_of": "pos_04",
+      "partition": "public",
+      "tags": [
+        "negative",
+        "direct",
+        "counter_evidence",
+        "mutate_object_only",
+        "adversarial",
+        "storage_automatic",
+        "dataflow",
+        "missing_object_identity",
+        "source_control",
+        "capacity"
+      ]
+    },
+    {
+      "changed_dimension": "mutate_analysis_completeness",
+      "expected": "UNKNOWN",
+      "expected_relation": "indeterminate",
+      "graph": "graphs/adv_09.json",
+      "id": "adv_09",
+      "mutation_of": "pos_01",
+      "partition": "public",
+      "tags": [
+        "unknown",
+        "direct",
+        "counter_evidence",
+        "mutate_analysis_completeness",
+        "adversarial",
+        "storage_automatic",
+        "dataflow",
+        "object_identity",
+        "source_control",
+        "capacity"
+      ]
+    },
+    {
+      "changed_dimension": "mutate_analysis_completeness",
+      "expected": "UNKNOWN",
+      "expected_relation": "indeterminate",
+      "graph": "graphs/adv_10.json",
+      "id": "adv_10",
+      "mutation_of": "pos_02",
+      "partition": "public",
+      "tags": [
+        "unknown",
+        "direct",
+        "counter_evidence",
+        "mutate_analysis_completeness",
+        "adversarial",
+        "storage_automatic",
+        "dataflow",
+        "object_identity",
+        "source_control",
+        "capacity"
+      ]
+    },
+    {
+      "changed_dimension": "mutate_analysis_completeness",
+      "expected": "UNKNOWN",
+      "expected_relation": "indeterminate",
+      "graph": "graphs/adv_11.json",
+      "id": "adv_11",
+      "mutation_of": "pos_03",
+      "partition": "public",
+      "tags": [
+        "unknown",
+        "direct",
+        "counter_evidence",
+        "mutate_analysis_completeness",
+        "adversarial",
+        "storage_automatic",
+        "dataflow",
+        "object_identity",
+        "source_control",
+        "capacity"
+      ]
+    },
+    {
+      "changed_dimension": "mutate_analysis_completeness",
+      "expected": "UNKNOWN",
+      "expected_relation": "indeterminate",
+      "graph": "graphs/adv_12.json",
+      "id": "adv_12",
+      "mutation_of": "pos_04",
+      "partition": "public",
+      "tags": [
+        "unknown",
+        "direct",
+        "counter_evidence",
+        "mutate_analysis_completeness",
+        "adversarial",
+        "storage_automatic",
+        "dataflow",
+        "object_identity",
+        "source_control",
+        "capacity"
+      ]
+    }
+  ],
+  "description": "Public executable benchmark for one Evidence Family. UNKNOWN means the graph does not justify a definitive positive/negative conclusion.",
+  "manifest_id": "cwe-120-allocation-capacity-overflow-public-2.0"
+}

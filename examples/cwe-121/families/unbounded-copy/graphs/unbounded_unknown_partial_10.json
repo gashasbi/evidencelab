@@ -1,0 +1,102 @@
+{
+  "schema_version": "1.0",
+  "format": "evidencelab-canonical-graph",
+  "metadata": {
+    "format": "json",
+    "parser": "synthetic-corpus",
+    "completeness": "partial",
+    "parse_health": "OK",
+    "case_variant": "missing_target_properties"
+  },
+  "nodes": [
+    {
+      "id": "u10_s",
+      "type": "METHOD_PARAMETER_IN",
+      "properties": {
+        "name": "u10",
+        "code": "char *u10",
+        "typeFullName": "char*",
+        "derived": {
+          "name": "u10",
+          "storage_duration": "PARAMETER"
+        }
+      }
+    },
+    {
+      "id": "u10_k",
+      "type": "CALL",
+      "properties": {
+        "name": "strcpy",
+        "code": "strcpy(buf_u10, u10)",
+        "methodFullName": "strcpy",
+        "derived": {
+          "name": "strcpy",
+          "call_name": "strcpy",
+          "unbounded_write_like": true
+        }
+      }
+    },
+    {
+      "id": "u10_d",
+      "type": "IDENTIFIER",
+      "properties": {
+        "name": "buf_u10",
+        "code": "buf_u10",
+        "typeFullName": "char[32]",
+        "derived": {
+          "name": "buf_u10",
+          "type_full_name": "char[32]"
+        }
+      }
+    },
+    {
+      "id": "u10_t",
+      "type": "LOCAL",
+      "properties": {
+        "code": "char buf_u10[32]",
+        "name": "buf_u10",
+        "typeFullName": "char[32]",
+        "derived": {
+          "name": "buf_u10",
+          "storage_duration": "AUTOMATIC",
+          "stack_candidate": true,
+          "physical_stack_region": "UNKNOWN"
+        }
+      }
+    },
+    {
+      "id": "u10_e",
+      "type": "IDENTIFIER",
+      "properties": {
+        "name": "unknown_len",
+        "code": "unknown_len",
+        "derived": {}
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "e1",
+      "source": "u10_k",
+      "target": "u10_d",
+      "type": "ARGUMENT",
+      "properties": {
+        "argumentIndex": 1
+      }
+    },
+    {
+      "id": "e2",
+      "source": "u10_d",
+      "target": "u10_t",
+      "type": "REF",
+      "properties": {}
+    },
+    {
+      "id": "e3",
+      "source": "u10_s",
+      "target": "u10_d",
+      "type": "REACHING_DEF",
+      "properties": {}
+    }
+  ]
+}

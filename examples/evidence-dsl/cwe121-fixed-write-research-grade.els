@@ -1,0 +1,193 @@
+evidence "cwe-121.fixed-write-001" {
+  cwe "CWE-121"
+  name "Fixed-extent write beyond an automatic local array"
+  version "1.0.0"
+  language "C/C++"
+  family_id "cwe-121-fixed-write"
+  description "Researcher-authored evidence: an input reaches a fixed-extent memory write whose destination resolves to the same automatic array object and the deterministic write extent exceeds byte capacity."
+  unknown_policy "unknown"
+  counter_unknown_policy "block_match"
+
+  path_budget {"max_hops":12,"max_paths_per_claim":100}
+  coverage {"required_dimensions":["positive","negative","unknown","counter_evidence","object_identity","dataflow","analysis_completeness"]}
+  provenance [{"kind":"cwe","source":"MITRE CWE-121","url":"https://cwe.mitre.org/data/definitions/121.html"},{"kind":"methodology","source":"EvidenceLab researcher-authored evidence"}]
+  evidence_contract {"tri_state":true,"counter_evidence_binding":"same_witness","minimum_sufficient_witness":true}
+  semantic_contract {"canonical_graph_required":true,"analyzer_independent":true}
+  relevance_policy {"minimum_sufficient_witness":true,"reject_unrelated_bindings":true,"max_path_hops":12}
+  provenance_policy {"derived_facts_require_inputs":true,"artifact_hashes":true}
+
+  concept "source_parameter" {
+    selector {
+      canonical_type_any ["PARAMETER"]
+    }
+  }
+  concept "memory_write" {
+    selector {
+      canonical_type_any ["CALL"]
+      name_any ["memcpy"]
+    }
+  }
+  concept "destination_expression" {
+    selector {
+      canonical_type_any ["IDENTIFIER"]
+    }
+  }
+  concept "automatic_array" {
+    selector {
+      canonical_type_any ["LOCAL"]
+      properties {"derived.storage_duration":"AUTOMATIC","derived.is_array":true}
+    }
+  }
+  concept "write_extent" {
+    selector {
+      canonical_type_any ["LITERAL","IDENTIFIER","CALL"]
+      properties {"derived.argument_role":"extent"}
+    }
+  }
+
+  slot "source" {
+    concept "source_parameter"
+    max_matches 100
+  }
+  slot "sink" {
+    concept "memory_write"
+    max_matches 100
+  }
+  slot "destination" {
+    concept "destination_expression"
+    max_matches 300
+  }
+  slot "target" {
+    concept "automatic_array"
+    max_matches 100
+  }
+  slot "extent" {
+    concept "write_extent"
+    max_matches 100
+  }
+
+  claim "C1" {
+    kind "node"
+    required true
+    slot "source"
+    description "An input parameter node exists."
+  }
+  claim "C2" {
+    kind "node"
+    required true
+    slot "sink"
+    description "A fixed-extent memory-write call exists."
+  }
+  claim "C3" {
+    kind "node"
+    required true
+    slot "destination"
+    description "A concrete destination expression exists."
+  }
+  claim "C4" {
+    kind "node"
+    required true
+    slot "target"
+    description "The destination resolves to an automatic local array."
+  }
+  claim "C5" {
+    kind "node"
+    required true
+    slot "extent"
+    description "A deterministic write extent expression exists."
+  }
+  claim "C6" {
+    kind "edge"
+    required true
+    source "sink"
+    target "destination"
+    edge_types ["ARGUMENT"]
+    description "The destination is the write-sink argument."
+  }
+  claim "C7" {
+    kind "path"
+    required true
+    source "source"
+    target "destination"
+    relation "DATA_FLOW"
+    max_hops 12
+    description "The input reaches the destination through semantic data flow."
+  }
+  claim "C8" {
+    kind "edge"
+    required true
+    source "destination"
+    target "target"
+    direction "either"
+    edge_types ["REF"]
+    description "Destination resolves to the target object."
+  }
+  claim "C9" {
+    kind "property"
+    required true
+    slot "target"
+    equals {"derived.storage_duration":"AUTOMATIC"}
+    description "Target storage is automatic."
+  }
+  claim "C10" {
+    kind "property"
+    required true
+    slot "target"
+    equals {"derived.is_array":true}
+    description "Target is an array."
+  }
+  claim "C11" {
+    kind "compare"
+    required true
+    left {
+      slot "extent"
+      property "derived.numeric_value"
+    }
+    operator ">"
+    right {
+      slot "target"
+      property "derived.length"
+    }
+    description "Write extent exceeds proven byte capacity."
+  }
+
+  claim "C12" {
+    kind "edge"
+    required true
+    source "sink"
+    target "extent"
+    edge_types ["ARGUMENT"]
+    description "The selected extent is an argument of the same memory-write call."
+  }
+
+  counter "X1" {
+    kind "compare"
+    required false
+    left {
+      slot "extent"
+      property "derived.numeric_value"
+    }
+    operator "<="
+    right {
+      slot "target"
+      property "derived.length"
+    }
+    description "A non-exceeding extent refutes the overflow-size condition."
+  }
+  counter "X2" {
+    kind "property"
+    required false
+    slot "target"
+    equals {"derived.storage_duration":"STATIC"}
+    description "Static storage refutes the automatic-storage condition."
+  }
+
+  witness "W1" {
+    slots ["source","sink","destination","target","extent"]
+    claims ["C1","C2","C3","C4","C5","C6","C7","C8","C9","C10","C11","C12"]
+    counter_claims ["X1","X2"]
+    required true
+    distinct_slots true
+    max_combinations 50000
+  }
+}

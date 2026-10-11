@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns">
+  <key id="labelV" for="node" attr.name="labelV" attr.type="string"/>
+  <key id="labelE" for="edge" attr.name="labelE" attr.type="string"/>
+  <key id="node__CALL__CODE" for="node" attr.name="CODE" attr.type="string"/>
+  <key id="node__CALL__NAME" for="node" attr.name="NAME" attr.type="string"/>
+  <key id="node__CALL__TYPE_FULL_NAME" for="node" attr.name="TYPE_FULL_NAME" attr.type="string"/>
+  <key id="node__LITERAL__CODE" for="node" attr.name="CODE" attr.type="string"/>
+  <key id="node__LITERAL__TYPE_FULL_NAME" for="node" attr.name="TYPE_FULL_NAME" attr.type="string"/>
+  <key id="edge__ARGUMENT__property" for="edge" attr.name="property" attr.type="string"/>
+  <graph id="G" edgedefault="directed">
+    <node id="1">
+      <data key="labelV">CALL</data>
+      <data key="node__CALL__CODE">memcpy(buffer, input, 64)</data>
+      <data key="node__CALL__NAME">memcpy</data>
+      <data key="node__CALL__TYPE_FULL_NAME">ANY</data>
+    </node>
+    <node id="2">
+      <data key="labelV">LOCAL</data>
+      <data key="node__CALL__CODE">char buffer[32]</data>
+    </node>
+    <node id="3">
+      <data key="labelV">LITERAL</data>
+      <data key="node__LITERAL__CODE">64</data>
+      <data key="node__LITERAL__TYPE_FULL_NAME">int</data>
+    </node>
+    <edge id="e1" source="1" target="3">
+      <data key="labelE">ARGUMENT</data>
+      <data key="edge__ARGUMENT__property">3</data>
+    </edge>
+  </graph>
+</graphml>

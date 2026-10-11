@@ -1,0 +1,15 @@
+{
+  "version": "1.0.0",
+  "release_type": "stable_public_release",
+  "core_identity": "Evidence Laboratory",
+  "primary_contracts": [
+    "researcher-authored Evidence",
+    "Evidence Specification Language",
+    "researcher-defined experimental-material mapping"
+  ],
+  "dataset_policy": "external experimental material; explicit researcher mapping",
+  "evidence_policy": "researcher-authored; executable; provenance-aware; uncertainty-preserving",
+  "automation_boundary": "EvidenceLab validates and executes researcher semantics; it does not silently invent or rewrite them",
+  "artifact_schema_version": "1.0",
+  "migration_policy": "Imported pattern representations are normalized to the current contract and flagged for researcher review."
+}

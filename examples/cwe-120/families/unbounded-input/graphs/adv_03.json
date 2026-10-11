@@ -1,0 +1,120 @@
+{
+  "edges": [
+    {
+      "id": "ctx_sink",
+      "properties": {},
+      "source": "m",
+      "target": "k",
+      "type": "CONTAINS"
+    },
+    {
+      "id": "ctx_dest",
+      "properties": {},
+      "source": "m",
+      "target": "d",
+      "type": "CONTAINS"
+    },
+    {
+      "id": "ctx_target",
+      "properties": {},
+      "source": "m",
+      "target": "t",
+      "type": "CONTAINS"
+    },
+    {
+      "id": "e1",
+      "properties": {
+        "argumentIndex": 1
+      },
+      "source": "k",
+      "target": "d",
+      "type": "ARGUMENT"
+    },
+    {
+      "id": "e2",
+      "properties": {},
+      "source": "d",
+      "target": "t",
+      "type": "REF"
+    }
+  ],
+  "format": "evidencelab-canonical-graph",
+  "metadata": {
+    "case_variant": "mutate_extent_only",
+    "completeness": "declared",
+    "expected_label": "NO_MATCH",
+    "format": "json",
+    "parse_health": "OK",
+    "parser": "synthetic-cwe120-v2"
+  },
+  "nodes": [
+    {
+      "id": "m",
+      "properties": {
+        "fullName": "copy_adv_03",
+        "name": "copy_adv_03",
+        "node_kind": "METHOD",
+        "research_case_id": "adv_03"
+      },
+      "type": "METHOD"
+    },
+    {
+      "id": "k",
+      "properties": {
+        "code": "scanf(...)",
+        "fixed_extent_write_like": false,
+        "format_write_like": false,
+        "input_operation_like": true,
+        "memory_write_like": false,
+        "methodFullName": "scanf",
+        "name": "scanf",
+        "node_kind": "CALL",
+        "research_case_id": "adv_03",
+        "unbounded_input_like": false,
+        "unbounded_write_like": false
+      },
+      "type": "CALL"
+    },
+    {
+      "id": "d",
+      "properties": {
+        "code": "buffer",
+        "derived": {
+          "argument_index": 1,
+          "argument_role": "destination",
+          "name": "buffer",
+          "node_kind": "IDENTIFIER"
+        },
+        "name": "buffer",
+        "research_case_id": "adv_03",
+        "typeFullName": "char[32]"
+      },
+      "type": "IDENTIFIER"
+    },
+    {
+      "id": "t",
+      "properties": {
+        "byte_capacity_known": true,
+        "capacity_proof": "ARRAY_LENGTH",
+        "capacity_unit": "BYTES",
+        "code": "char buffer[32]",
+        "element_count": 32,
+        "is_array": true,
+        "length": 32,
+        "memory_capacity": 32,
+        "memory_capacity_known": true,
+        "memory_region": "AUTOMATIC",
+        "name": "buffer",
+        "node_kind": "LOCAL",
+        "object_id": "obj::buffer",
+        "object_id_proof": "EXPLICIT",
+        "physical_stack_region": "UNKNOWN",
+        "research_case_id": "adv_03",
+        "storage_duration": "AUTOMATIC",
+        "typeFullName": "char[32]"
+      },
+      "type": "LOCAL"
+    }
+  ],
+  "schema_version": "1.0"
+}

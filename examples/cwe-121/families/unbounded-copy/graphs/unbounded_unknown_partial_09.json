@@ -1,0 +1,107 @@
+{
+  "schema_version": "1.0",
+  "format": "evidencelab-canonical-graph",
+  "metadata": {
+    "format": "json",
+    "parser": "synthetic-corpus",
+    "completeness": "partial",
+    "parse_health": "OK",
+    "candidate_truncated": {
+      "target": true
+    },
+    "case_variant": "truncated_candidate_metadata"
+  },
+  "nodes": [
+    {
+      "id": "u9_s",
+      "type": "METHOD_PARAMETER_IN",
+      "properties": {
+        "name": "u9",
+        "code": "char *u9",
+        "typeFullName": "char*",
+        "derived": {
+          "name": "u9",
+          "storage_duration": "PARAMETER"
+        }
+      }
+    },
+    {
+      "id": "u9_k",
+      "type": "CALL",
+      "properties": {
+        "name": "strcpy",
+        "code": "strcpy(buf_u9, u9)",
+        "methodFullName": "strcpy",
+        "derived": {
+          "name": "strcpy",
+          "call_name": "strcpy",
+          "unbounded_write_like": true
+        }
+      }
+    },
+    {
+      "id": "u9_d",
+      "type": "IDENTIFIER",
+      "properties": {
+        "name": "buf_u9",
+        "code": "buf_u9",
+        "typeFullName": "char[32]",
+        "derived": {
+          "name": "buf_u9",
+          "type_full_name": "char[32]"
+        }
+      }
+    },
+    {
+      "id": "u9_t",
+      "type": "LOCAL",
+      "properties": {
+        "code": "char buf_u9[32]",
+        "name": "buf_u9",
+        "typeFullName": "char[32]",
+        "derived": {
+          "name": "buf_u9",
+          "is_array": true,
+          "length": 32,
+          "storage_duration": "AUTOMATIC",
+          "stack_candidate": true,
+          "physical_stack_region": "UNKNOWN"
+        }
+      }
+    },
+    {
+      "id": "u9_e",
+      "type": "IDENTIFIER",
+      "properties": {
+        "name": "unknown_len",
+        "code": "unknown_len",
+        "derived": {}
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "e1",
+      "source": "u9_k",
+      "target": "u9_d",
+      "type": "ARGUMENT",
+      "properties": {
+        "argumentIndex": 1
+      }
+    },
+    {
+      "id": "e2",
+      "source": "u9_d",
+      "target": "u9_t",
+      "type": "REF",
+      "properties": {}
+    },
+    {
+      "id": "e3",
+      "source": "u9_s",
+      "target": "u9_d",
+      "type": "REACHING_DEF",
+      "properties": {}
+    }
+  ]
+}

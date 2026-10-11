@@ -1,0 +1,20 @@
+{
+  "manifest_id": "cwe121-unbounded-copy-hidden-template",
+  "partition": "hidden",
+  "description": "Evaluator-owned hidden benchmark template. Do not populate with public graph digests.",
+  "cases": [
+    {
+      "id": "hidden_case_001",
+      "graph": "graphs/hidden_case_001.json",
+      "expected": "UNKNOWN",
+      "partition": "hidden",
+      "tags": [
+        "hidden",
+        "unknown"
+      ],
+      "mutation_of": "hidden_parent_not_public",
+      "changed_dimension": "EXAMPLE_TEMPLATE_VALUE_DO_NOT_USE"
+    }
+  ],
+  "template_status": "TEMPLATE_ONLY"
+}

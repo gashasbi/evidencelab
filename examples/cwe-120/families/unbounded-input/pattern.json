@@ -1,0 +1,519 @@
+{
+  "claims": [
+    {
+      "description": "A concrete containing method context is bound.",
+      "id": "C01",
+      "kind": "node",
+      "required": true,
+      "slot": "context"
+    },
+    {
+      "description": "A candidate copy/input operation is bound.",
+      "id": "C02",
+      "kind": "node",
+      "required": true,
+      "slot": "sink"
+    },
+    {
+      "description": "The concrete destination expression is bound.",
+      "id": "C03",
+      "kind": "node",
+      "required": true,
+      "slot": "destination"
+    },
+    {
+      "description": "The destination resolves to a concrete memory object.",
+      "id": "C04",
+      "kind": "node",
+      "required": true,
+      "slot": "target"
+    },
+    {
+      "description": "The sink belongs to the witness method context.",
+      "direction": "out",
+      "id": "C05",
+      "kind": "relation",
+      "max_hops": 1,
+      "relation": "PARENT_METHOD",
+      "required": true,
+      "source": "context",
+      "target": "sink"
+    },
+    {
+      "description": "The sink destination argument is the witness destination according to the semantic argument-role model.",
+      "direction": "out",
+      "id": "C06",
+      "kind": "edge",
+      "max_hops": 1,
+      "relation": "CALL_ARGUMENT",
+      "required": true,
+      "source": "sink",
+      "target": "destination"
+    },
+    {
+      "description": "The destination expression resolves to the target object.",
+      "direction": "either",
+      "id": "C07",
+      "kind": "relation",
+      "max_hops": 3,
+      "relation": "REFERENCE",
+      "required": true,
+      "source": "destination",
+      "target": "target"
+    },
+    {
+      "description": "Destination and target are proven to denote the same object.",
+      "id": "C08",
+      "kind": "same_object",
+      "required": true,
+      "source": "destination",
+      "target": "target"
+    },
+    {
+      "description": "The sink is a modeled memory-copy/write operation.",
+      "equals": {
+        "derived.memory_write_like": true
+      },
+      "id": "C09",
+      "kind": "semantic",
+      "required": true,
+      "slot": "sink"
+    },
+    {
+      "description": "Target capacity is proven.",
+      "equals": {
+        "derived.memory_capacity_known": true
+      },
+      "id": "C10",
+      "kind": "semantic",
+      "required": true,
+      "slot": "target"
+    },
+    {
+      "description": "Capacity and copy extent use byte units.",
+      "equals": {
+        "derived.capacity_unit": "BYTES"
+      },
+      "id": "C11",
+      "kind": "semantic",
+      "required": true,
+      "slot": "target"
+    },
+    {
+      "description": "Capacity has explicit derivation provenance.",
+      "id": "C12",
+      "kind": "property",
+      "properties_present": [
+        "derived.capacity_proof"
+      ],
+      "required": true,
+      "slot": "target"
+    },
+    {
+      "description": "Storage region is explicitly modeled.",
+      "id": "C13",
+      "kind": "property",
+      "properties_present": [
+        "derived.memory_region"
+      ],
+      "required": true,
+      "slot": "target"
+    },
+    {
+      "description": "The sink is an input acquisition operation.",
+      "equals": {
+        "derived.input_operation_like": true
+      },
+      "id": "C17",
+      "kind": "semantic",
+      "required": true,
+      "slot": "sink"
+    },
+    {
+      "description": "The input format does not provide a field width that bounds the destination write.",
+      "equals": {
+        "derived.unbounded_input_like": true
+      },
+      "id": "C18",
+      "kind": "semantic",
+      "required": true,
+      "slot": "sink"
+    },
+    {
+      "description": "The sink is a modeled direct external-input API.",
+      "equals": {
+        "derived.potential_external_input": true
+      },
+      "id": "C19",
+      "kind": "semantic",
+      "required": true,
+      "slot": "sink"
+    },
+    {
+      "any_of": {
+        "derived.memory_region": [
+          "AUTOMATIC",
+          "STATIC",
+          "HEAP",
+          "LOCAL_OR_GLOBAL"
+        ]
+      },
+      "description": "The target region is within the supported storage scope.",
+      "id": "C20",
+      "kind": "property",
+      "required": true,
+      "slot": "target"
+    }
+  ],
+  "concepts": {
+    "context": {
+      "selectors": [
+        {
+          "type_any": [
+            "METHOD"
+          ],
+          "canonical_type_any": [
+            "METHOD"
+          ]
+        }
+      ]
+    },
+    "destination": {
+      "selectors": [
+        {
+          "properties": {
+            "derived.argument_role": "destination"
+          },
+          "type_any": [
+            "IDENTIFIER"
+          ],
+          "canonical_type_any": [
+            "IDENTIFIER"
+          ]
+        }
+      ]
+    },
+    "guard": {
+      "selectors": [
+        {
+          "properties": {
+            "derived.guard_safe": true
+          },
+          "type_any": [
+            "CONTROL_STRUCTURE",
+            "CALL",
+            "BLOCK"
+          ],
+          "canonical_type_any": [
+            "BLOCK",
+            "CALL",
+            "CONTROL"
+          ]
+        }
+      ]
+    },
+    "sink": {
+      "selectors": [
+        {
+          "name_any": [
+            "gets",
+            "scanf",
+            "fscanf",
+            "sscanf"
+          ],
+          "type_any": [
+            "CALL"
+          ],
+          "canonical_type_any": [
+            "CALL"
+          ]
+        }
+      ]
+    },
+    "target": {
+      "selectors": [
+        {
+          "properties": {
+            "derived.is_array": true
+          },
+          "type_any": [
+            "LOCAL",
+            "IDENTIFIER"
+          ],
+          "canonical_type_any": [
+            "IDENTIFIER",
+            "LOCAL"
+          ]
+        },
+        {
+          "properties": {
+            "derived.allocation_like": true
+          },
+          "type_any": [
+            "CALL"
+          ],
+          "canonical_type_any": [
+            "CALL"
+          ]
+        }
+      ]
+    },
+    "input_source": {
+      "selectors": [
+        {
+          "properties": {
+            "derived.potential_external_input": true
+          },
+          "type_any": [
+            "CALL"
+          ],
+          "canonical_type_any": [
+            "CALL"
+          ]
+        }
+      ]
+    }
+  },
+  "counter_evidence": [
+    {
+      "description": "A proven safe guard dominates the vulnerable operation and refutes the candidate witness.",
+      "direction": "out",
+      "id": "X01",
+      "kind": "relation_any",
+      "max_hops": 1,
+      "relation": "DOMINANCE",
+      "required": false,
+      "source_selector": {
+        "properties": {
+          "derived.guard_safe": true
+        },
+        "type_any": [
+          "CONTROL_STRUCTURE",
+          "CALL",
+          "BLOCK"
+        ]
+      },
+      "target": "sink"
+    },
+    {
+      "description": "A field width or equivalent bound refutes the unbounded-input family.",
+      "equals": {
+        "derived.unbounded_input_like": false
+      },
+      "id": "X02",
+      "kind": "semantic",
+      "required": false,
+      "slot": "sink"
+    }
+  ],
+  "counter_unknown_policy": "block_match",
+  "coverage": {
+    "minimum_hidden_cases": 60,
+    "minimum_public_cases": 60,
+    "required_dimensions": [
+      "positive",
+      "negative",
+      "unknown",
+      "direct",
+      "interprocedural",
+      "counter_evidence",
+      "adversarial",
+      "storage_automatic",
+      "storage_static",
+      "storage_heap",
+      "dataflow",
+      "capacity",
+      "source_control"
+    ],
+    "requires_adversarial_mutations": true,
+    "research_variants": [
+      "same_function",
+      "interprocedural",
+      "cross_file",
+      "pointer_alias",
+      "static_storage",
+      "heap_storage",
+      "safe_bound",
+      "missing_dataflow",
+      "missing_capacity",
+      "symbolic_range",
+      "wrong_object",
+      "distractor_literal",
+      "guard_dominance",
+      "unknown_analysis"
+    ],
+    "unknown_counter_dimension": true
+  },
+  "cwe": "CWE-120",
+  "description": "Unbounded formatted input acquisition into a finite-capacity destination.. This is an Evidence Family, not a universal CWE-120 rule. A MATCH proves only the stated evidence class.",
+  "language": "C/C++",
+  "metadata": {
+    "coherence_rule": "All required positive claims and applicable counter-evidence are evaluated against one coherent witness.",
+    "evidence_definition_version": "1.0",
+    "evidence_level": "ROOT_CAUSE_UNCHECKED_COPY",
+    "research_question": "Which graph-observable facts are jointly sufficient to prove this CWE-120 Evidence Family while refusing unsupported conclusions?",
+    "scope_boundary": "Concrete overflow is claimed only when extent/range is proven to exceed byte capacity. Unbounded families prove root-cause conditions, not concrete overflow magnitude or exploitability.",
+    "storage_rule": "Storage region is a dimension, not part of CWE-120 identity; automatic/static/heap are accepted when capacity is proven.",
+    "unknown_rule": "UNKNOWN never becomes MATCH and incomplete/truncated analysis cannot produce a definitive match."
+  },
+  "name": "Unbounded formatted input acquisition into a finite-capacity destination.",
+  "pattern_id": "cwe-120-unbounded-input-001",
+  "provenance": [
+    {
+      "kind": "cwe",
+      "source": "MITRE CWE-120",
+      "url": "https://cwe.mitre.org/data/definitions/120.html",
+      "scope": "Authoritative weakness definition used to delimit this Evidence Family."
+    },
+    {
+      "kind": "literature",
+      "source": "MITRE CWE-120 v4.20",
+      "url": "https://cwe.mitre.org/data/definitions/120.html"
+    },
+    {
+      "kind": "literature",
+      "source": "MITRE CWE-787 v4.20",
+      "url": "https://cwe.mitre.org/data/definitions/787.html"
+    },
+    {
+      "kind": "dataset",
+      "source": "NIST SAMATE Juliet C/C++ 1.3",
+      "url": "https://samate.nist.gov/SARD/test-suites/112Software"
+    },
+    {
+      "kind": "tool",
+      "source": "Joern CPG slicing",
+      "url": "https://docs.joern.io/cpg-slicing/"
+    },
+    {
+      "kind": "tool",
+      "source": "Joern data-flow steps",
+      "url": "https://docs.joern.io/cpgql/data-flow-steps/"
+    },
+    {
+      "kind": "tool",
+      "source": "Joern QueryDB testing guidance",
+      "url": "https://github.com/joernio/joern/blob/master/querydb/README.md"
+    },
+    {
+      "kind": "analysis",
+      "source": "CodeQL C/C++ data flow",
+      "url": "https://codeql.github.com/docs/codeql-language-guides/analyzing-data-flow-in-cpp/"
+    },
+    {
+      "kind": "analysis",
+      "source": "CodeQL C/C++ range analysis",
+      "url": "https://codeql.github.com/docs/codeql-language-guides/using-range-analsis-in-cpp/"
+    },
+    {
+      "kind": "guideline",
+      "source": "SEI CERT STR07-C",
+      "url": "https://wiki.sei.cmu.edu/confluence/display/c/STR07-C.%2BUse%2Bthe%2Bbounds-checking%2Binterfaces%2Bfor%2Bstring%2Bmanipulation"
+    },
+    {
+      "kind": "guideline",
+      "source": "SEI CERT MEM35-C",
+      "url": "https://wiki.sei.cmu.edu/confluence/display/c/MEM35-C.+Allocate+sufficient+memory+for+an+object"
+    },
+    {
+      "kind": "standard",
+      "source": "OASIS SARIF 2.1.0",
+      "url": "https://docs.oasis-open.org/sarif/sarif/v2.1.0/os/sarif-v2.1.0-os.html"
+    }
+  ],
+  "required_claim_groups": [],
+  "schema_version": "1.0",
+  "slots": [
+    {
+      "concept": "context",
+      "id": "context",
+      "max_matches": 40,
+      "required": true
+    },
+    {
+      "concept": "sink",
+      "id": "sink",
+      "max_matches": 40,
+      "required": true
+    },
+    {
+      "concept": "destination",
+      "id": "destination",
+      "max_matches": 40,
+      "required": true
+    },
+    {
+      "concept": "target",
+      "id": "target",
+      "max_matches": 40,
+      "required": true
+    }
+  ],
+  "unknown_policy": "unknown",
+  "version": "1.0.0",
+  "witnesses": [
+    {
+      "claims": [
+        "C01",
+        "C02",
+        "C03",
+        "C04",
+        "C05",
+        "C06",
+        "C07",
+        "C08",
+        "C09",
+        "C10",
+        "C11",
+        "C12",
+        "C13",
+        "C17",
+        "C18",
+        "C19",
+        "C20"
+      ],
+      "counter_claims": [
+        "X01",
+        "X02"
+      ],
+      "distinct_slots": true,
+      "id": "W1",
+      "max_combinations": 50000,
+      "required": true,
+      "slots": [
+        "context",
+        "sink",
+        "destination",
+        "target"
+      ]
+    }
+  ],
+  "family_id": "cwe-120-unbounded-input-001",
+  "evidence_contract": {
+    "unknown_policy": "unknown",
+    "counter_unknown_policy": "block_match",
+    "tri_state": true,
+    "counter_evidence_binding": "same_witness",
+    "minimum_sufficient_witness": true
+  },
+  "semantic_contract": {
+    "canonical_graph_required": true,
+    "analyzer_independent": true
+  },
+  "relevance_policy": {
+    "minimum_sufficient_witness": true,
+    "max_path_hops": 12,
+    "reject_unrelated_bindings": true
+  },
+  "path_budget": {
+    "max_hops": 12,
+    "max_paths_per_claim": 100
+  },
+  "provenance_policy": {
+    "derived_facts_require_inputs": true,
+    "artifact_hashes": true,
+    "literature_linkage": true,
+    "require_query_hash": true,
+    "case_identity_required": true
+  }
+}

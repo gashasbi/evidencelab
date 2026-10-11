@@ -1,0 +1,155 @@
+{
+  "edges": [
+    {
+      "id": "ctx_sink",
+      "properties": {},
+      "source": "m",
+      "target": "k",
+      "type": "CONTAINS"
+    },
+    {
+      "id": "ctx_dest",
+      "properties": {},
+      "source": "m",
+      "target": "d",
+      "type": "CONTAINS"
+    },
+    {
+      "id": "ctx_target",
+      "properties": {},
+      "source": "m",
+      "target": "t",
+      "type": "CONTAINS"
+    },
+    {
+      "id": "file_sink",
+      "properties": {},
+      "source": "f_sink",
+      "target": "m",
+      "type": "SOURCE_FILE"
+    },
+    {
+      "id": "e1",
+      "properties": {
+        "argumentIndex": 1
+      },
+      "source": "k",
+      "target": "d",
+      "type": "ARGUMENT"
+    },
+    {
+      "id": "e2",
+      "properties": {},
+      "source": "d",
+      "target": "t",
+      "type": "REF"
+    }
+  ],
+  "format": "evidencelab-canonical-graph",
+  "metadata": {
+    "case_variant": "cross_file",
+    "completeness": "declared",
+    "expected_label": "MATCH",
+    "format": "json",
+    "parse_health": "OK",
+    "parser": "synthetic-cwe120-v2"
+  },
+  "nodes": [
+    {
+      "id": "m",
+      "properties": {
+        "fullName": "copy_pos_18",
+        "name": "copy_pos_18",
+        "node_kind": "METHOD",
+        "research_case_id": "pos_18"
+      },
+      "type": "METHOD"
+    },
+    {
+      "id": "m_src",
+      "properties": {
+        "fullName": "source_pos_18",
+        "name": "source_pos_18",
+        "node_kind": "METHOD",
+        "research_case_id": "pos_18"
+      },
+      "type": "METHOD"
+    },
+    {
+      "id": "f_src",
+      "properties": {
+        "filename": "source_pos_18.c",
+        "name": "source_pos_18.c",
+        "node_kind": "FILE",
+        "research_case_id": "pos_18"
+      },
+      "type": "FILE"
+    },
+    {
+      "id": "f_sink",
+      "properties": {
+        "filename": "sink_pos_18.c",
+        "name": "sink_pos_18.c",
+        "node_kind": "FILE",
+        "research_case_id": "pos_18"
+      },
+      "type": "FILE"
+    },
+    {
+      "id": "k",
+      "properties": {
+        "code": "gets(...)",
+        "fixed_extent_write_like": false,
+        "format_write_like": false,
+        "input_operation_like": true,
+        "memory_write_like": false,
+        "methodFullName": "gets",
+        "name": "gets",
+        "node_kind": "CALL",
+        "research_case_id": "pos_18",
+        "unbounded_input_like": true,
+        "unbounded_write_like": false
+      },
+      "type": "CALL"
+    },
+    {
+      "id": "d",
+      "properties": {
+        "code": "buffer",
+        "derived": {
+          "argument_index": 1,
+          "argument_role": "destination",
+          "name": "buffer",
+          "node_kind": "IDENTIFIER"
+        },
+        "name": "buffer",
+        "research_case_id": "pos_18",
+        "typeFullName": "char[48]"
+      },
+      "type": "IDENTIFIER"
+    },
+    {
+      "id": "t",
+      "properties": {
+        "code": "malloc(48)",
+        "derived": {
+          "allocation_like": true,
+          "capacity_proof": "ALLOC_CALL_ARG",
+          "capacity_unit": "BYTES",
+          "memory_capacity": 48,
+          "memory_capacity_known": true,
+          "memory_region": "HEAP",
+          "name": "malloc",
+          "node_kind": "CALL",
+          "object_id": "alloc::buffer",
+          "object_id_proof": "EXPLICIT",
+          "research_case_id": "pos_18"
+        },
+        "methodFullName": "malloc",
+        "name": "malloc"
+      },
+      "type": "CALL"
+    }
+  ],
+  "schema_version": "1.0"
+}

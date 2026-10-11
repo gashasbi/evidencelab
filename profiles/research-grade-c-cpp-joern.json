@@ -1,0 +1,56 @@
+{
+  "profile_id": "research-grade-c-cpp-joern",
+  "task": {
+    "cwe": "ANY",
+    "language": "C/C++",
+    "substrate": "Joern"
+  },
+  "required_metadata": [
+    "research_question",
+    "evidence_definition_version"
+  ],
+  "required_claim_kinds": [
+    "node",
+    "relation",
+    "property",
+    "compare"
+  ],
+  "required_dimensions": [
+    "positive",
+    "negative",
+    "unknown",
+    "direct",
+    "interprocedural",
+    "counter_evidence"
+  ],
+  "require_provenance": true,
+  "require_unique_graphs": true,
+  "audit": {
+    "min_required_claims": 8,
+    "min_concepts": 5,
+    "min_required_claim_kinds": 4,
+    "min_provenance": 3,
+    "require_counter_evidence": true,
+    "require_query_provenance": true,
+    "require_coverage": true,
+    "max_recommended_hops": 20,
+    "require_relation_edge_types": true,
+    "signature_only_is_error": true,
+    "min_coverage_dimensions": 6,
+    "require_unknown_policy": true
+  },
+  "gates": {
+    "min_total": 40,
+    "min_positive": 15,
+    "min_negative": 15,
+    "min_unknown": 5,
+    "min_precision": 0.92,
+    "min_recall": 0.88,
+    "min_f1": 0.9,
+    "min_specificity": 0.92,
+    "max_false_positive_rate": 0.08,
+    "min_balanced_accuracy": 0.9
+  },
+  "require_hidden_validation": false,
+  "max_actual_partial": 8
+}

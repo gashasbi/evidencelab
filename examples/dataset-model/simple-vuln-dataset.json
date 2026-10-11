@@ -1,0 +1,64 @@
+{
+  "schema_version": "1.0",
+  "dataset": {
+    "id": "researcher-vuln-example",
+    "name": "Researcher Vulnerability Example",
+    "version": "1.0.0"
+  },
+  "source_root": ".",
+  "input": {
+    "type": "records",
+    "path": "cases.jsonl",
+    "format": "jsonl"
+  },
+  "case": {
+    "id": {
+      "path": "id",
+      "transform": "string"
+    },
+    "truth": {
+      "state": {
+        "path": "label",
+        "transform": "truth"
+      },
+      "authority": "DATASET_DECLARED"
+    },
+    "claims": [
+      {
+        "type": "weakness",
+        "value": {
+          "path": "cwe",
+          "transform": "cwe"
+        }
+      }
+    ],
+    "artifacts": [
+      {
+        "id": "source",
+        "kind": "source",
+        "path": {
+          "path": "source",
+          "transform": "string"
+        }
+      }
+    ],
+    "locations": [
+      {
+        "artifact": "source",
+        "line": {
+          "path": "line",
+          "transform": "int"
+        }
+      }
+    ],
+    "relations": [
+      {
+        "type": "paired_with",
+        "target": {
+          "path": "pair",
+          "transform": "string"
+        }
+      }
+    ]
+  }
+}

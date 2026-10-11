@@ -1,0 +1,104 @@
+{
+  "schema_version": "1.0",
+  "format": "evidencelab-canonical-graph",
+  "metadata": {
+    "format": "json",
+    "parser": "synthetic-corpus",
+    "completeness": "declared",
+    "parse_health": "OK",
+    "case_variant": "negative_discriminator"
+  },
+  "nodes": [
+    {
+      "id": "stat4_s",
+      "type": "METHOD_PARAMETER_IN",
+      "properties": {
+        "name": "stat4",
+        "code": "char *stat4",
+        "typeFullName": "char*",
+        "derived": {
+          "name": "stat4",
+          "storage_duration": "PARAMETER"
+        }
+      }
+    },
+    {
+      "id": "stat4_k",
+      "type": "CALL",
+      "properties": {
+        "name": "strcat",
+        "code": "strcat(buf_stat4, stat4)",
+        "methodFullName": "strcat",
+        "derived": {
+          "name": "strcat",
+          "call_name": "strcat",
+          "unbounded_write_like": true
+        }
+      }
+    },
+    {
+      "id": "stat4_d",
+      "type": "IDENTIFIER",
+      "properties": {
+        "name": "buf_stat4",
+        "code": "buf_stat4",
+        "typeFullName": "char[33]",
+        "derived": {
+          "name": "buf_stat4",
+          "type_full_name": "char[33]"
+        }
+      }
+    },
+    {
+      "id": "stat4_t",
+      "type": "LOCAL",
+      "properties": {
+        "code": "static char buf_stat4[33]",
+        "name": "buf_stat4",
+        "typeFullName": "char[33]",
+        "derived": {
+          "name": "buf_stat4",
+          "is_array": true,
+          "length": 33,
+          "storage_duration": "STATIC_LOCAL",
+          "stack_candidate": false,
+          "physical_stack_region": "UNKNOWN"
+        }
+      }
+    },
+    {
+      "id": "stat4_e",
+      "type": "IDENTIFIER",
+      "properties": {
+        "name": "unknown_len",
+        "code": "unknown_len",
+        "derived": {}
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "e1",
+      "source": "stat4_k",
+      "target": "stat4_d",
+      "type": "ARGUMENT",
+      "properties": {
+        "argumentIndex": 1
+      }
+    },
+    {
+      "id": "e2",
+      "source": "stat4_d",
+      "target": "stat4_t",
+      "type": "REF",
+      "properties": {}
+    },
+    {
+      "id": "e3",
+      "source": "stat4_s",
+      "target": "stat4_d",
+      "type": "REACHING_DEF",
+      "properties": {}
+    }
+  ]
+}

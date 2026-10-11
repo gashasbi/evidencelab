@@ -1,0 +1,127 @@
+{
+  "cases": [
+    {
+      "families": [
+        "unbounded-string-copy"
+      ],
+      "id": "P01_direct_strcpy",
+      "source": "corpus/source/P01_direct_strcpy.c",
+      "expected": {
+        "unbounded-string-copy": "MATCH"
+      }
+    },
+    {
+      "families": [
+        "fixed-extent-overflow"
+      ],
+      "id": "P02_fixed_memcpy",
+      "source": "corpus/source/P02_fixed_memcpy.c",
+      "expected": {
+        "fixed-extent-overflow": "MATCH"
+      }
+    },
+    {
+      "families": [
+        "fixed-extent-overflow"
+      ],
+      "id": "N01_safe_memcpy",
+      "source": "corpus/source/N01_safe_memcpy.c",
+      "expected": {
+        "fixed-extent-overflow": "NO_MATCH"
+      }
+    },
+    {
+      "families": [
+        "symbolic-range-overflow"
+      ],
+      "id": "U01_symbolic_extent",
+      "source": "corpus/source/U01_symbolic_extent.c",
+      "expected": {
+        "symbolic-range-overflow": "UNKNOWN"
+      }
+    },
+    {
+      "families": [
+        "unbounded-string-copy"
+      ],
+      "id": "N02_guarded_strcpy",
+      "source": "corpus/source/N02_guarded_strcpy.c",
+      "expected": {
+        "unbounded-string-copy": "UNKNOWN"
+      }
+    },
+    {
+      "families": [
+        "unbounded-input"
+      ],
+      "id": "P03_gets",
+      "source": "corpus/source/P03_gets.c",
+      "expected": {
+        "unbounded-input": "MATCH"
+      }
+    },
+    {
+      "families": [
+        "unbounded-input"
+      ],
+      "id": "P04_scanf",
+      "source": "corpus/source/P04_scanf.c",
+      "expected": {
+        "unbounded-input": "MATCH"
+      }
+    },
+    {
+      "families": [
+        "unbounded-input"
+      ],
+      "id": "N03_scanf_bounded",
+      "source": "corpus/source/N03_scanf_bounded.c",
+      "expected": {
+        "unbounded-input": "NO_MATCH"
+      }
+    },
+    {
+      "families": [
+        "unbounded-format-output"
+      ],
+      "id": "P05_sprintf",
+      "source": "corpus/source/P05_sprintf.c",
+      "expected": {
+        "unbounded-format-output": "MATCH"
+      }
+    },
+    {
+      "families": [
+        "unbounded-format-output"
+      ],
+      "id": "N04_snprintf",
+      "source": "corpus/source/N04_snprintf.c",
+      "expected": {
+        "unbounded-format-output": "NO_MATCH"
+      }
+    },
+    {
+      "families": [
+        "allocation-capacity-overflow",
+        "fixed-extent-overflow"
+      ],
+      "id": "P06_heap_memcpy",
+      "source": "corpus/source/P06_heap_memcpy.c",
+      "expected": {
+        "allocation-capacity-overflow": "MATCH"
+      }
+    },
+    {
+      "families": [
+        "fixed-extent-overflow"
+      ],
+      "id": "P07_strncpy_large_count",
+      "source": "corpus/source/P07_strncpy_large_count.c",
+      "expected": {
+        "fixed-extent-overflow": "MATCH"
+      }
+    }
+  ],
+  "cwe": "CWE-120",
+  "schema_version": "1.0"
+}

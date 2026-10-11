@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/gashasbi/evidencelab/schemas/compatibility.schema.json",
+  "title": "EvidenceLab Compatibility Matrix",
+  "type": "object",
+  "required": [
+    "tool_version",
+    "schema_version",
+    "artifact_versions",
+    "migration_rules"
+  ],
+  "properties": {
+    "tool_version": {
+      "const": "1.0.0"
+    },
+    "schema_version": {
+      "const": "1.0"
+    },
+    "artifact_versions": {
+      "type": "object",
+      "additionalProperties": {
+        "const": "1.0"
+      }
+    },
+    "migration_rules": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object"
+      }
+    }
+  }
+}

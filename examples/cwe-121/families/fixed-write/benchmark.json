@@ -1,0 +1,590 @@
+{
+  "manifest_id": "cwe121-fixed-public-1.1",
+  "cases": [
+    {
+      "id": "fixed_pos_01",
+      "graph": "graphs/fixed_pos_01.json",
+      "expected": "MATCH",
+      "partition": "public",
+      "tags": [
+        "positive",
+        "direct",
+        "bounded_extent",
+        "automatic_storage",
+        "semantic_dataflow"
+      ]
+    },
+    {
+      "id": "fixed_pos_02",
+      "graph": "graphs/fixed_pos_02.json",
+      "expected": "MATCH",
+      "partition": "public",
+      "tags": [
+        "positive",
+        "direct",
+        "bounded_extent",
+        "automatic_storage",
+        "semantic_dataflow"
+      ]
+    },
+    {
+      "id": "fixed_pos_03",
+      "graph": "graphs/fixed_pos_03.json",
+      "expected": "MATCH",
+      "partition": "public",
+      "tags": [
+        "positive",
+        "direct",
+        "bounded_extent",
+        "automatic_storage",
+        "semantic_dataflow"
+      ]
+    },
+    {
+      "id": "fixed_pos_04",
+      "graph": "graphs/fixed_pos_04.json",
+      "expected": "MATCH",
+      "partition": "public",
+      "tags": [
+        "positive",
+        "direct",
+        "bounded_extent",
+        "automatic_storage",
+        "semantic_dataflow"
+      ]
+    },
+    {
+      "id": "fixed_pos_05",
+      "graph": "graphs/fixed_pos_05.json",
+      "expected": "MATCH",
+      "partition": "public",
+      "tags": [
+        "positive",
+        "direct",
+        "bounded_extent",
+        "automatic_storage",
+        "semantic_dataflow"
+      ]
+    },
+    {
+      "id": "fixed_pos_06",
+      "graph": "graphs/fixed_pos_06.json",
+      "expected": "MATCH",
+      "partition": "public",
+      "tags": [
+        "positive",
+        "direct",
+        "bounded_extent",
+        "automatic_storage",
+        "semantic_dataflow"
+      ]
+    },
+    {
+      "id": "fixed_pos_07",
+      "graph": "graphs/fixed_pos_07.json",
+      "expected": "MATCH",
+      "partition": "public",
+      "tags": [
+        "positive",
+        "direct",
+        "bounded_extent",
+        "automatic_storage",
+        "semantic_dataflow"
+      ]
+    },
+    {
+      "id": "fixed_pos_08",
+      "graph": "graphs/fixed_pos_08.json",
+      "expected": "MATCH",
+      "partition": "public",
+      "tags": [
+        "positive",
+        "direct",
+        "bounded_extent",
+        "automatic_storage",
+        "semantic_dataflow"
+      ]
+    },
+    {
+      "id": "fixed_pos_09",
+      "graph": "graphs/fixed_pos_09.json",
+      "expected": "MATCH",
+      "partition": "public",
+      "tags": [
+        "positive",
+        "direct",
+        "bounded_extent",
+        "automatic_storage",
+        "semantic_dataflow"
+      ]
+    },
+    {
+      "id": "fixed_pos_10",
+      "graph": "graphs/fixed_pos_10.json",
+      "expected": "MATCH",
+      "partition": "public",
+      "tags": [
+        "positive",
+        "direct",
+        "bounded_extent",
+        "automatic_storage",
+        "semantic_dataflow"
+      ]
+    },
+    {
+      "id": "fixed_neg_bound_01",
+      "graph": "graphs/fixed_neg_bound_01.json",
+      "expected": "NO_MATCH",
+      "partition": "public",
+      "tags": [
+        "negative",
+        "direct",
+        "bounded_extent",
+        "counter_evidence"
+      ]
+    },
+    {
+      "id": "fixed_neg_bound_02",
+      "graph": "graphs/fixed_neg_bound_02.json",
+      "expected": "NO_MATCH",
+      "partition": "public",
+      "tags": [
+        "negative",
+        "direct",
+        "bounded_extent",
+        "counter_evidence"
+      ]
+    },
+    {
+      "id": "fixed_neg_bound_03",
+      "graph": "graphs/fixed_neg_bound_03.json",
+      "expected": "NO_MATCH",
+      "partition": "public",
+      "tags": [
+        "negative",
+        "direct",
+        "bounded_extent",
+        "counter_evidence"
+      ]
+    },
+    {
+      "id": "fixed_neg_bound_04",
+      "graph": "graphs/fixed_neg_bound_04.json",
+      "expected": "NO_MATCH",
+      "partition": "public",
+      "tags": [
+        "negative",
+        "direct",
+        "bounded_extent",
+        "counter_evidence"
+      ]
+    },
+    {
+      "id": "fixed_neg_bound_05",
+      "graph": "graphs/fixed_neg_bound_05.json",
+      "expected": "NO_MATCH",
+      "partition": "public",
+      "tags": [
+        "negative",
+        "direct",
+        "bounded_extent",
+        "counter_evidence"
+      ]
+    },
+    {
+      "id": "fixed_neg_bound_06",
+      "graph": "graphs/fixed_neg_bound_06.json",
+      "expected": "NO_MATCH",
+      "partition": "public",
+      "tags": [
+        "negative",
+        "direct",
+        "bounded_extent",
+        "counter_evidence"
+      ]
+    },
+    {
+      "id": "fixed_neg_heap_01",
+      "graph": "graphs/fixed_neg_heap_01.json",
+      "expected": "NO_MATCH",
+      "partition": "public",
+      "tags": [
+        "negative",
+        "direct",
+        "heap_discriminator"
+      ]
+    },
+    {
+      "id": "fixed_neg_heap_02",
+      "graph": "graphs/fixed_neg_heap_02.json",
+      "expected": "NO_MATCH",
+      "partition": "public",
+      "tags": [
+        "negative",
+        "direct",
+        "heap_discriminator"
+      ]
+    },
+    {
+      "id": "fixed_neg_static_01",
+      "graph": "graphs/fixed_neg_static_01.json",
+      "expected": "NO_MATCH",
+      "partition": "public",
+      "tags": [
+        "negative",
+        "direct",
+        "static_discriminator"
+      ]
+    },
+    {
+      "id": "fixed_neg_static_02",
+      "graph": "graphs/fixed_neg_static_02.json",
+      "expected": "NO_MATCH",
+      "partition": "public",
+      "tags": [
+        "negative",
+        "direct",
+        "static_discriminator"
+      ]
+    },
+    {
+      "id": "fixed_neg_noflow_01",
+      "graph": "graphs/fixed_neg_noflow_01.json",
+      "expected": "NO_MATCH",
+      "partition": "public",
+      "tags": [
+        "negative",
+        "direct",
+        "semantic_dataflow"
+      ]
+    },
+    {
+      "id": "fixed_neg_noflow_02",
+      "graph": "graphs/fixed_neg_noflow_02.json",
+      "expected": "NO_MATCH",
+      "partition": "public",
+      "tags": [
+        "negative",
+        "direct",
+        "semantic_dataflow"
+      ]
+    },
+    {
+      "id": "fixed_unknown_extent_01",
+      "graph": "graphs/fixed_unknown_extent_01.json",
+      "expected": "NO_MATCH",
+      "partition": "public",
+      "tags": [
+        "direct",
+        "negative",
+        "missing_extent_argument"
+      ],
+      "notes": "Complete graph explicitly lacks the write-extent argument edge; absence is therefore a proven non-match, not UNKNOWN."
+    },
+    {
+      "id": "fixed_unknown_extent_02",
+      "graph": "graphs/fixed_unknown_extent_02.json",
+      "expected": "NO_MATCH",
+      "partition": "public",
+      "tags": [
+        "direct",
+        "negative",
+        "missing_extent_argument"
+      ],
+      "notes": "Complete graph explicitly lacks the write-extent argument edge; absence is therefore a proven non-match, not UNKNOWN."
+    },
+    {
+      "id": "fixed_unknown_extent_03",
+      "graph": "graphs/fixed_unknown_extent_03.json",
+      "expected": "UNKNOWN",
+      "partition": "public",
+      "tags": [
+        "unknown",
+        "direct",
+        "unknown_extent"
+      ]
+    },
+    {
+      "id": "fixed_unknown_partial_01",
+      "graph": "graphs/fixed_unknown_partial_01.json",
+      "expected": "UNKNOWN",
+      "partition": "public",
+      "tags": [
+        "unknown",
+        "partial_graph",
+        "missing_dataflow",
+        "missing_extent_binding"
+      ]
+    },
+    {
+      "id": "fixed_unknown_partial_02",
+      "graph": "graphs/fixed_unknown_partial_02.json",
+      "expected": "UNKNOWN",
+      "partition": "public",
+      "tags": [
+        "unknown",
+        "partial_graph",
+        "missing_reference"
+      ]
+    },
+    {
+      "id": "fixed_negative_wrong_sink_01",
+      "graph": "graphs/fixed_negative_wrong_sink_01.json",
+      "expected": "NO_MATCH",
+      "partition": "public",
+      "tags": [
+        "negative",
+        "direct",
+        "wrong_sink"
+      ]
+    },
+    {
+      "id": "fixed_negative_wrong_sink_02",
+      "graph": "graphs/fixed_negative_wrong_sink_02.json",
+      "expected": "NO_MATCH",
+      "partition": "public",
+      "tags": [
+        "negative",
+        "direct",
+        "wrong_sink"
+      ]
+    },
+    {
+      "id": "fixed_pos_11",
+      "graph": "graphs/fixed_pos_11.json",
+      "expected": "MATCH",
+      "partition": "public",
+      "tags": [
+        "positive",
+        "direct",
+        "bounded_extent",
+        "automatic_storage",
+        "semantic_dataflow"
+      ]
+    },
+    {
+      "id": "fixed_neg_bound_07",
+      "graph": "graphs/fixed_neg_bound_07.json",
+      "expected": "NO_MATCH",
+      "partition": "public",
+      "tags": [
+        "negative",
+        "direct",
+        "bounded_extent",
+        "counter_evidence"
+      ]
+    },
+    {
+      "id": "fixed_pos_12_interprocedural",
+      "graph": "graphs/fixed_pos_12_interprocedural.json",
+      "expected": "MATCH",
+      "partition": "public",
+      "tags": [
+        "positive",
+        "interprocedural",
+        "bounded_extent",
+        "automatic_storage",
+        "semantic_dataflow"
+      ]
+    },
+    {
+      "id": "fixed_pos_13",
+      "graph": "graphs/fixed_pos_13.json",
+      "expected": "MATCH",
+      "partition": "public",
+      "tags": [
+        "positive",
+        "direct",
+        "bounded_extent",
+        "automatic_storage"
+      ]
+    },
+    {
+      "id": "fixed_pos_14",
+      "graph": "graphs/fixed_pos_14.json",
+      "expected": "MATCH",
+      "partition": "public",
+      "tags": [
+        "positive",
+        "direct",
+        "bounded_extent",
+        "automatic_storage"
+      ]
+    },
+    {
+      "id": "fixed_pos_15",
+      "graph": "graphs/fixed_pos_15.json",
+      "expected": "MATCH",
+      "partition": "public",
+      "tags": [
+        "positive",
+        "direct",
+        "bounded_extent",
+        "automatic_storage"
+      ]
+    },
+    {
+      "id": "fixed_pos_16",
+      "graph": "graphs/fixed_pos_16.json",
+      "expected": "MATCH",
+      "partition": "public",
+      "tags": [
+        "positive",
+        "direct",
+        "bounded_extent",
+        "automatic_storage"
+      ]
+    },
+    {
+      "id": "fixed_neg_bound_08",
+      "graph": "graphs/fixed_neg_bound_08.json",
+      "expected": "NO_MATCH",
+      "partition": "public",
+      "tags": [
+        "negative",
+        "direct",
+        "bounded_extent",
+        "counter_evidence"
+      ]
+    },
+    {
+      "id": "fixed_neg_bound_09",
+      "graph": "graphs/fixed_neg_bound_09.json",
+      "expected": "NO_MATCH",
+      "partition": "public",
+      "tags": [
+        "negative",
+        "direct",
+        "bounded_extent",
+        "counter_evidence"
+      ]
+    },
+    {
+      "id": "fixed_neg_bound_10",
+      "graph": "graphs/fixed_neg_bound_10.json",
+      "expected": "NO_MATCH",
+      "partition": "public",
+      "tags": [
+        "negative",
+        "direct",
+        "bounded_extent",
+        "counter_evidence"
+      ]
+    },
+    {
+      "id": "fixed_neg_bound_11",
+      "graph": "graphs/fixed_neg_bound_11.json",
+      "expected": "NO_MATCH",
+      "partition": "public",
+      "tags": [
+        "negative",
+        "direct",
+        "bounded_extent",
+        "counter_evidence"
+      ]
+    },
+    {
+      "id": "fixed_unknown_partial_04",
+      "graph": "graphs/fixed_unknown_partial_04.json",
+      "expected": "UNKNOWN",
+      "partition": "public",
+      "tags": [
+        "unknown",
+        "partial_graph",
+        "missing_destination_argument"
+      ]
+    },
+    {
+      "id": "fixed_unknown_partial_05",
+      "graph": "graphs/fixed_unknown_partial_05.json",
+      "expected": "UNKNOWN",
+      "partition": "public",
+      "tags": [
+        "unknown",
+        "partial_graph",
+        "missing_extent_binding"
+      ]
+    },
+    {
+      "id": "fixed_pos_expr_01",
+      "graph": "graphs/fixed_pos_expr_01.json",
+      "expected": "MATCH",
+      "partition": "public",
+      "tags": [
+        "positive",
+        "direct",
+        "bounded_extent",
+        "automatic_storage",
+        "semantic_dataflow",
+        "derived_expression"
+      ],
+      "mutation_of": "fixed_pos_01",
+      "changed_dimension": "derived_expression",
+      "expected_relation": "same"
+    },
+    {
+      "id": "fixed_pos_17",
+      "graph": "graphs/fixed_pos_17.json",
+      "expected": "MATCH",
+      "partition": "public",
+      "tags": [
+        "positive",
+        "direct",
+        "bounded_extent",
+        "automatic_storage",
+        "semantic_dataflow",
+        "alpha_renaming"
+      ],
+      "mutation_of": "fixed_pos_01",
+      "changed_dimension": "alpha_renaming_and_capacity",
+      "expected_relation": "same"
+    },
+    {
+      "id": "fixed_neg_unrelated_literal_01",
+      "graph": "graphs/fixed_neg_unrelated_literal_01.json",
+      "expected": "NO_MATCH",
+      "partition": "public",
+      "tags": [
+        "negative",
+        "direct",
+        "bounded_extent",
+        "adversarial",
+        "unrelated_literal_distractor",
+        "counter_evidence"
+      ],
+      "mutation_of": "fixed_pos_01",
+      "changed_dimension": "unrelated_literal_distractor",
+      "expected_relation": "flip"
+    },
+    {
+      "id": "fixed_unknown_partial_06",
+      "graph": "graphs/fixed_unknown_partial_06.json",
+      "expected": "UNKNOWN",
+      "partition": "public",
+      "tags": [
+        "unknown",
+        "partial_graph",
+        "missing_extent_binding"
+      ],
+      "mutation_of": "fixed_pos_01",
+      "changed_dimension": "missing_extent_binding",
+      "expected_relation": "indeterminate"
+    },
+    {
+      "id": "fixed_unknown_partial_07",
+      "graph": "graphs/fixed_unknown_partial_07.json",
+      "expected": "UNKNOWN",
+      "partition": "public",
+      "tags": [
+        "unknown",
+        "partial_graph",
+        "missing_target"
+      ],
+      "mutation_of": "fixed_pos_01",
+      "changed_dimension": "missing_target",
+      "expected_relation": "indeterminate"
+    }
+  ],
+  "allow_duplicate_graphs": false,
+  "schema_version": "1.0"
+}

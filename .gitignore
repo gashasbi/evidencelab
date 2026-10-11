@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Packaging/build outputs
+build/
+dist/
+*.egg-info/
+*.whl
+*.tar.gz
+
+# Local release output
+release/
+.tmp/
+
+# EvidenceLab runtime outputs
+outputs/
+results-local/
+.cache/
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Secrets/local configuration
+.env
+.env.*

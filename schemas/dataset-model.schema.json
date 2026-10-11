@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/gashasbi/evidencelab/schemas/dataset-model.schema.json",
+  "title": "EvidenceLab Researcher-defined experimental material mapping",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "dataset",
+    "source_root",
+    "input",
+    "case"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "dataset": {
+      "type": "object",
+      "required": [
+        "id",
+        "name",
+        "version"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "source_root": {
+      "type": "string"
+    },
+    "input": {
+      "type": "object",
+      "required": [
+        "type"
+      ],
+      "properties": {
+        "type": {
+          "enum": [
+            "records",
+            "directory"
+          ]
+        },
+        "path": {
+          "type": "string"
+        },
+        "format": {
+          "enum": [
+            "json",
+            "jsonl",
+            "ndjson",
+            "csv"
+          ]
+        }
+      },
+      "additionalProperties": true
+    },
+    "case": {
+      "type": "object",
+      "required": [
+        "id"
+      ],
+      "properties": {
+        "id": {
+          "type": "object",
+          "required": [
+            "path"
+          ]
+        },
+        "truth": {
+          "type": "object"
+        },
+        "claims": {
+          "type": "array"
+        },
+        "artifacts": {
+          "type": "array"
+        },
+        "locations": {
+          "type": "array"
+        },
+        "relations": {
+          "type": "array"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

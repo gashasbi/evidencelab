@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/gashasbi/evidencelab/schemas/observation.schema.json",
+  "title": "EvidenceLab Observation 1.0",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "observation_id",
+    "timestamp_utc",
+    "analyzer",
+    "state"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "observation_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "timestamp_utc": {
+      "type": "string",
+      "minLength": 1
+    },
+    "hypothesis_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "analyzer": {
+      "type": "string",
+      "minLength": 1
+    },
+    "query": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "artifact": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "statement": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "state": {
+      "type": "string",
+      "enum": [
+        "OBSERVED",
+        "ABSENT",
+        "UNKNOWN",
+        "NOT_APPLICABLE"
+      ]
+    },
+    "locations": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "raw_digest": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "notes": {
+      "type": "string"
+    },
+    "previous": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "digest": {
+      "type": "string",
+      "minLength": 64,
+      "maxLength": 64
+    }
+  }
+}

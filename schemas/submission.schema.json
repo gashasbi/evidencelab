@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/gashasbi/evidencelab/schemas/submission.schema.json",
+  "title": "EvidenceLab Submission 1.0",
+  "type": "object",
+  "required": [
+    "format",
+    "version",
+    "task",
+    "pattern",
+    "graph_artifacts"
+  ],
+  "properties": {
+    "format": {
+      "const": "evidencelab-submission"
+    },
+    "version": {
+      "const": "1.0"
+    },
+    "task": {
+      "type": "object",
+      "required": [
+        "cwe",
+        "language",
+        "substrate"
+      ],
+      "properties": {
+        "cwe": {
+          "type": "string",
+          "pattern": "^CWE-[0-9]+$"
+        },
+        "language": {
+          "const": "C/C++"
+        },
+        "substrate": {
+          "const": "Joern"
+        },
+        "joern_version": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "pattern": {
+      "type": "string"
+    },
+    "graph_artifacts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "object",
+            "required": [
+              "path",
+              "sha256"
+            ],
+            "properties": {
+              "path": {
+                "type": "string"
+              },
+              "sha256": {
+                "type": "string",
+                "minLength": 64,
+                "maxLength": 64
+              },
+              "size": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "additionalProperties": true
+          }
+        ]
+      }
+    },
+    "benchmark": {
+      "type": "string"
+    },
+    "research_notes": {
+      "type": "string"
+    },
+    "hashes": {
+      "type": "object"
+    },
+    "provenance": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    }
+  },
+  "additionalProperties": true
+}

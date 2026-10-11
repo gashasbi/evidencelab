@@ -1,0 +1,96 @@
+{
+  "schema_version": "1.0",
+  "format": "evidencelab-canonical-graph",
+  "metadata": {
+    "format": "json",
+    "parser": "synthetic-corpus",
+    "completeness": "declared",
+    "parse_health": "OK"
+  },
+  "nodes": [
+    {
+      "id": "s",
+      "type": "METHOD_PARAMETER_IN",
+      "properties": {
+        "name": "input",
+        "code": "char *input",
+        "typeFullName": "char*",
+        "derived": {
+          "name": "input",
+          "storage_duration": "PARAMETER"
+        }
+      }
+    },
+    {
+      "id": "k",
+      "type": "CALL",
+      "properties": {
+        "name": "strcpy",
+        "code": "strcpy(buffer, input)",
+        "methodFullName": "strcpy",
+        "derived": {
+          "name": "strcpy",
+          "call_name": "strcpy",
+          "unbounded_write_like": true
+        }
+      }
+    },
+    {
+      "id": "d",
+      "type": "IDENTIFIER",
+      "properties": {
+        "name": "buffer",
+        "code": "buffer",
+        "typeFullName": "char[32]",
+        "derived": {
+          "name": "buffer",
+          "type_full_name": "char[32]"
+        }
+      }
+    },
+    {
+      "id": "t",
+      "type": "LOCAL",
+      "properties": {
+        "code": "char buffer[32]",
+        "name": "buffer",
+        "typeFullName": "char[32]",
+        "derived": {
+          "name": "buffer",
+          "is_array": true,
+          "length": 32,
+          "storage_duration": "AUTOMATIC",
+          "stack_candidate": true,
+          "physical_stack_region": "UNKNOWN"
+        }
+      }
+    },
+    {
+      "id": "e",
+      "type": "IDENTIFIER",
+      "properties": {
+        "name": "n",
+        "code": "n",
+        "derived": {}
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "e1",
+      "source": "k",
+      "target": "d",
+      "type": "ARGUMENT",
+      "properties": {
+        "argumentIndex": 1
+      }
+    },
+    {
+      "id": "e2",
+      "source": "d",
+      "target": "t",
+      "type": "REF",
+      "properties": {}
+    }
+  ]
+}
