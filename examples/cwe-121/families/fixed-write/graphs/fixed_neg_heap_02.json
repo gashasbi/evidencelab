@@ -1,0 +1,114 @@
+{
+  "schema_version": "1.0",
+  "format": "evidencelab-canonical-graph",
+  "metadata": {
+    "format": "json",
+    "parser": "synthetic-corpus",
+    "completeness": "declared",
+    "parse_health": "OK",
+    "case_variant": "heap_pointer_alpha_rename"
+  },
+  "nodes": [
+    {
+      "id": "s",
+      "type": "METHOD_PARAMETER_IN",
+      "properties": {
+        "name": "input",
+        "code": "char *input",
+        "typeFullName": "char*",
+        "derived": {
+          "name": "input",
+          "storage_duration": "PARAMETER"
+        }
+      }
+    },
+    {
+      "id": "k",
+      "type": "CALL",
+      "properties": {
+        "name": "memcpy",
+        "code": "memcpy(heap_ptr, input, 64)",
+        "methodFullName": "memcpy",
+        "derived": {
+          "name": "memcpy",
+          "call_name": "memcpy",
+          "unbounded_write_like": false
+        }
+      }
+    },
+    {
+      "id": "d",
+      "type": "IDENTIFIER",
+      "properties": {
+        "name": "heap_ptr",
+        "code": "heap_ptr",
+        "typeFullName": "char*",
+        "derived": {
+          "name": "heap_ptr",
+          "type_full_name": "char*"
+        }
+      }
+    },
+    {
+      "id": "t",
+      "type": "LOCAL",
+      "properties": {
+        "code": "char *heap_ptr",
+        "name": "heap_ptr",
+        "typeFullName": "char*",
+        "derived": {
+          "name": "heap_ptr",
+          "is_array": false,
+          "length": null,
+          "storage_duration": "AUTOMATIC",
+          "stack_candidate": true,
+          "physical_stack_region": "UNKNOWN"
+        }
+      }
+    },
+    {
+      "id": "e",
+      "type": "LITERAL",
+      "properties": {
+        "code": "64",
+        "derived": {
+          "numeric_value": 64
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "e1",
+      "source": "k",
+      "target": "d",
+      "type": "ARGUMENT",
+      "properties": {
+        "argumentIndex": 1
+      }
+    },
+    {
+      "id": "e2",
+      "source": "d",
+      "target": "t",
+      "type": "REF",
+      "properties": {}
+    },
+    {
+      "id": "e3",
+      "source": "s",
+      "target": "d",
+      "type": "REACHING_DEF",
+      "properties": {}
+    },
+    {
+      "id": "e4",
+      "source": "k",
+      "target": "e",
+      "type": "ARGUMENT",
+      "properties": {
+        "argumentIndex": 3
+      }
+    }
+  ]
+}

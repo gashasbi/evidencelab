@@ -1,0 +1,727 @@
+{
+  "cwe": "CWE-120",
+  "families": [
+    {
+      "counter_evidence": [
+        {
+          "description": "A proven safe guard dominates the vulnerable operation and refutes the candidate witness.",
+          "id": "X01",
+          "kind": "relation_any"
+        },
+        {
+          "description": "A non-overflowing write extent refutes concrete overflow.",
+          "id": "X02",
+          "kind": "compare"
+        }
+      ],
+      "evidence_level": "CONCRETE_OVERFLOW",
+      "family_id": "cwe-120-fixed-extent-overflow-001",
+      "limitations": "Concrete overflow is claimed only when extent/range is proven to exceed byte capacity. Unbounded families prove root-cause conditions, not concrete overflow magnitude or exploitability.",
+      "name": "Concrete fixed-extent copy where proven write extent exceeds proven destination capacity.",
+      "required_claims": [
+        {
+          "description": "A concrete containing method context is bound.",
+          "id": "C01",
+          "kind": "node"
+        },
+        {
+          "description": "A candidate copy/input operation is bound.",
+          "id": "C02",
+          "kind": "node"
+        },
+        {
+          "description": "The concrete destination expression is bound.",
+          "id": "C03",
+          "kind": "node"
+        },
+        {
+          "description": "The destination resolves to a concrete memory object.",
+          "id": "C04",
+          "kind": "node"
+        },
+        {
+          "description": "The sink belongs to the witness method context.",
+          "id": "C05",
+          "kind": "relation"
+        },
+        {
+          "description": "The sink destination argument is the witness destination according to the semantic argument-role model.",
+          "id": "C06",
+          "kind": "edge"
+        },
+        {
+          "description": "The destination expression resolves to the target object.",
+          "id": "C07",
+          "kind": "relation"
+        },
+        {
+          "description": "Destination and target are proven to denote the same object.",
+          "id": "C08",
+          "kind": "same_object"
+        },
+        {
+          "description": "The sink is a modeled memory-copy/write operation.",
+          "id": "C09",
+          "kind": "semantic"
+        },
+        {
+          "description": "Target capacity is proven.",
+          "id": "C10",
+          "kind": "semantic"
+        },
+        {
+          "description": "Capacity and copy extent use byte units.",
+          "id": "C11",
+          "kind": "semantic"
+        },
+        {
+          "description": "Capacity has explicit derivation provenance.",
+          "id": "C12",
+          "kind": "property"
+        },
+        {
+          "description": "Storage region is explicitly modeled.",
+          "id": "C13",
+          "kind": "property"
+        },
+        {
+          "description": "The source expression is bound.",
+          "id": "C14",
+          "kind": "node"
+        },
+        {
+          "description": "Source is represented as a concrete value expression.",
+          "id": "C15",
+          "kind": "semantic"
+        },
+        {
+          "description": "Source value reaches the destination within the same witness.",
+          "id": "C16",
+          "kind": "relation"
+        },
+        {
+          "description": "The sink has fixed-extent copy semantics.",
+          "id": "C17",
+          "kind": "semantic"
+        },
+        {
+          "description": "The write extent expression is bound.",
+          "id": "C18",
+          "kind": "node"
+        },
+        {
+          "description": "The bound expression is the write extent argument.",
+          "id": "C19",
+          "kind": "semantic"
+        },
+        {
+          "description": "Proven write extent is greater than proven destination capacity.",
+          "id": "C20",
+          "kind": "compare"
+        },
+        {
+          "description": "The target region is within the supported storage scope.",
+          "id": "C21",
+          "kind": "property"
+        }
+      ],
+      "slug": "fixed-extent-overflow"
+    },
+    {
+      "counter_evidence": [
+        {
+          "description": "A proven safe guard dominates the vulnerable operation and refutes the candidate witness.",
+          "id": "X01",
+          "kind": "relation_any"
+        },
+        {
+          "description": "Every possible write extent is within capacity and refutes concrete overflow.",
+          "id": "X02",
+          "kind": "range_compare"
+        }
+      ],
+      "evidence_level": "CONCRETE_OVERFLOW",
+      "family_id": "cwe-120-symbolic-range-overflow-001",
+      "limitations": "Concrete overflow is claimed only when extent/range is proven to exceed byte capacity. Unbounded families prove root-cause conditions, not concrete overflow magnitude or exploitability.",
+      "name": "Concrete copy where every value in the proven extent range exceeds destination capacity.",
+      "required_claims": [
+        {
+          "description": "A concrete containing method context is bound.",
+          "id": "C01",
+          "kind": "node"
+        },
+        {
+          "description": "A candidate copy/input operation is bound.",
+          "id": "C02",
+          "kind": "node"
+        },
+        {
+          "description": "The concrete destination expression is bound.",
+          "id": "C03",
+          "kind": "node"
+        },
+        {
+          "description": "The destination resolves to a concrete memory object.",
+          "id": "C04",
+          "kind": "node"
+        },
+        {
+          "description": "The sink belongs to the witness method context.",
+          "id": "C05",
+          "kind": "relation"
+        },
+        {
+          "description": "The sink destination argument is the witness destination according to the semantic argument-role model.",
+          "id": "C06",
+          "kind": "edge"
+        },
+        {
+          "description": "The destination expression resolves to the target object.",
+          "id": "C07",
+          "kind": "relation"
+        },
+        {
+          "description": "Destination and target are proven to denote the same object.",
+          "id": "C08",
+          "kind": "same_object"
+        },
+        {
+          "description": "The sink is a modeled memory-copy/write operation.",
+          "id": "C09",
+          "kind": "semantic"
+        },
+        {
+          "description": "Target capacity is proven.",
+          "id": "C10",
+          "kind": "semantic"
+        },
+        {
+          "description": "Capacity and copy extent use byte units.",
+          "id": "C11",
+          "kind": "semantic"
+        },
+        {
+          "description": "Capacity has explicit derivation provenance.",
+          "id": "C12",
+          "kind": "property"
+        },
+        {
+          "description": "Storage region is explicitly modeled.",
+          "id": "C13",
+          "kind": "property"
+        },
+        {
+          "description": "The source expression is bound.",
+          "id": "C14",
+          "kind": "node"
+        },
+        {
+          "description": "Source is represented as a concrete value expression.",
+          "id": "C15",
+          "kind": "semantic"
+        },
+        {
+          "description": "Source value reaches the destination within the same witness.",
+          "id": "C16",
+          "kind": "relation"
+        },
+        {
+          "description": "The sink has fixed-extent copy semantics.",
+          "id": "C17",
+          "kind": "semantic"
+        },
+        {
+          "description": "The write extent expression is bound.",
+          "id": "C18",
+          "kind": "node"
+        },
+        {
+          "description": "The bound expression is the write extent argument.",
+          "id": "C19",
+          "kind": "semantic"
+        },
+        {
+          "description": "Every possible write extent is greater than destination capacity.",
+          "id": "C20",
+          "kind": "range_compare"
+        },
+        {
+          "description": "The target region is within the supported storage scope.",
+          "id": "C21",
+          "kind": "property"
+        }
+      ],
+      "slug": "symbolic-range-overflow"
+    },
+    {
+      "counter_evidence": [
+        {
+          "description": "A proven safe guard dominates the vulnerable operation and refutes the candidate witness.",
+          "id": "X01",
+          "kind": "relation_any"
+        },
+        {
+          "description": "A proven bounded output operation refutes the unbounded-format family.",
+          "id": "X02",
+          "kind": "semantic"
+        }
+      ],
+      "evidence_level": "ROOT_CAUSE_UNCHECKED_COPY",
+      "family_id": "cwe-120-unbounded-string-copy-001",
+      "limitations": "Concrete overflow is claimed only when extent/range is proven to exceed byte capacity. Unbounded families prove root-cause conditions, not concrete overflow magnitude or exploitability.",
+      "name": "Unchecked/unbounded string transfer into a finite-capacity destination; proves root-cause evidence, not exact overflow magnitude.",
+      "required_claims": [
+        {
+          "description": "A concrete containing method context is bound.",
+          "id": "C01",
+          "kind": "node"
+        },
+        {
+          "description": "A candidate copy/input operation is bound.",
+          "id": "C02",
+          "kind": "node"
+        },
+        {
+          "description": "The concrete destination expression is bound.",
+          "id": "C03",
+          "kind": "node"
+        },
+        {
+          "description": "The destination resolves to a concrete memory object.",
+          "id": "C04",
+          "kind": "node"
+        },
+        {
+          "description": "The sink belongs to the witness method context.",
+          "id": "C05",
+          "kind": "relation"
+        },
+        {
+          "description": "The sink destination argument is the witness destination according to the semantic argument-role model.",
+          "id": "C06",
+          "kind": "edge"
+        },
+        {
+          "description": "The destination expression resolves to the target object.",
+          "id": "C07",
+          "kind": "relation"
+        },
+        {
+          "description": "Destination and target are proven to denote the same object.",
+          "id": "C08",
+          "kind": "same_object"
+        },
+        {
+          "description": "The sink is a modeled memory-copy/write operation.",
+          "id": "C09",
+          "kind": "semantic"
+        },
+        {
+          "description": "Target capacity is proven.",
+          "id": "C10",
+          "kind": "semantic"
+        },
+        {
+          "description": "Capacity and copy extent use byte units.",
+          "id": "C11",
+          "kind": "semantic"
+        },
+        {
+          "description": "Capacity has explicit derivation provenance.",
+          "id": "C12",
+          "kind": "property"
+        },
+        {
+          "description": "Storage region is explicitly modeled.",
+          "id": "C13",
+          "kind": "property"
+        },
+        {
+          "description": "The source expression is bound.",
+          "id": "C14",
+          "kind": "node"
+        },
+        {
+          "description": "Source is represented as a concrete value expression.",
+          "id": "C15",
+          "kind": "semantic"
+        },
+        {
+          "description": "Source value reaches the destination within the same witness.",
+          "id": "C16",
+          "kind": "relation"
+        },
+        {
+          "description": "The copy operation is unbounded with respect to source length.",
+          "id": "C17",
+          "kind": "semantic"
+        },
+        {
+          "description": "No destination-size bound is encoded in the sink semantics.",
+          "id": "C18",
+          "kind": "semantic"
+        },
+        {
+          "description": "The target region is within the supported storage scope.",
+          "id": "C18",
+          "kind": "property"
+        }
+      ],
+      "slug": "unbounded-string-copy"
+    },
+    {
+      "counter_evidence": [
+        {
+          "description": "A proven safe guard dominates the vulnerable operation and refutes the candidate witness.",
+          "id": "X01",
+          "kind": "relation_any"
+        },
+        {
+          "description": "A proven bounded output operation refutes the unbounded-format family.",
+          "id": "X02",
+          "kind": "semantic"
+        }
+      ],
+      "evidence_level": "ROOT_CAUSE_UNCHECKED_COPY",
+      "family_id": "cwe-120-unbounded-format-output-001",
+      "limitations": "Concrete overflow is claimed only when extent/range is proven to exceed byte capacity. Unbounded families prove root-cause conditions, not concrete overflow magnitude or exploitability.",
+      "name": "Unbounded formatted output into a finite-capacity destination; proves root-cause evidence, not exact output length.",
+      "required_claims": [
+        {
+          "description": "A concrete containing method context is bound.",
+          "id": "C01",
+          "kind": "node"
+        },
+        {
+          "description": "A candidate copy/input operation is bound.",
+          "id": "C02",
+          "kind": "node"
+        },
+        {
+          "description": "The concrete destination expression is bound.",
+          "id": "C03",
+          "kind": "node"
+        },
+        {
+          "description": "The destination resolves to a concrete memory object.",
+          "id": "C04",
+          "kind": "node"
+        },
+        {
+          "description": "The sink belongs to the witness method context.",
+          "id": "C05",
+          "kind": "relation"
+        },
+        {
+          "description": "The sink destination argument is the witness destination according to the semantic argument-role model.",
+          "id": "C06",
+          "kind": "edge"
+        },
+        {
+          "description": "The destination expression resolves to the target object.",
+          "id": "C07",
+          "kind": "relation"
+        },
+        {
+          "description": "Destination and target are proven to denote the same object.",
+          "id": "C08",
+          "kind": "same_object"
+        },
+        {
+          "description": "The sink is a modeled memory-copy/write operation.",
+          "id": "C09",
+          "kind": "semantic"
+        },
+        {
+          "description": "Target capacity is proven.",
+          "id": "C10",
+          "kind": "semantic"
+        },
+        {
+          "description": "Capacity and copy extent use byte units.",
+          "id": "C11",
+          "kind": "semantic"
+        },
+        {
+          "description": "Capacity has explicit derivation provenance.",
+          "id": "C12",
+          "kind": "property"
+        },
+        {
+          "description": "Storage region is explicitly modeled.",
+          "id": "C13",
+          "kind": "property"
+        },
+        {
+          "description": "The source expression is bound.",
+          "id": "C14",
+          "kind": "node"
+        },
+        {
+          "description": "Source is represented as a concrete value expression.",
+          "id": "C15",
+          "kind": "semantic"
+        },
+        {
+          "description": "Source value reaches the destination within the same witness.",
+          "id": "C16",
+          "kind": "relation"
+        },
+        {
+          "description": "The sink is a formatted output operation.",
+          "id": "C17",
+          "kind": "semantic"
+        },
+        {
+          "description": "The formatted write is unbounded with respect to destination size.",
+          "id": "C18",
+          "kind": "semantic"
+        },
+        {
+          "description": "No destination-size bound is encoded in the sink semantics.",
+          "id": "C19",
+          "kind": "semantic"
+        },
+        {
+          "description": "The target region is within the supported storage scope.",
+          "id": "C19",
+          "kind": "property"
+        }
+      ],
+      "slug": "unbounded-format-output"
+    },
+    {
+      "counter_evidence": [
+        {
+          "description": "A proven safe guard dominates the vulnerable operation and refutes the candidate witness.",
+          "id": "X01",
+          "kind": "relation_any"
+        },
+        {
+          "description": "A field width or equivalent bound refutes the unbounded-input family.",
+          "id": "X02",
+          "kind": "semantic"
+        }
+      ],
+      "evidence_level": "ROOT_CAUSE_UNCHECKED_COPY",
+      "family_id": "cwe-120-unbounded-input-001",
+      "limitations": "Concrete overflow is claimed only when extent/range is proven to exceed byte capacity. Unbounded families prove root-cause conditions, not concrete overflow magnitude or exploitability.",
+      "name": "Unbounded formatted input acquisition into a finite-capacity destination.",
+      "required_claims": [
+        {
+          "description": "A concrete containing method context is bound.",
+          "id": "C01",
+          "kind": "node"
+        },
+        {
+          "description": "A candidate copy/input operation is bound.",
+          "id": "C02",
+          "kind": "node"
+        },
+        {
+          "description": "The concrete destination expression is bound.",
+          "id": "C03",
+          "kind": "node"
+        },
+        {
+          "description": "The destination resolves to a concrete memory object.",
+          "id": "C04",
+          "kind": "node"
+        },
+        {
+          "description": "The sink belongs to the witness method context.",
+          "id": "C05",
+          "kind": "relation"
+        },
+        {
+          "description": "The sink destination argument is the witness destination according to the semantic argument-role model.",
+          "id": "C06",
+          "kind": "edge"
+        },
+        {
+          "description": "The destination expression resolves to the target object.",
+          "id": "C07",
+          "kind": "relation"
+        },
+        {
+          "description": "Destination and target are proven to denote the same object.",
+          "id": "C08",
+          "kind": "same_object"
+        },
+        {
+          "description": "The sink is a modeled memory-copy/write operation.",
+          "id": "C09",
+          "kind": "semantic"
+        },
+        {
+          "description": "Target capacity is proven.",
+          "id": "C10",
+          "kind": "semantic"
+        },
+        {
+          "description": "Capacity and copy extent use byte units.",
+          "id": "C11",
+          "kind": "semantic"
+        },
+        {
+          "description": "Capacity has explicit derivation provenance.",
+          "id": "C12",
+          "kind": "property"
+        },
+        {
+          "description": "Storage region is explicitly modeled.",
+          "id": "C13",
+          "kind": "property"
+        },
+        {
+          "description": "The sink is an input acquisition operation.",
+          "id": "C17",
+          "kind": "semantic"
+        },
+        {
+          "description": "The input format does not provide a field width that bounds the destination write.",
+          "id": "C18",
+          "kind": "semantic"
+        },
+        {
+          "description": "The sink is a modeled direct external-input API.",
+          "id": "C19",
+          "kind": "semantic"
+        },
+        {
+          "description": "The target region is within the supported storage scope.",
+          "id": "C20",
+          "kind": "property"
+        }
+      ],
+      "slug": "unbounded-input"
+    },
+    {
+      "counter_evidence": [
+        {
+          "description": "A proven safe guard dominates the vulnerable operation and refutes the candidate witness.",
+          "id": "X01",
+          "kind": "relation_any"
+        },
+        {
+          "description": "A non-overflowing write extent refutes concrete overflow.",
+          "id": "X02",
+          "kind": "compare"
+        }
+      ],
+      "evidence_level": "CONCRETE_OVERFLOW",
+      "family_id": "cwe-120-allocation-capacity-overflow-001",
+      "limitations": "Concrete overflow is claimed only when extent/range is proven to exceed byte capacity. Unbounded families prove root-cause conditions, not concrete overflow magnitude or exploitability.",
+      "name": "Fixed copy whose destination object is a heap allocation with a proven exact allocator capacity that is exceeded.",
+      "required_claims": [
+        {
+          "description": "A concrete containing method context is bound.",
+          "id": "C01",
+          "kind": "node"
+        },
+        {
+          "description": "A candidate copy/input operation is bound.",
+          "id": "C02",
+          "kind": "node"
+        },
+        {
+          "description": "The concrete destination expression is bound.",
+          "id": "C03",
+          "kind": "node"
+        },
+        {
+          "description": "The destination resolves to a concrete memory object.",
+          "id": "C04",
+          "kind": "node"
+        },
+        {
+          "description": "The sink belongs to the witness method context.",
+          "id": "C05",
+          "kind": "relation"
+        },
+        {
+          "description": "The sink destination argument is the witness destination according to the semantic argument-role model.",
+          "id": "C06",
+          "kind": "edge"
+        },
+        {
+          "description": "The destination expression resolves to the target object.",
+          "id": "C07",
+          "kind": "relation"
+        },
+        {
+          "description": "Destination and target are proven to denote the same object.",
+          "id": "C08",
+          "kind": "same_object"
+        },
+        {
+          "description": "The sink is a modeled memory-copy/write operation.",
+          "id": "C09",
+          "kind": "semantic"
+        },
+        {
+          "description": "Target capacity is proven.",
+          "id": "C10",
+          "kind": "semantic"
+        },
+        {
+          "description": "Capacity and copy extent use byte units.",
+          "id": "C11",
+          "kind": "semantic"
+        },
+        {
+          "description": "Capacity has explicit derivation provenance.",
+          "id": "C12",
+          "kind": "property"
+        },
+        {
+          "description": "Storage region is explicitly modeled.",
+          "id": "C13",
+          "kind": "property"
+        },
+        {
+          "description": "The source expression is bound.",
+          "id": "C14",
+          "kind": "node"
+        },
+        {
+          "description": "Source is represented as a concrete value expression.",
+          "id": "C15",
+          "kind": "semantic"
+        },
+        {
+          "description": "Source value reaches the destination within the same witness.",
+          "id": "C16",
+          "kind": "relation"
+        },
+        {
+          "description": "The sink has fixed-extent copy semantics.",
+          "id": "C17",
+          "kind": "semantic"
+        },
+        {
+          "description": "The write extent expression is bound.",
+          "id": "C18",
+          "kind": "node"
+        },
+        {
+          "description": "The bound expression is the write extent argument.",
+          "id": "C19",
+          "kind": "semantic"
+        },
+        {
+          "description": "Proven write extent is greater than proven destination capacity.",
+          "id": "C20",
+          "kind": "compare"
+        },
+        {
+          "description": "The target region is within the supported storage scope.",
+          "id": "C21",
+          "kind": "property"
+        }
+      ],
+      "slug": "allocation-capacity-overflow"
+    }
+  ],
+  "schema_version": "1.0"
+}

@@ -1,0 +1,97 @@
+{
+  "schema_version": "1.0",
+  "format": "evidencelab-canonical-graph",
+  "metadata": {
+    "format": "json",
+    "parser": "synthetic-corpus",
+    "completeness": "declared",
+    "parse_health": "OK",
+    "case_variant": "negative_discriminator"
+  },
+  "nodes": [
+    {
+      "id": "noref1_s",
+      "type": "METHOD_PARAMETER_IN",
+      "properties": {
+        "name": "noref1",
+        "code": "char *noref1",
+        "typeFullName": "char*",
+        "derived": {
+          "name": "noref1",
+          "storage_duration": "PARAMETER"
+        }
+      }
+    },
+    {
+      "id": "noref1_k",
+      "type": "CALL",
+      "properties": {
+        "name": "strcpy",
+        "code": "strcpy(buf_noref1, noref1)",
+        "methodFullName": "strcpy",
+        "derived": {
+          "name": "strcpy",
+          "call_name": "strcpy",
+          "unbounded_write_like": true
+        }
+      }
+    },
+    {
+      "id": "noref1_d",
+      "type": "IDENTIFIER",
+      "properties": {
+        "name": "buf_noref1",
+        "code": "buf_noref1",
+        "typeFullName": "char[32]",
+        "derived": {
+          "name": "buf_noref1",
+          "type_full_name": "char[32]"
+        }
+      }
+    },
+    {
+      "id": "noref1_t",
+      "type": "LOCAL",
+      "properties": {
+        "code": "char buf_noref1[32]",
+        "name": "buf_noref1",
+        "typeFullName": "char[32]",
+        "derived": {
+          "name": "buf_noref1",
+          "is_array": true,
+          "length": 32,
+          "storage_duration": "AUTOMATIC",
+          "stack_candidate": true,
+          "physical_stack_region": "UNKNOWN"
+        }
+      }
+    },
+    {
+      "id": "noref1_e",
+      "type": "IDENTIFIER",
+      "properties": {
+        "name": "unknown_len",
+        "code": "unknown_len",
+        "derived": {}
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "e1",
+      "source": "noref1_k",
+      "target": "noref1_d",
+      "type": "ARGUMENT",
+      "properties": {
+        "argumentIndex": 1
+      }
+    },
+    {
+      "id": "e3",
+      "source": "noref1_s",
+      "target": "noref1_d",
+      "type": "REACHING_DEF",
+      "properties": {}
+    }
+  ]
+}

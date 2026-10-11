@@ -1,0 +1,28 @@
+{
+  "manifest_id": "cwe121-example",
+  "cases": [
+    {
+      "id": "vulnerable",
+      "graph": "graphs/vulnerable.json",
+      "expected": "MATCH",
+      "partition": "public",
+      "tags": [
+        "positive",
+        "direct",
+        "fixed_extent"
+      ]
+    },
+    {
+      "id": "safe",
+      "graph": "graphs/safe.json",
+      "expected": "NO_MATCH",
+      "partition": "public",
+      "tags": [
+        "negative",
+        "direct",
+        "bounded"
+      ]
+    }
+  ],
+  "schema_version": "1.0"
+}

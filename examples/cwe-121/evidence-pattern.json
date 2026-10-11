@@ -1,0 +1,354 @@
+{
+  "schema_version": "1.0",
+  "pattern_id": "cwe-121-fixed-write-001",
+  "cwe": "CWE-121",
+  "name": "Fixed-extent write beyond an automatic local array",
+  "version": "1.0.0",
+  "language": "C/C++",
+  "description": "Example research pattern for a provable fixed-size memory write whose extent exceeds an automatic local array capacity. It does not equate a LOCAL node with physical machine stack placement.",
+  "unknown_policy": "non_match",
+  "counter_unknown_policy": "block_match",
+  "metadata": {
+    "research_question": "Which graph evidence proves a bounded memory write exceeds an automatic local array extent?",
+    "evidence_definition_version": "1.0",
+    "scope": "C/C++ Joern CPG + data-flow artifacts",
+    "stack_proof_note": "Automatic storage duration is a semantic proxy; a physical STACK claim requires an explicit stack/storage model.",
+    "semantic_relation_note": "Patterns express semantic relations; the matcher maps DATA_FLOW to DATA_FLOW and Joern REACHING_DEF without changing raw graph labels."
+  },
+  "provenance": [
+    {
+      "kind": "cwe",
+      "source": "MITRE CWE-121",
+      "url": "https://cwe.mitre.org/data/definitions/121.html"
+    },
+    {
+      "kind": "tool",
+      "source": "Joern",
+      "version": "4.x",
+      "url": "https://docs.joern.io/"
+    },
+    {
+      "kind": "query",
+      "source": "reachableByFlows / AST / ARGUMENT / REF observations"
+    },
+    {
+      "kind": "dataset",
+      "source": "NIST SAMATE Juliet C/C++",
+      "url": "https://samate.nist.gov/SARD/test-suites/112"
+    },
+    {
+      "kind": "literature",
+      "source": "NIST IR 8561 — Software Assurance Reference Dataset (SARD)",
+      "url": "https://nvlpubs.nist.gov/nistpubs/ir/2025/NIST.IR.8561.pdf",
+      "scope": "SARD test-case semantics, benchmark provenance, and evaluation context"
+    }
+  ],
+  "coverage": {
+    "required_dimensions": [
+      "positive",
+      "negative",
+      "unknown",
+      "direct",
+      "interprocedural"
+    ],
+    "research_variants": [
+      "fixed_extent",
+      "bounded_extent",
+      "automatic_object",
+      "heap_discriminator",
+      "alias_discriminator"
+    ]
+  },
+  "concepts": {
+    "source_parameter": {
+      "selectors": [
+        {
+          "type_any": [
+            "METHOD_PARAMETER_IN"
+          ],
+          "canonical_type_any": [
+            "PARAMETER"
+          ]
+        }
+      ]
+    },
+    "memory_write": {
+      "selectors": [
+        {
+          "type_any": [
+            "CALL"
+          ],
+          "name_any": [
+            "memcpy"
+          ],
+          "canonical_type_any": [
+            "CALL"
+          ]
+        }
+      ]
+    },
+    "destination_expression": {
+      "selectors": [
+        {
+          "type_any": [
+            "IDENTIFIER"
+          ],
+          "canonical_type_any": [
+            "IDENTIFIER"
+          ]
+        }
+      ]
+    },
+    "automatic_array": {
+      "selectors": [
+        {
+          "type_any": [
+            "LOCAL"
+          ],
+          "properties": {
+            "derived.is_array": true,
+            "derived.stack_candidate": true
+          },
+          "canonical_type_any": [
+            "LOCAL"
+          ]
+        }
+      ]
+    },
+    "write_extent": {
+      "selectors": [
+        {
+          "type_any": [
+            "LITERAL",
+            "IDENTIFIER",
+            "CALL"
+          ],
+          "properties_present": [
+            "derived.numeric_value"
+          ],
+          "canonical_type_any": [
+            "CALL",
+            "IDENTIFIER",
+            "LITERAL"
+          ]
+        }
+      ]
+    }
+  },
+  "slots": [
+    {
+      "id": "source",
+      "concept": "source_parameter",
+      "max_matches": 100,
+      "selector_overrides": []
+    },
+    {
+      "id": "sink",
+      "concept": "memory_write",
+      "max_matches": 100,
+      "selector_overrides": []
+    },
+    {
+      "id": "destination",
+      "concept": "destination_expression",
+      "max_matches": 300,
+      "selector_overrides": []
+    },
+    {
+      "id": "target",
+      "concept": "automatic_array",
+      "max_matches": 100,
+      "selector_overrides": []
+    },
+    {
+      "id": "extent",
+      "concept": "write_extent",
+      "max_matches": 100,
+      "selector_overrides": []
+    }
+  ],
+  "claims": [
+    {
+      "id": "C1",
+      "kind": "node",
+      "required": true,
+      "slot": "source",
+      "description": "An input parameter exists."
+    },
+    {
+      "id": "C2",
+      "kind": "node",
+      "required": true,
+      "slot": "sink",
+      "description": "A bounded memory-write call exists."
+    },
+    {
+      "id": "C3",
+      "kind": "node",
+      "required": true,
+      "slot": "destination",
+      "description": "A concrete destination expression exists."
+    },
+    {
+      "id": "C4",
+      "kind": "node",
+      "required": true,
+      "slot": "target",
+      "description": "The destination resolves to an automatic local array."
+    },
+    {
+      "id": "C5",
+      "kind": "node",
+      "required": true,
+      "slot": "extent",
+      "description": "A write extent expression with a numeric value exists."
+    },
+    {
+      "id": "C6",
+      "kind": "edge",
+      "required": true,
+      "source": "sink",
+      "target": "destination",
+      "edge_types": [
+        "ARGUMENT"
+      ],
+      "description": "The destination expression is an argument of the memory-write call."
+    },
+    {
+      "id": "C7",
+      "kind": "path",
+      "required": true,
+      "source": "source",
+      "target": "destination",
+      "max_hops": 12,
+      "description": "The source reaches the destination expression through the semantic data-flow relation (Joern REACHING_DEF/DATA_FLOW).",
+      "relation": "DATA_FLOW"
+    },
+    {
+      "id": "C8",
+      "kind": "edge",
+      "required": true,
+      "source": "destination",
+      "target": "target",
+      "direction": "either",
+      "edge_types": [
+        "REF"
+      ],
+      "description": "The destination expression resolves to the declared target object."
+    },
+    {
+      "id": "C9",
+      "kind": "property",
+      "required": true,
+      "slot": "target",
+      "equals": {
+        "derived.storage_duration": "AUTOMATIC"
+      },
+      "description": "The target has automatic storage duration."
+    },
+    {
+      "id": "C10",
+      "kind": "property",
+      "required": true,
+      "slot": "target",
+      "equals": {
+        "derived.is_array": true
+      },
+      "description": "The target is an array according to CPG-derived type analysis."
+    },
+    {
+      "id": "C11",
+      "kind": "compare",
+      "required": true,
+      "left": {
+        "slot": "extent",
+        "property": "derived.numeric_value"
+      },
+      "operator": ">",
+      "right": {
+        "slot": "target",
+        "property": "derived.length"
+      },
+      "description": "Write extent exceeds target capacity."
+    }
+  ],
+  "counter_evidence": [
+    {
+      "id": "X1",
+      "kind": "compare",
+      "required": false,
+      "left": {
+        "slot": "extent",
+        "property": "derived.numeric_value"
+      },
+      "operator": "<=",
+      "right": {
+        "slot": "target",
+        "property": "derived.length"
+      },
+      "description": "A sufficient destination capacity invalidates the overflow witness."
+    }
+  ],
+  "witnesses": [
+    {
+      "id": "W1",
+      "slots": [
+        "source",
+        "sink",
+        "destination",
+        "target",
+        "extent"
+      ],
+      "claims": [
+        "C1",
+        "C2",
+        "C3",
+        "C4",
+        "C5",
+        "C6",
+        "C7",
+        "C8",
+        "C9",
+        "C10",
+        "C11"
+      ],
+      "counter_claims": [
+        "X1"
+      ],
+      "required": true,
+      "distinct_slots": true,
+      "max_combinations": 50000
+    }
+  ],
+  "family_id": "cwe-121-cwe-121-fixed-write-001",
+  "evidence_contract": {
+    "unknown_policy": "non_match",
+    "counter_unknown_policy": "block_match",
+    "tri_state": true,
+    "counter_evidence_binding": "same_witness",
+    "minimum_sufficient_witness": true,
+    "researcher_authored": true,
+    "requires_review": true
+  },
+  "semantic_contract": {
+    "canonical_graph_required": true,
+    "analyzer_independent": true,
+    "derived_facts_require_inputs": true
+  },
+  "relevance_policy": {
+    "minimum_sufficient_witness": true,
+    "max_path_hops": 12,
+    "reject_unrelated_bindings": true
+  },
+  "path_budget": {
+    "max_hops": 12,
+    "max_paths_per_claim": 100
+  },
+  "provenance_policy": {
+    "derived_facts_require_inputs": true,
+    "literature_linkage": true,
+    "artifact_hashes": true,
+    "require_query_hash": true,
+    "case_identity_required": true
+  }
+}

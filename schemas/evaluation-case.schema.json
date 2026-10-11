@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/gashasbi/evidencelab/schemas/evaluation-case.schema.json",
+  "title": "EvidenceLab Evaluation Case 1.0",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "format",
+    "case_id",
+    "expected",
+    "actual",
+    "graph_digest",
+    "pattern_sha256",
+    "matcher"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "format": {
+      "const": "evidencelab-evaluation-case"
+    },
+    "case_id": {
+      "type": "string"
+    },
+    "expected": {
+      "enum": [
+        "MATCH",
+        "NO_MATCH",
+        "UNKNOWN"
+      ]
+    },
+    "actual": {
+      "enum": [
+        "MATCH",
+        "NO_MATCH",
+        "UNKNOWN",
+        "PARTIAL"
+      ]
+    },
+    "graph": {
+      "type": "string"
+    },
+    "graph_rel": {
+      "type": "string"
+    },
+    "graph_digest": {
+      "type": "string",
+      "minLength": 1
+    },
+    "pattern": {
+      "type": "string"
+    },
+    "pattern_sha256": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "benchmark": {
+      "type": "string"
+    },
+    "matcher": {
+      "type": "object"
+    },
+    "replay": {
+      "type": [
+        "object",
+        "null"
+      ]
+    }
+  }
+}

@@ -1,0 +1,137 @@
+{
+  "edges": [
+    {
+      "id": "ctx_sink",
+      "properties": {},
+      "source": "m",
+      "target": "k",
+      "type": "CONTAINS"
+    },
+    {
+      "id": "ctx_dest",
+      "properties": {},
+      "source": "m",
+      "target": "d",
+      "type": "CONTAINS"
+    },
+    {
+      "id": "ctx_target",
+      "properties": {},
+      "source": "m",
+      "target": "t",
+      "type": "CONTAINS"
+    },
+    {
+      "id": "call_interproc",
+      "properties": {},
+      "source": "m",
+      "target": "m_src",
+      "type": "CALL"
+    },
+    {
+      "id": "e1",
+      "properties": {
+        "argumentIndex": 1
+      },
+      "source": "k",
+      "target": "d",
+      "type": "ARGUMENT"
+    },
+    {
+      "id": "e2",
+      "properties": {},
+      "source": "d",
+      "target": "t",
+      "type": "REF"
+    }
+  ],
+  "format": "evidencelab-canonical-graph",
+  "metadata": {
+    "case_variant": "interprocedural",
+    "completeness": "declared",
+    "expected_label": "MATCH",
+    "format": "json",
+    "parse_health": "OK",
+    "parser": "synthetic-cwe120-v2"
+  },
+  "nodes": [
+    {
+      "id": "m",
+      "properties": {
+        "fullName": "copy_pos_05",
+        "name": "copy_pos_05",
+        "node_kind": "METHOD",
+        "research_case_id": "pos_05"
+      },
+      "type": "METHOD"
+    },
+    {
+      "id": "m_src",
+      "properties": {
+        "fullName": "source_pos_05",
+        "name": "source_pos_05",
+        "node_kind": "METHOD",
+        "research_case_id": "pos_05"
+      },
+      "type": "METHOD"
+    },
+    {
+      "id": "k",
+      "properties": {
+        "code": "gets(...)",
+        "fixed_extent_write_like": false,
+        "format_write_like": false,
+        "input_operation_like": true,
+        "memory_write_like": false,
+        "methodFullName": "gets",
+        "name": "gets",
+        "node_kind": "CALL",
+        "research_case_id": "pos_05",
+        "unbounded_input_like": true,
+        "unbounded_write_like": false
+      },
+      "type": "CALL"
+    },
+    {
+      "id": "d",
+      "properties": {
+        "code": "buffer",
+        "derived": {
+          "argument_index": 1,
+          "argument_role": "destination",
+          "name": "buffer",
+          "node_kind": "IDENTIFIER"
+        },
+        "name": "buffer",
+        "research_case_id": "pos_05",
+        "typeFullName": "char[24]"
+      },
+      "type": "IDENTIFIER"
+    },
+    {
+      "id": "t",
+      "properties": {
+        "byte_capacity_known": true,
+        "capacity_proof": "ARRAY_LENGTH",
+        "capacity_unit": "BYTES",
+        "code": "static char buffer[24]",
+        "element_count": 24,
+        "is_array": true,
+        "length": 24,
+        "memory_capacity": 24,
+        "memory_capacity_known": true,
+        "memory_region": "STATIC",
+        "name": "buffer",
+        "node_kind": "LOCAL",
+        "object_id": "obj::buffer",
+        "object_id_proof": "EXPLICIT",
+        "physical_stack_region": "UNKNOWN",
+        "research_case_id": "pos_05",
+        "storage_duration": "STATIC_LOCAL",
+        "typeFullName": "char[24]"
+      },
+      "type": "LOCAL"
+    }
+  ],
+  "schema_version": "1.0"
+}

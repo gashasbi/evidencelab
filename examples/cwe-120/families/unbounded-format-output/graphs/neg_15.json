@@ -1,0 +1,170 @@
+{
+  "edges": [
+    {
+      "id": "ctx_sink",
+      "properties": {},
+      "source": "m",
+      "target": "k",
+      "type": "CONTAINS"
+    },
+    {
+      "id": "ctx_dest",
+      "properties": {},
+      "source": "m",
+      "target": "d",
+      "type": "CONTAINS"
+    },
+    {
+      "id": "ctx_target",
+      "properties": {},
+      "source": "m",
+      "target": "t",
+      "type": "CONTAINS"
+    },
+    {
+      "id": "ctx_source",
+      "properties": {},
+      "source": "m",
+      "target": "s",
+      "type": "CONTAINS"
+    },
+    {
+      "id": "e1",
+      "properties": {
+        "argumentIndex": 1
+      },
+      "source": "k",
+      "target": "d",
+      "type": "ARGUMENT"
+    },
+    {
+      "id": "e2",
+      "properties": {},
+      "source": "d",
+      "target": "t",
+      "type": "REF"
+    },
+    {
+      "id": "e3",
+      "properties": {},
+      "source": "s",
+      "target": "d",
+      "type": "REACHING_DEF"
+    },
+    {
+      "id": "e6",
+      "properties": {},
+      "source": "g",
+      "target": "k",
+      "type": "DOMINATE"
+    }
+  ],
+  "format": "evidencelab-canonical-graph",
+  "metadata": {
+    "case_variant": "guard_dominance",
+    "completeness": "declared",
+    "expected_label": "NO_MATCH",
+    "format": "json",
+    "parse_health": "OK",
+    "parser": "synthetic-cwe120-v2"
+  },
+  "nodes": [
+    {
+      "id": "m",
+      "properties": {
+        "fullName": "copy_neg_15",
+        "name": "copy_neg_15",
+        "node_kind": "METHOD",
+        "research_case_id": "neg_15"
+      },
+      "type": "METHOD"
+    },
+    {
+      "id": "s",
+      "properties": {
+        "code": "input",
+        "derived": {
+          "argument_role": "source",
+          "name": "input",
+          "node_kind": "IDENTIFIER",
+          "potential_external_input": true,
+          "source_origin": "PARAMETER"
+        },
+        "name": "input",
+        "research_case_id": "neg_15",
+        "typeFullName": "char*"
+      },
+      "type": "IDENTIFIER"
+    },
+    {
+      "id": "k",
+      "properties": {
+        "code": "snprintf(...)",
+        "fixed_extent_write_like": false,
+        "format_write_like": false,
+        "input_operation_like": false,
+        "memory_write_like": false,
+        "methodFullName": "snprintf",
+        "name": "snprintf",
+        "node_kind": "CALL",
+        "research_case_id": "neg_15",
+        "unbounded_input_like": false,
+        "unbounded_write_like": false
+      },
+      "type": "CALL"
+    },
+    {
+      "id": "d",
+      "properties": {
+        "code": "buffer",
+        "derived": {
+          "argument_index": 1,
+          "argument_role": "destination",
+          "name": "buffer",
+          "node_kind": "IDENTIFIER"
+        },
+        "name": "buffer",
+        "research_case_id": "neg_15",
+        "typeFullName": "char[32]"
+      },
+      "type": "IDENTIFIER"
+    },
+    {
+      "id": "t",
+      "properties": {
+        "byte_capacity_known": true,
+        "capacity_proof": "ARRAY_LENGTH",
+        "capacity_unit": "BYTES",
+        "code": "char buffer[32]",
+        "element_count": 32,
+        "is_array": true,
+        "length": 32,
+        "memory_capacity": 32,
+        "memory_capacity_known": true,
+        "memory_region": "AUTOMATIC",
+        "name": "buffer",
+        "node_kind": "LOCAL",
+        "object_id": "obj::buffer",
+        "object_id_proof": "EXPLICIT",
+        "physical_stack_region": "UNKNOWN",
+        "research_case_id": "neg_15",
+        "storage_duration": "AUTOMATIC",
+        "typeFullName": "char[32]"
+      },
+      "type": "LOCAL"
+    },
+    {
+      "id": "g",
+      "properties": {
+        "code": "if (input_length <= buffer_capacity)",
+        "derived": {
+          "guard_safe": true,
+          "node_kind": "CONTROL_STRUCTURE"
+        },
+        "name": "if"
+      },
+      "type": "CONTROL_STRUCTURE"
+    }
+  ],
+  "schema_version": "1.0"
+}

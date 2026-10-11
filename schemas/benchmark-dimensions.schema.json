@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/gashasbi/evidencelab/schemas/benchmark-dimensions.schema.json",
+  "title": "EvidenceLab Benchmark Dimension Taxonomy 8.0",
+  "type": "object",
+  "required": [
+    "dimensions"
+  ],
+  "properties": {
+    "dimensions": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": [
+          "class",
+          "definition",
+          "independence_rule"
+        ],
+        "properties": {
+          "class": {
+            "enum": [
+              "semantic",
+              "dataset",
+              "analysis",
+              "control",
+              "lineage",
+              "provenance",
+              "operational"
+            ]
+          },
+          "definition": {
+            "type": "string",
+            "minLength": 1
+          },
+          "independence_rule": {
+            "type": "string",
+            "minLength": 1
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  }
+}

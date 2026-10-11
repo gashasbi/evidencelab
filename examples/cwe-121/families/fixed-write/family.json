@@ -1,0 +1,42 @@
+{
+  "family_id": "cwe-121-fixed-write-001",
+  "cwe": "CWE-121",
+  "title": "Fixed-extent write beyond an automatic local array",
+  "status": "reference",
+  "claim_scope": "Evidence Family match, not runtime exploitability",
+  "primary_discriminator": "proven write extent > proven automatic-array capacity",
+  "required_causal_chain": [
+    "source",
+    "sink",
+    "destination",
+    "target",
+    "extent"
+  ],
+  "known_limits": [
+    "physical stack placement is not proven from LOCAL alone",
+    "symbolic or unknown write extent does not match this family",
+    "a different causal structure should be encoded as another family"
+  ],
+  "schema_version": "1.0",
+  "machine_readable_semantics": {
+    "cwe": "CWE-121",
+    "language": "C/C++",
+    "storage_domain": "AUTOMATIC",
+    "requires_same_object": true,
+    "proof_states": [
+      "PROVEN",
+      "DISPROVEN",
+      "PARTIAL",
+      "UNKNOWN",
+      "NOT_APPLICABLE"
+    ],
+    "match_requires": "all required witness claims PROVEN and all blocking counter-evidence absent",
+    "unknown_rule": "UNKNOWN never becomes NO_MATCH",
+    "stack_physical_placement": "NOT_PROVEN_BY_LOCAL_STORAGE_SEMANTICS"
+  },
+  "cwe_mapping": {
+    "cwe_id": "CWE-121",
+    "rationale": "The destination object must be proven to have automatic storage; a local/parameter stack object is the defining storage condition of CWE-121.",
+    "reference": "https://cwe.mitre.org/data/definitions/121.html"
+  }
+}

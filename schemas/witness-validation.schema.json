@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/gashasbi/evidencelab/schemas/witness-validation.schema.json",
+  "title": "EvidenceLab Witness Validation 1.0",
+  "type": "object",
+  "required": [
+    "status",
+    "errors"
+  ],
+  "properties": {
+    "status": {
+      "enum": [
+        "PASS",
+        "FAIL"
+      ]
+    },
+    "errors": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "graph_digest": {
+      "type": "string"
+    },
+    "witness_digest": {
+      "type": "string"
+    },
+    "witness_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "validation_mode": {
+      "type": "string"
+    }
+  }
+}

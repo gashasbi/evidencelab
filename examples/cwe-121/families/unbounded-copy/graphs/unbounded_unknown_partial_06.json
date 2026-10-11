@@ -1,0 +1,95 @@
+{
+  "schema_version": "1.0",
+  "format": "evidencelab-canonical-graph",
+  "metadata": {
+    "format": "json",
+    "parser": "synthetic-corpus",
+    "completeness": "partial",
+    "parse_health": "OK",
+    "case_variant": "missing_destination_argument"
+  },
+  "nodes": [
+    {
+      "id": "u6_s",
+      "type": "METHOD_PARAMETER_IN",
+      "properties": {
+        "name": "u6",
+        "code": "char *u6",
+        "typeFullName": "char*",
+        "derived": {
+          "name": "u6",
+          "storage_duration": "PARAMETER"
+        }
+      }
+    },
+    {
+      "id": "u6_k",
+      "type": "CALL",
+      "properties": {
+        "name": "strcpy",
+        "code": "strcpy(buf_u6, u6)",
+        "methodFullName": "strcpy",
+        "derived": {
+          "name": "strcpy",
+          "call_name": "strcpy",
+          "unbounded_write_like": true
+        }
+      }
+    },
+    {
+      "id": "u6_d",
+      "type": "IDENTIFIER",
+      "properties": {
+        "name": "buf_u6",
+        "code": "buf_u6",
+        "typeFullName": "char[32]",
+        "derived": {
+          "name": "buf_u6",
+          "type_full_name": "char[32]"
+        }
+      }
+    },
+    {
+      "id": "u6_t",
+      "type": "LOCAL",
+      "properties": {
+        "code": "char buf_u6[32]",
+        "name": "buf_u6",
+        "typeFullName": "char[32]",
+        "derived": {
+          "name": "buf_u6",
+          "is_array": true,
+          "length": 32,
+          "storage_duration": "AUTOMATIC",
+          "stack_candidate": true,
+          "physical_stack_region": "UNKNOWN"
+        }
+      }
+    },
+    {
+      "id": "u6_e",
+      "type": "IDENTIFIER",
+      "properties": {
+        "name": "unknown_len",
+        "code": "unknown_len",
+        "derived": {}
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "e2",
+      "source": "u6_d",
+      "target": "u6_t",
+      "type": "REF",
+      "properties": {}
+    },
+    {
+      "id": "e3",
+      "source": "u6_s",
+      "target": "u6_d",
+      "type": "REACHING_DEF",
+      "properties": {}
+    }
+  ]
+}

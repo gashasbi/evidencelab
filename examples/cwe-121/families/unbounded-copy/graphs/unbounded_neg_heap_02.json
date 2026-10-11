@@ -1,0 +1,104 @@
+{
+  "schema_version": "1.0",
+  "format": "evidencelab-canonical-graph",
+  "metadata": {
+    "format": "json",
+    "parser": "synthetic-corpus",
+    "completeness": "declared",
+    "parse_health": "OK",
+    "case_variant": "negative_discriminator"
+  },
+  "nodes": [
+    {
+      "id": "heap2_s",
+      "type": "METHOD_PARAMETER_IN",
+      "properties": {
+        "name": "heap2",
+        "code": "char *heap2",
+        "typeFullName": "char*",
+        "derived": {
+          "name": "heap2",
+          "storage_duration": "PARAMETER"
+        }
+      }
+    },
+    {
+      "id": "heap2_k",
+      "type": "CALL",
+      "properties": {
+        "name": "strcpy",
+        "code": "strcpy(buf_heap2, heap2)",
+        "methodFullName": "strcpy",
+        "derived": {
+          "name": "strcpy",
+          "call_name": "strcpy",
+          "unbounded_write_like": true
+        }
+      }
+    },
+    {
+      "id": "heap2_d",
+      "type": "IDENTIFIER",
+      "properties": {
+        "name": "buf_heap2",
+        "code": "buf_heap2",
+        "typeFullName": "char*",
+        "derived": {
+          "name": "buf_heap2",
+          "type_full_name": "char*"
+        }
+      }
+    },
+    {
+      "id": "heap2_t",
+      "type": "LOCAL",
+      "properties": {
+        "code": "char buf_heap2[37]",
+        "name": "buf_heap2",
+        "typeFullName": "char*",
+        "derived": {
+          "name": "buf_heap2",
+          "is_array": false,
+          "length": null,
+          "storage_duration": "HEAP",
+          "stack_candidate": false,
+          "physical_stack_region": "UNKNOWN"
+        }
+      }
+    },
+    {
+      "id": "heap2_e",
+      "type": "IDENTIFIER",
+      "properties": {
+        "name": "unknown_len",
+        "code": "unknown_len",
+        "derived": {}
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "e1",
+      "source": "heap2_k",
+      "target": "heap2_d",
+      "type": "ARGUMENT",
+      "properties": {
+        "argumentIndex": 1
+      }
+    },
+    {
+      "id": "e2",
+      "source": "heap2_d",
+      "target": "heap2_t",
+      "type": "REF",
+      "properties": {}
+    },
+    {
+      "id": "e3",
+      "source": "heap2_s",
+      "target": "heap2_d",
+      "type": "REACHING_DEF",
+      "properties": {}
+    }
+  ]
+}

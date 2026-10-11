@@ -1,0 +1,95 @@
+{
+  "schema_version": "1.0",
+  "format": "evidencelab-canonical-graph",
+  "metadata": {
+    "format": "json",
+    "parser": "synthetic-corpus",
+    "completeness": "declared",
+    "parse_health": "OK",
+    "case_variant": "negative_discriminator"
+  },
+  "nodes": [
+    {
+      "id": "nodst1_s",
+      "type": "METHOD_PARAMETER_IN",
+      "properties": {
+        "name": "nodst1",
+        "code": "char *nodst1",
+        "typeFullName": "char*",
+        "derived": {
+          "name": "nodst1",
+          "storage_duration": "PARAMETER"
+        }
+      }
+    },
+    {
+      "id": "nodst1_k",
+      "type": "CALL",
+      "properties": {
+        "name": "strcpy",
+        "code": "strcpy(buf_nodst1, nodst1)",
+        "methodFullName": "strcpy",
+        "derived": {
+          "name": "strcpy",
+          "call_name": "strcpy",
+          "unbounded_write_like": true
+        }
+      }
+    },
+    {
+      "id": "nodst1_d",
+      "type": "IDENTIFIER",
+      "properties": {
+        "name": "buf_nodst1",
+        "code": "buf_nodst1",
+        "typeFullName": "char[32]",
+        "derived": {
+          "name": "buf_nodst1",
+          "type_full_name": "char[32]"
+        }
+      }
+    },
+    {
+      "id": "nodst1_t",
+      "type": "LOCAL",
+      "properties": {
+        "code": "char buf_nodst1[32]",
+        "name": "buf_nodst1",
+        "typeFullName": "char[32]",
+        "derived": {
+          "name": "buf_nodst1",
+          "is_array": true,
+          "length": 32,
+          "storage_duration": "AUTOMATIC",
+          "stack_candidate": true,
+          "physical_stack_region": "UNKNOWN"
+        }
+      }
+    },
+    {
+      "id": "nodst1_e",
+      "type": "IDENTIFIER",
+      "properties": {
+        "name": "unknown_len",
+        "code": "unknown_len",
+        "derived": {}
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "e2",
+      "source": "nodst1_d",
+      "target": "nodst1_t",
+      "type": "REF",
+      "properties": {}
+    },
+    {
+      "id": "e3",
+      "source": "nodst1_s",
+      "target": "nodst1_d",
+      "type": "REACHING_DEF",
+      "properties": {}
+    }
+  ]
+}

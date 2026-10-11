@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/gashasbi/evidencelab/schemas/research-project.schema.json",
+  "title": "EvidenceLab Research Project 1.0",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "task_id",
+    "cwe",
+    "language",
+    "substrate",
+    "research_question",
+    "validation"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "task_id": {
+      "type": "string"
+    },
+    "cwe": {
+      "type": "string",
+      "pattern": "^CWE-[0-9]+$"
+    },
+    "language": {
+      "const": "C/C++"
+    },
+    "substrate": {
+      "const": "Joern"
+    },
+    "research_question": {
+      "type": "string",
+      "minLength": 1
+    },
+    "scope": {
+      "type": "object"
+    },
+    "hypotheses": {
+      "type": "array"
+    },
+    "expected_evidence_dimensions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "validation": {
+      "type": "object",
+      "properties": {
+        "public_required": {
+          "type": "boolean"
+        },
+        "hidden_required_for_publication": {
+          "type": "boolean"
+        },
+        "minimum_public_cases": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "minimum_hidden_cases": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "requires_adversarial_mutations": {
+          "type": "boolean"
+        },
+        "requires_real_world_validation": {
+          "type": "boolean"
+        }
+      }
+    },
+    "limitations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

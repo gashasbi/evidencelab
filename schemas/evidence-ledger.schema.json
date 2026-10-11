@@ -1,0 +1,118 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/gashasbi/evidencelab/schemas/evidence-ledger.schema.json",
+  "title": "EvidenceLab Evidence Ledger 1.0",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "digest",
+    "items"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "digest": {
+      "type": "string",
+      "minLength": 64,
+      "maxLength": 64
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "kind",
+          "state",
+          "statement"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "kind": {
+            "enum": [
+              "OBSERVATION",
+              "DERIVATION",
+              "RELATION",
+              "LOCATION",
+              "COUNTER",
+              "ASSUMPTION"
+            ]
+          },
+          "state": {
+            "enum": [
+              "PROVEN",
+              "DISPROVEN",
+              "UNKNOWN",
+              "NOT_APPLICABLE"
+            ]
+          },
+          "statement": {
+            "type": "string",
+            "minLength": 1
+          },
+          "subject": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "predicate": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "value": {},
+          "provenance": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "source_type",
+                "source_id"
+              ],
+              "properties": {
+                "source_type": {
+                  "type": "string"
+                },
+                "source_id": {
+                  "type": "string"
+                },
+                "detail": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              }
+            }
+          },
+          "confidence": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0,
+            "maximum": 1
+          },
+          "assumptions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}

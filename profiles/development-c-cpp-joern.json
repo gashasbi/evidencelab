@@ -1,0 +1,42 @@
+{
+  "profile_id": "development-c-cpp-joern",
+  "task": {
+    "cwe": "ANY",
+    "language": "C/C++",
+    "substrate": "Joern"
+  },
+  "required_metadata": [
+    "research_question",
+    "evidence_definition_version"
+  ],
+  "required_claim_kinds": [
+    "relation"
+  ],
+  "require_provenance": false,
+  "require_unique_graphs": true,
+  "audit": {
+    "min_required_claims": 2,
+    "min_concepts": 1,
+    "min_required_claim_kinds": 1,
+    "min_provenance": 0,
+    "require_counter_evidence": false,
+    "require_query_provenance": false,
+    "require_coverage": false,
+    "require_relation_edge_types": false,
+    "signature_only_is_error": false,
+    "min_coverage_dimensions": 0,
+    "require_unknown_policy": true
+  },
+  "gates": {
+    "min_total": 1,
+    "min_positive": 0,
+    "min_negative": 0,
+    "min_unknown": 0
+  },
+  "require_hidden_validation": false,
+  "max_actual_partial": 100000,
+  "profile_version": "1.0",
+  "require_canonical_graph": true,
+  "require_analyzer_attestation": false,
+  "require_source_similarity_audit": false
+}

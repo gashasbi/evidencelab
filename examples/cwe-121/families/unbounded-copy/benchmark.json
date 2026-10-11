@@ -1,0 +1,564 @@
+{
+  "manifest_id": "cwe121-unbounded-public-1.1",
+  "cases": [
+    {
+      "id": "unbounded_pos_strcpy",
+      "graph": "graphs/unbounded_pos_strcpy.json",
+      "expected": "MATCH",
+      "partition": "public",
+      "tags": [
+        "positive",
+        "direct",
+        "unbounded_semantics"
+      ]
+    },
+    {
+      "id": "unbounded_pos_strcat",
+      "graph": "graphs/unbounded_pos_strcat.json",
+      "expected": "MATCH",
+      "partition": "public",
+      "tags": [
+        "positive",
+        "direct",
+        "unbounded_semantics"
+      ]
+    },
+    {
+      "id": "unbounded_pos_wcscpy",
+      "graph": "graphs/unbounded_pos_wcscpy.json",
+      "expected": "MATCH",
+      "partition": "public",
+      "tags": [
+        "positive",
+        "direct",
+        "unbounded_semantics"
+      ]
+    },
+    {
+      "id": "unbounded_pos_wcscat",
+      "graph": "graphs/unbounded_pos_wcscat.json",
+      "expected": "MATCH",
+      "partition": "public",
+      "tags": [
+        "positive",
+        "direct",
+        "unbounded_semantics"
+      ]
+    },
+    {
+      "id": "unbounded_neg_static_01",
+      "graph": "graphs/unbounded_neg_static_01.json",
+      "expected": "NO_MATCH",
+      "partition": "public",
+      "tags": [
+        "negative",
+        "static_discriminator",
+        "unbounded_semantics",
+        "counter_evidence"
+      ]
+    },
+    {
+      "id": "unbounded_neg_static_02",
+      "graph": "graphs/unbounded_neg_static_02.json",
+      "expected": "NO_MATCH",
+      "partition": "public",
+      "tags": [
+        "negative",
+        "static_discriminator",
+        "unbounded_semantics",
+        "counter_evidence"
+      ]
+    },
+    {
+      "id": "unbounded_neg_static_03",
+      "graph": "graphs/unbounded_neg_static_03.json",
+      "expected": "NO_MATCH",
+      "partition": "public",
+      "tags": [
+        "negative",
+        "static_discriminator",
+        "unbounded_semantics",
+        "counter_evidence"
+      ]
+    },
+    {
+      "id": "unbounded_neg_noflow_01",
+      "graph": "graphs/unbounded_neg_noflow_01.json",
+      "expected": "NO_MATCH",
+      "partition": "public",
+      "tags": [
+        "negative",
+        "unbounded_semantics",
+        "semantic_dataflow"
+      ]
+    },
+    {
+      "id": "unbounded_neg_noflow_02",
+      "graph": "graphs/unbounded_neg_noflow_02.json",
+      "expected": "NO_MATCH",
+      "partition": "public",
+      "tags": [
+        "negative",
+        "unbounded_semantics",
+        "semantic_dataflow"
+      ]
+    },
+    {
+      "id": "unbounded_unknown_partial_01",
+      "graph": "graphs/unbounded_unknown_partial_01.json",
+      "expected": "UNKNOWN",
+      "partition": "public",
+      "tags": [
+        "unknown",
+        "partial_graph",
+        "unbounded_semantics",
+        "missing_reference"
+      ]
+    },
+    {
+      "id": "unbounded_unknown_partial_02",
+      "graph": "graphs/unbounded_unknown_partial_02.json",
+      "expected": "UNKNOWN",
+      "partition": "public",
+      "tags": [
+        "unknown",
+        "partial_graph",
+        "unbounded_semantics",
+        "missing_dataflow"
+      ]
+    },
+    {
+      "id": "unbounded_unknown_partial_03",
+      "graph": "graphs/unbounded_unknown_partial_03.json",
+      "expected": "UNKNOWN",
+      "partition": "public",
+      "tags": [
+        "unknown",
+        "partial_graph",
+        "unbounded_semantics",
+        "missing_destination_argument"
+      ]
+    },
+    {
+      "id": "unbounded_pos_interprocedural",
+      "graph": "graphs/unbounded_pos_interprocedural.json",
+      "expected": "MATCH",
+      "partition": "public",
+      "tags": [
+        "positive",
+        "interprocedural",
+        "unbounded_semantics",
+        "counter_evidence"
+      ]
+    },
+    {
+      "id": "unbounded_pos_02",
+      "graph": "graphs/unbounded_pos_02.json",
+      "expected": "MATCH",
+      "partition": "public",
+      "tags": [
+        "positive",
+        "direct",
+        "unbounded_semantics",
+        "argument_role_binding",
+        "alpha_renaming"
+      ],
+      "mutation_of": "unbounded_pos_strcpy",
+      "changed_dimension": "alpha_renaming_and_target_capacity",
+      "expected_relation": "same"
+    },
+    {
+      "id": "unbounded_pos_03",
+      "graph": "graphs/unbounded_pos_03.json",
+      "expected": "MATCH",
+      "partition": "public",
+      "tags": [
+        "positive",
+        "direct",
+        "unbounded_semantics",
+        "argument_role_binding",
+        "alpha_renaming"
+      ],
+      "mutation_of": "unbounded_pos_strcat",
+      "changed_dimension": "alpha_renaming",
+      "expected_relation": "same"
+    },
+    {
+      "id": "unbounded_pos_04",
+      "graph": "graphs/unbounded_pos_04.json",
+      "expected": "MATCH",
+      "partition": "public",
+      "tags": [
+        "positive",
+        "direct",
+        "unbounded_semantics",
+        "argument_role_binding",
+        "alpha_renaming"
+      ],
+      "mutation_of": "unbounded_pos_wcscpy",
+      "changed_dimension": "alpha_renaming",
+      "expected_relation": "same"
+    },
+    {
+      "id": "unbounded_pos_05",
+      "graph": "graphs/unbounded_pos_05.json",
+      "expected": "MATCH",
+      "partition": "public",
+      "tags": [
+        "positive",
+        "direct",
+        "unbounded_semantics",
+        "argument_role_binding",
+        "alpha_renaming"
+      ],
+      "mutation_of": "unbounded_pos_wcscat",
+      "changed_dimension": "alpha_renaming",
+      "expected_relation": "same"
+    },
+    {
+      "id": "unbounded_pos_06",
+      "graph": "graphs/unbounded_pos_06.json",
+      "expected": "MATCH",
+      "partition": "public",
+      "tags": [
+        "positive",
+        "direct",
+        "unbounded_semantics",
+        "alpha_renaming",
+        "capacity_variant"
+      ],
+      "mutation_of": "unbounded_pos_strcpy",
+      "changed_dimension": "sink_or_capacity_variant",
+      "expected_relation": "same"
+    },
+    {
+      "id": "unbounded_pos_07",
+      "graph": "graphs/unbounded_pos_07.json",
+      "expected": "MATCH",
+      "partition": "public",
+      "tags": [
+        "positive",
+        "direct",
+        "unbounded_semantics",
+        "alpha_renaming",
+        "capacity_variant"
+      ],
+      "mutation_of": "unbounded_pos_strcpy",
+      "changed_dimension": "sink_or_capacity_variant",
+      "expected_relation": "same"
+    },
+    {
+      "id": "unbounded_pos_08",
+      "graph": "graphs/unbounded_pos_08.json",
+      "expected": "MATCH",
+      "partition": "public",
+      "tags": [
+        "positive",
+        "direct",
+        "unbounded_semantics",
+        "alpha_renaming",
+        "capacity_variant"
+      ],
+      "mutation_of": "unbounded_pos_strcpy",
+      "changed_dimension": "sink_or_capacity_variant",
+      "expected_relation": "same"
+    },
+    {
+      "id": "unbounded_pos_09",
+      "graph": "graphs/unbounded_pos_09.json",
+      "expected": "MATCH",
+      "partition": "public",
+      "tags": [
+        "positive",
+        "direct",
+        "unbounded_semantics",
+        "alpha_renaming",
+        "capacity_variant"
+      ],
+      "mutation_of": "unbounded_pos_strcat",
+      "changed_dimension": "sink_or_capacity_variant",
+      "expected_relation": "same"
+    },
+    {
+      "id": "unbounded_pos_10",
+      "graph": "graphs/unbounded_pos_10.json",
+      "expected": "MATCH",
+      "partition": "public",
+      "tags": [
+        "positive",
+        "direct",
+        "unbounded_semantics",
+        "alpha_renaming",
+        "capacity_variant"
+      ],
+      "mutation_of": "unbounded_pos_wcscpy",
+      "changed_dimension": "sink_or_capacity_variant",
+      "expected_relation": "same"
+    },
+    {
+      "id": "unbounded_pos_11",
+      "graph": "graphs/unbounded_pos_11.json",
+      "expected": "MATCH",
+      "partition": "public",
+      "tags": [
+        "positive",
+        "direct",
+        "unbounded_semantics",
+        "alpha_renaming",
+        "capacity_variant"
+      ],
+      "mutation_of": "unbounded_pos_wcscpy",
+      "changed_dimension": "sink_or_capacity_variant",
+      "expected_relation": "same"
+    },
+    {
+      "id": "unbounded_neg_heap_01",
+      "graph": "graphs/unbounded_neg_heap_01.json",
+      "expected": "NO_MATCH",
+      "partition": "public",
+      "tags": [
+        "negative",
+        "heap_discriminator",
+        "unbounded_semantics"
+      ],
+      "mutation_of": "unbounded_pos_strcpy",
+      "changed_dimension": "target_shape",
+      "expected_relation": "flip"
+    },
+    {
+      "id": "unbounded_neg_heap_02",
+      "graph": "graphs/unbounded_neg_heap_02.json",
+      "expected": "NO_MATCH",
+      "partition": "public",
+      "tags": [
+        "negative",
+        "heap_discriminator",
+        "unbounded_semantics"
+      ],
+      "mutation_of": "unbounded_pos_strcpy",
+      "changed_dimension": "target_shape",
+      "expected_relation": "flip"
+    },
+    {
+      "id": "unbounded_neg_static_04",
+      "graph": "graphs/unbounded_neg_static_04.json",
+      "expected": "NO_MATCH",
+      "partition": "public",
+      "tags": [
+        "negative",
+        "static_discriminator",
+        "unbounded_semantics",
+        "counter_evidence"
+      ],
+      "mutation_of": "unbounded_pos_strcpy",
+      "changed_dimension": "storage_duration",
+      "expected_relation": "flip"
+    },
+    {
+      "id": "unbounded_neg_static_05",
+      "graph": "graphs/unbounded_neg_static_05.json",
+      "expected": "NO_MATCH",
+      "partition": "public",
+      "tags": [
+        "negative",
+        "static_discriminator",
+        "unbounded_semantics",
+        "counter_evidence"
+      ],
+      "mutation_of": "unbounded_pos_strcpy",
+      "changed_dimension": "storage_duration",
+      "expected_relation": "flip"
+    },
+    {
+      "id": "unbounded_neg_noflow_03",
+      "graph": "graphs/unbounded_neg_noflow_03.json",
+      "expected": "NO_MATCH",
+      "partition": "public",
+      "tags": [
+        "negative",
+        "semantic_dataflow",
+        "unbounded_semantics"
+      ],
+      "mutation_of": "unbounded_pos_strcpy",
+      "changed_dimension": "missing_dataflow",
+      "expected_relation": "flip"
+    },
+    {
+      "id": "unbounded_neg_noflow_04",
+      "graph": "graphs/unbounded_neg_noflow_04.json",
+      "expected": "NO_MATCH",
+      "partition": "public",
+      "tags": [
+        "negative",
+        "semantic_dataflow",
+        "unbounded_semantics"
+      ],
+      "mutation_of": "unbounded_pos_strcpy",
+      "changed_dimension": "missing_dataflow",
+      "expected_relation": "flip"
+    },
+    {
+      "id": "unbounded_neg_noref_01",
+      "graph": "graphs/unbounded_neg_noref_01.json",
+      "expected": "NO_MATCH",
+      "partition": "public",
+      "tags": [
+        "negative",
+        "reference_discriminator",
+        "unbounded_semantics"
+      ],
+      "mutation_of": "unbounded_pos_strcpy",
+      "changed_dimension": "missing_reference",
+      "expected_relation": "flip"
+    },
+    {
+      "id": "unbounded_neg_safe_sink_01",
+      "graph": "graphs/unbounded_neg_safe_sink_01.json",
+      "expected": "NO_MATCH",
+      "partition": "public",
+      "tags": [
+        "negative",
+        "safe_api_discriminator",
+        "unbounded_semantics"
+      ],
+      "mutation_of": "unbounded_pos_strcpy",
+      "changed_dimension": "sink_family",
+      "expected_relation": "flip"
+    },
+    {
+      "id": "unbounded_neg_nonparam_01",
+      "graph": "graphs/unbounded_neg_nonparam_01.json",
+      "expected": "NO_MATCH",
+      "partition": "public",
+      "tags": [
+        "negative",
+        "source_shape_discriminator",
+        "unbounded_semantics"
+      ],
+      "mutation_of": "unbounded_pos_strcpy",
+      "changed_dimension": "source_shape",
+      "expected_relation": "flip"
+    },
+    {
+      "id": "unbounded_neg_no_destination_01",
+      "graph": "graphs/unbounded_neg_no_destination_01.json",
+      "expected": "NO_MATCH",
+      "partition": "public",
+      "tags": [
+        "negative",
+        "destination_binding",
+        "unbounded_semantics"
+      ],
+      "mutation_of": "unbounded_pos_strcpy",
+      "changed_dimension": "missing_destination_argument",
+      "expected_relation": "flip"
+    },
+    {
+      "id": "unbounded_unknown_partial_04",
+      "graph": "graphs/unbounded_unknown_partial_04.json",
+      "expected": "UNKNOWN",
+      "partition": "public",
+      "tags": [
+        "unknown",
+        "partial_graph",
+        "unbounded_semantics",
+        "missing_reference"
+      ],
+      "mutation_of": "unbounded_pos_strcpy",
+      "changed_dimension": "missing_reference",
+      "expected_relation": "indeterminate"
+    },
+    {
+      "id": "unbounded_unknown_partial_05",
+      "graph": "graphs/unbounded_unknown_partial_05.json",
+      "expected": "UNKNOWN",
+      "partition": "public",
+      "tags": [
+        "unknown",
+        "partial_graph",
+        "unbounded_semantics",
+        "missing_dataflow"
+      ],
+      "mutation_of": "unbounded_pos_strcpy",
+      "changed_dimension": "missing_dataflow",
+      "expected_relation": "indeterminate"
+    },
+    {
+      "id": "unbounded_unknown_partial_06",
+      "graph": "graphs/unbounded_unknown_partial_06.json",
+      "expected": "UNKNOWN",
+      "partition": "public",
+      "tags": [
+        "unknown",
+        "partial_graph",
+        "unbounded_semantics",
+        "missing_destination_argument"
+      ],
+      "mutation_of": "unbounded_pos_strcpy",
+      "changed_dimension": "missing_destination_argument",
+      "expected_relation": "indeterminate"
+    },
+    {
+      "id": "unbounded_unknown_partial_07",
+      "graph": "graphs/unbounded_unknown_partial_07.json",
+      "expected": "UNKNOWN",
+      "partition": "public",
+      "tags": [
+        "unknown",
+        "partial_graph",
+        "unbounded_semantics",
+        "multiple_missing_relations"
+      ],
+      "mutation_of": "unbounded_pos_strcpy",
+      "changed_dimension": "multiple_missing_relations",
+      "expected_relation": "indeterminate"
+    },
+    {
+      "id": "unbounded_unknown_partial_08",
+      "graph": "graphs/unbounded_unknown_partial_08.json",
+      "expected": "UNKNOWN",
+      "partition": "public",
+      "tags": [
+        "unknown",
+        "partial_graph",
+        "unbounded_semantics",
+        "degraded_parse_health"
+      ],
+      "mutation_of": "unbounded_pos_strcpy",
+      "changed_dimension": "degraded_parse_health",
+      "expected_relation": "indeterminate"
+    },
+    {
+      "id": "unbounded_unknown_partial_09",
+      "graph": "graphs/unbounded_unknown_partial_09.json",
+      "expected": "UNKNOWN",
+      "partition": "public",
+      "tags": [
+        "unknown",
+        "partial_graph",
+        "unbounded_semantics",
+        "candidate_truncation"
+      ],
+      "mutation_of": "unbounded_pos_strcpy",
+      "changed_dimension": "candidate_truncation",
+      "expected_relation": "indeterminate"
+    },
+    {
+      "id": "unbounded_unknown_partial_10",
+      "graph": "graphs/unbounded_unknown_partial_10.json",
+      "expected": "UNKNOWN",
+      "partition": "public",
+      "tags": [
+        "unknown",
+        "partial_graph",
+        "unbounded_semantics",
+        "missing_target_properties"
+      ],
+      "mutation_of": "unbounded_pos_strcpy",
+      "changed_dimension": "missing_target_properties",
+      "expected_relation": "indeterminate"
+    }
+  ],
+  "allow_duplicate_graphs": false,
+  "schema_version": "1.0"
+}

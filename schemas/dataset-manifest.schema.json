@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/gashasbi/evidencelab/schemas/dataset-manifest.schema.json",
+  "title": "EvidenceLab Dataset Manifest 1.0",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "format",
+    "cases"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "format": {
+      "const": "evidencelab-dataset-manifest"
+    },
+    "dataset": {
+      "type": "object"
+    },
+    "datasets": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "case_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "cases": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "expected"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "expected": {
+            "enum": [
+              "MATCH",
+              "NO_MATCH",
+              "UNKNOWN"
+            ]
+          },
+          "source": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "source_sha256": {
+            "type": "string"
+          },
+          "partition": {
+            "type": "string"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "dataset": {
+            "type": "object"
+          },
+          "mutation_of": {
+            "type": "string"
+          },
+          "changed_dimension": {
+            "type": "string"
+          },
+          "scope": {
+            "type": "object"
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  }
+}

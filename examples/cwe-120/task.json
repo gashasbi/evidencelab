@@ -1,0 +1,38 @@
+{
+  "acceptance": {
+    "adversarial_mutations": true,
+    "counter_evidence": true,
+    "hidden_validation_external": true,
+    "machine_matchable": true,
+    "positive_negative_unknown": true,
+    "provenance": true,
+    "unknown_is_not_false": true,
+    "requires_family_separation": true,
+    "requires_conservative_proof_states": true,
+    "requires_provenance_for_derived_facts": true
+  },
+  "analysis_substrate": "Joern",
+  "cwe": "CWE-120",
+  "language": "C/C++",
+  "required_research_steps": [
+    "CWE definition and boundaries",
+    "candidate evidence hypotheses",
+    "Joern raw observations",
+    "semantic derivations with provenance",
+    "executable pattern",
+    "positive/negative/unknown corpus",
+    "counter-evidence",
+    "one-change mutations",
+    "public evaluation",
+    "external hidden evaluation",
+    "limitations and coverage gaps"
+  ],
+  "schema_version": "1.0",
+  "scope": {
+    "in_scope": "copy/input operations whose destination is a finite-capacity byte buffer and whose unchecked extent can be proven unsafe or whose unbounded nature can be proven",
+    "out_of_scope": "runtime exploitability, attacker capability, precise corruption offset, ASLR/control-flow impact, binary-only effects unless separately modeled",
+    "principle": "CWE-120 is broad; independent Evidence Families are required where evidence semantics differ."
+  },
+  "task_id": "cwe-120-evidence-research-v2",
+  "title": "Research graph-observable evidence for Buffer Copy without Checking Size of Input"
+}

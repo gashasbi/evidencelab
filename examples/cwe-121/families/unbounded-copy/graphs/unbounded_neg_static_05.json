@@ -1,0 +1,104 @@
+{
+  "schema_version": "1.0",
+  "format": "evidencelab-canonical-graph",
+  "metadata": {
+    "format": "json",
+    "parser": "synthetic-corpus",
+    "completeness": "declared",
+    "parse_health": "OK",
+    "case_variant": "negative_discriminator"
+  },
+  "nodes": [
+    {
+      "id": "stat5_s",
+      "type": "METHOD_PARAMETER_IN",
+      "properties": {
+        "name": "stat5",
+        "code": "char *stat5",
+        "typeFullName": "char*",
+        "derived": {
+          "name": "stat5",
+          "storage_duration": "PARAMETER"
+        }
+      }
+    },
+    {
+      "id": "stat5_k",
+      "type": "CALL",
+      "properties": {
+        "name": "wcscpy",
+        "code": "wcscpy(buf_stat5, stat5)",
+        "methodFullName": "wcscpy",
+        "derived": {
+          "name": "wcscpy",
+          "call_name": "wcscpy",
+          "unbounded_write_like": true
+        }
+      }
+    },
+    {
+      "id": "stat5_d",
+      "type": "IDENTIFIER",
+      "properties": {
+        "name": "buf_stat5",
+        "code": "buf_stat5",
+        "typeFullName": "char[71]",
+        "derived": {
+          "name": "buf_stat5",
+          "type_full_name": "char[71]"
+        }
+      }
+    },
+    {
+      "id": "stat5_t",
+      "type": "LOCAL",
+      "properties": {
+        "code": "static char buf_stat5[71]",
+        "name": "buf_stat5",
+        "typeFullName": "char[71]",
+        "derived": {
+          "name": "buf_stat5",
+          "is_array": true,
+          "length": 71,
+          "storage_duration": "STATIC_LOCAL",
+          "stack_candidate": false,
+          "physical_stack_region": "UNKNOWN"
+        }
+      }
+    },
+    {
+      "id": "stat5_e",
+      "type": "IDENTIFIER",
+      "properties": {
+        "name": "unknown_len",
+        "code": "unknown_len",
+        "derived": {}
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "e1",
+      "source": "stat5_k",
+      "target": "stat5_d",
+      "type": "ARGUMENT",
+      "properties": {
+        "argumentIndex": 1
+      }
+    },
+    {
+      "id": "e2",
+      "source": "stat5_d",
+      "target": "stat5_t",
+      "type": "REF",
+      "properties": {}
+    },
+    {
+      "id": "e3",
+      "source": "stat5_s",
+      "target": "stat5_d",
+      "type": "REACHING_DEF",
+      "properties": {}
+    }
+  ]
+}

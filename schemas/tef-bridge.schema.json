@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/gashasbi/evidencelab/schemas/tef-bridge.schema.json",
+  "title": "EvidenceLab TEF Bridge 1.0",
+  "type": "object",
+  "required": [
+    "format",
+    "tef_status",
+    "defect",
+    "scenarios"
+  ],
+  "properties": {
+    "format": {
+      "const": "evidencelab-tef-bridge"
+    },
+    "tef_status": {
+      "type": "string"
+    },
+    "defect": {
+      "type": "object"
+    },
+    "scenarios": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "title",
+          "preconditions",
+          "trigger",
+          "observed_outcome"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,97 @@
+{
+  "schema_version": "1.0",
+  "format": "evidencelab-canonical-graph",
+  "metadata": {
+    "format": "json",
+    "parser": "synthetic-corpus",
+    "completeness": "declared",
+    "parse_health": "OK",
+    "case_variant": "negative_discriminator"
+  },
+  "nodes": [
+    {
+      "id": "noflow3_s",
+      "type": "METHOD_PARAMETER_IN",
+      "properties": {
+        "name": "noflow3",
+        "code": "char *noflow3",
+        "typeFullName": "char*",
+        "derived": {
+          "name": "noflow3",
+          "storage_duration": "PARAMETER"
+        }
+      }
+    },
+    {
+      "id": "noflow3_k",
+      "type": "CALL",
+      "properties": {
+        "name": "strcpy",
+        "code": "strcpy(buf_noflow3, noflow3)",
+        "methodFullName": "strcpy",
+        "derived": {
+          "name": "strcpy",
+          "call_name": "strcpy",
+          "unbounded_write_like": true
+        }
+      }
+    },
+    {
+      "id": "noflow3_d",
+      "type": "IDENTIFIER",
+      "properties": {
+        "name": "buf_noflow3",
+        "code": "buf_noflow3",
+        "typeFullName": "char[32]",
+        "derived": {
+          "name": "buf_noflow3",
+          "type_full_name": "char[32]"
+        }
+      }
+    },
+    {
+      "id": "noflow3_t",
+      "type": "LOCAL",
+      "properties": {
+        "code": "char buf_noflow3[32]",
+        "name": "buf_noflow3",
+        "typeFullName": "char[32]",
+        "derived": {
+          "name": "buf_noflow3",
+          "is_array": true,
+          "length": 32,
+          "storage_duration": "AUTOMATIC",
+          "stack_candidate": true,
+          "physical_stack_region": "UNKNOWN"
+        }
+      }
+    },
+    {
+      "id": "noflow3_e",
+      "type": "IDENTIFIER",
+      "properties": {
+        "name": "unknown_len",
+        "code": "unknown_len",
+        "derived": {}
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "e1",
+      "source": "noflow3_k",
+      "target": "noflow3_d",
+      "type": "ARGUMENT",
+      "properties": {
+        "argumentIndex": 1
+      }
+    },
+    {
+      "id": "e2",
+      "source": "noflow3_d",
+      "target": "noflow3_t",
+      "type": "REF",
+      "properties": {}
+    }
+  ]
+}

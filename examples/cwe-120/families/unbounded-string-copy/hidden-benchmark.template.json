@@ -1,0 +1,6 @@
+{
+  "cases": [],
+  "manifest_id": "cwe-120-unbounded-string-copy-hidden-external",
+  "note": "Evaluator-owned hidden cases must remain outside the researcher workspace. Populate with disjoint graph digests and adversarial variants.",
+  "visibility": "external"
+}

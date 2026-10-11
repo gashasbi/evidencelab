@@ -1,0 +1,35 @@
+{
+  "family_id": "cwe-121-unbounded-copy-001",
+  "cwe": "CWE-121",
+  "title": "Unbounded string copy into an automatic local array",
+  "status": "reference",
+  "claim_scope": "Evidence Family match, not numeric overflow proof",
+  "primary_discriminator": "semantic unbounded-write operation + coherent source/destination/target witness",
+  "known_limits": [
+    "unbounded semantics alone does not prove source length",
+    "this family does not claim an exact overwrite magnitude",
+    "a numeric extent family should be used for fixed-size proofs"
+  ],
+  "schema_version": "1.0",
+  "machine_readable_semantics": {
+    "cwe": "CWE-121",
+    "language": "C/C++",
+    "storage_domain": "AUTOMATIC",
+    "requires_same_object": true,
+    "proof_states": [
+      "PROVEN",
+      "DISPROVEN",
+      "PARTIAL",
+      "UNKNOWN",
+      "NOT_APPLICABLE"
+    ],
+    "match_requires": "all required witness claims PROVEN and all blocking counter-evidence absent",
+    "unknown_rule": "UNKNOWN never becomes NO_MATCH",
+    "stack_physical_placement": "NOT_PROVEN_BY_LOCAL_STORAGE_SEMANTICS"
+  },
+  "cwe_mapping": {
+    "cwe_id": "CWE-121",
+    "rationale": "The destination object must be proven to have automatic storage; a local/parameter stack object is the defining storage condition of CWE-121.",
+    "reference": "https://cwe.mitre.org/data/definitions/121.html"
+  }
+}

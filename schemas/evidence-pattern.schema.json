@@ -1,0 +1,127 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/gashasbi/evidencelab/schemas/evidence-pattern.schema.json",
+  "title": "EvidenceLab Evidence Pattern",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "pattern_id",
+    "cwe",
+    "name",
+    "version",
+    "language",
+    "concepts",
+    "slots",
+    "claims",
+    "witnesses",
+    "evidence_contract",
+    "semantic_contract",
+    "provenance_policy"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "pattern_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "cwe": {
+      "type": "string",
+      "pattern": "^CWE-[0-9]+$"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "language": {
+      "type": "string",
+      "minLength": 1
+    },
+    "family_id": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "unknown_policy": {
+      "enum": [
+        "unknown",
+        "non_match",
+        "partial"
+      ]
+    },
+    "counter_unknown_policy": {
+      "enum": [
+        "block_match",
+        "ignore"
+      ]
+    },
+    "concepts": {
+      "type": "object",
+      "minProperties": 1
+    },
+    "slots": {
+      "type": "array",
+      "minItems": 1
+    },
+    "claims": {
+      "type": "array",
+      "minItems": 1
+    },
+    "counter_evidence": {
+      "type": "array"
+    },
+    "witnesses": {
+      "type": "array",
+      "minItems": 1
+    },
+    "required_claim_groups": {
+      "type": "array"
+    },
+    "metadata": {
+      "type": "object"
+    },
+    "provenance": {
+      "type": "array"
+    },
+    "coverage": {
+      "type": "object"
+    },
+    "evidence_contract": {
+      "type": "object",
+      "required": [
+        "unknown_policy",
+        "counter_unknown_policy",
+        "tri_state",
+        "counter_evidence_binding",
+        "minimum_sufficient_witness"
+      ]
+    },
+    "semantic_contract": {
+      "type": "object",
+      "required": [
+        "canonical_graph_required",
+        "analyzer_independent"
+      ]
+    },
+    "relevance_policy": {
+      "type": "object"
+    },
+    "path_budget": {
+      "type": "object"
+    },
+    "provenance_policy": {
+      "type": "object",
+      "required": [
+        "derived_facts_require_inputs",
+        "artifact_hashes"
+      ]
+    }
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,193 @@
+{
+  "edges": [
+    {
+      "id": "ctx_sink",
+      "properties": {},
+      "source": "m",
+      "target": "k",
+      "type": "CONTAINS"
+    },
+    {
+      "id": "ctx_dest",
+      "properties": {},
+      "source": "m",
+      "target": "d",
+      "type": "CONTAINS"
+    },
+    {
+      "id": "ctx_target",
+      "properties": {},
+      "source": "m",
+      "target": "t",
+      "type": "CONTAINS"
+    },
+    {
+      "id": "ctx_source",
+      "properties": {},
+      "source": "m_src",
+      "target": "s",
+      "type": "CONTAINS"
+    },
+    {
+      "id": "call_interproc",
+      "properties": {},
+      "source": "m",
+      "target": "m_src",
+      "type": "CALL"
+    },
+    {
+      "id": "e1",
+      "properties": {
+        "argumentIndex": 1
+      },
+      "source": "k",
+      "target": "d",
+      "type": "ARGUMENT"
+    },
+    {
+      "id": "e4",
+      "properties": {
+        "argumentIndex": 3
+      },
+      "source": "k",
+      "target": "e",
+      "type": "ARGUMENT"
+    },
+    {
+      "id": "e2",
+      "properties": {},
+      "source": "d",
+      "target": "t",
+      "type": "REF"
+    },
+    {
+      "id": "e3",
+      "properties": {},
+      "source": "s",
+      "target": "d",
+      "type": "REACHING_DEF"
+    }
+  ],
+  "format": "evidencelab-canonical-graph",
+  "metadata": {
+    "case_variant": "interprocedural",
+    "completeness": "declared",
+    "expected_label": "MATCH",
+    "format": "json",
+    "parse_health": "OK",
+    "parser": "synthetic-cwe120-v2"
+  },
+  "nodes": [
+    {
+      "id": "m",
+      "properties": {
+        "fullName": "copy_pos_09",
+        "name": "copy_pos_09",
+        "node_kind": "METHOD",
+        "research_case_id": "pos_09"
+      },
+      "type": "METHOD"
+    },
+    {
+      "id": "m_src",
+      "properties": {
+        "fullName": "source_pos_09",
+        "name": "source_pos_09",
+        "node_kind": "METHOD",
+        "research_case_id": "pos_09"
+      },
+      "type": "METHOD"
+    },
+    {
+      "id": "s",
+      "properties": {
+        "code": "input",
+        "derived": {
+          "argument_role": "source",
+          "name": "input",
+          "node_kind": "IDENTIFIER",
+          "potential_external_input": true,
+          "source_origin": "PARAMETER"
+        },
+        "name": "input",
+        "research_case_id": "pos_09",
+        "typeFullName": "char*"
+      },
+      "type": "IDENTIFIER"
+    },
+    {
+      "id": "k",
+      "properties": {
+        "code": "memcpy(...)",
+        "fixed_extent_write_like": true,
+        "format_write_like": false,
+        "input_operation_like": false,
+        "memory_write_like": true,
+        "methodFullName": "memcpy",
+        "name": "memcpy",
+        "node_kind": "CALL",
+        "research_case_id": "pos_09",
+        "unbounded_input_like": false,
+        "unbounded_write_like": false,
+        "write_extent_mode": "FIXED"
+      },
+      "type": "CALL"
+    },
+    {
+      "id": "d",
+      "properties": {
+        "code": "buffer",
+        "derived": {
+          "argument_index": 1,
+          "argument_role": "destination",
+          "name": "buffer",
+          "node_kind": "IDENTIFIER"
+        },
+        "name": "buffer",
+        "research_case_id": "pos_09",
+        "typeFullName": "char[56]"
+      },
+      "type": "IDENTIFIER"
+    },
+    {
+      "id": "t",
+      "properties": {
+        "code": "malloc(56)",
+        "derived": {
+          "allocation_like": true,
+          "capacity_proof": "ALLOC_CALL_ARG",
+          "capacity_unit": "BYTES",
+          "memory_capacity": 56,
+          "memory_capacity_known": true,
+          "memory_region": "HEAP",
+          "name": "malloc",
+          "node_kind": "CALL",
+          "object_id": "alloc::buffer",
+          "object_id_proof": "EXPLICIT",
+          "research_case_id": "pos_09"
+        },
+        "methodFullName": "malloc",
+        "name": "malloc"
+      },
+      "type": "CALL"
+    },
+    {
+      "id": "e",
+      "properties": {
+        "argument_index": 3,
+        "argument_role": "extent",
+        "code": "64",
+        "name": "64",
+        "node_kind": "LITERAL",
+        "numeric_value": 64,
+        "range": {
+          "lower": 64,
+          "proof": "EXACT_VALUE",
+          "upper": 64
+        }
+      },
+      "type": "LITERAL"
+    }
+  ],
+  "schema_version": "1.0"
+}

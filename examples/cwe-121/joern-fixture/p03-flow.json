@@ -1,0 +1,7 @@
+[
+  {"elements":[
+    {"name":"input","_id":111669149696,"_label":"METHOD_PARAMETER_IN","typeFullName":"char*","lineNumber":3,"code":"char *input"},
+    {"name":"input","_id":68719476739,"_label":"IDENTIFIER","typeFullName":"char*","lineNumber":6,"code":"input"},
+    {"name":"buffer","_id":68719476738,"_label":"IDENTIFIER","typeFullName":"char[32]","lineNumber":6,"code":"buffer"}
+  ]}
+]

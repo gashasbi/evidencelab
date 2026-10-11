@@ -1,0 +1,117 @@
+{
+  "schema_version": "1.0",
+  "registry_version": "3.0",
+  "policy": {
+    "raw_data_is_external": true,
+    "do_not_bundle_large_external_datasets": true,
+    "require_sha256": true,
+    "require_license_or_access_notice": true,
+    "require_source_provenance": true,
+    "do_not_promote_heuristic_labels_to_authoritative_ground_truth": true
+  },
+  "datasets": [
+    {
+      "id": "nist-juliet-c-cpp-1.3",
+      "name": "Juliet C/C++ 1.3",
+      "provider": "NIST SAMATE / NSA Center for Assured Software",
+      "version": "1.3",
+      "kind": "synthetic-test-suite",
+      "url": "https://samate.nist.gov/SARD/test-suites/112",
+      "download_url": "https://samate.nist.gov/SARD/downloads/test-suites/2017-10-01-juliet-test-suite-for-c-cplusplus-v1-3.zip",
+      "sha256": "ada9d7e1c323d283446df3f55bdee0d00bda1fed786785fe98764d58688f38eb",
+      "case_count": 64099,
+      "cwe_count": 118,
+      "license_note": "NIST page states public-domain/CC0 availability.",
+      "label_policy": "Files can contain paired bad/good portions; use metadata or explicit extraction rather than whole-file heuristic labels.",
+      "source_sha256_field": "archive_sha256",
+      "acquisition": "direct-http+sha256"
+    },
+    {
+      "id": "nist-juliet-c-cpp-1.3.1-extra",
+      "name": "Juliet C/C++ 1.3.1 with extra support",
+      "provider": "NIST SAMATE / NSA Center for Assured Software",
+      "version": "1.3.1",
+      "kind": "synthetic-test-suite",
+      "url": "https://samate.nist.gov/SARD/test-suites/116",
+      "sha256": "331b288f17ea95076d76e7bcc1d0e307f9e78241b16e744340213c8e2986919a",
+      "case_count": 64099,
+      "license_note": "NIST page identifies the suite and checksum; follow source terms.",
+      "label_policy": "Use Juliet-specific bad/good pairing metadata; never infer whole-file labels from CWE path alone.",
+      "acquisition": "registry-reference+sha256; explicit download URL required by evaluator"
+    },
+    {
+      "id": "nist-sate6-wireshark",
+      "name": "SATE VI Wireshark",
+      "provider": "NIST SAMATE",
+      "version": "1.2",
+      "kind": "real-world-plus-injected",
+      "url": "https://samate.nist.gov/SARD/test-suites/119",
+      "download_url": "https://samate.nist.gov/SARD/downloads/test-suites/2024-08-26-wireshark-sate6-v1-2.zip",
+      "sha256": "bd5f57d552467e6a2290ac1a1b474c276ac9c5813eecd441c61f4f34458170d2",
+      "case_count": 150,
+      "license_note": "Preserve the source suite's own terms in the acquisition record.",
+      "label_policy": "Patch/CVE/bug-tracker provenance must remain attached to cases.",
+      "acquisition": "direct-http+sha256"
+    },
+    {
+      "id": "primevul",
+      "name": "PrimeVul",
+      "provider": "DLVulDet / research release",
+      "kind": "real-world-vulnerability-dataset",
+      "url": "https://github.com/DLVulDet/PrimeVul",
+      "split_policy": "Prefer the dataset's project-aware and chronological split metadata; independently run EvidenceLab leakage checks.",
+      "huggingface": "colin/PrimeVul",
+      "release": "v0.1",
+      "metadata_policy": "Prefer v0.1 metadata-rich release; retain project URL, commit URL, CVE/NVD and file_info when present.",
+      "artifacts": [
+        {
+          "id": "test-jsonl",
+          "url": "https://huggingface.co/datasets/colin/PrimeVul/resolve/main/primevul_test.jsonl?download=true",
+          "sha256": "c9dcab5ee897da36eccf0dbb3b510de2dab66a7dec681af29a7a28c8a53331c4",
+          "kind": "jsonl",
+          "license": "MIT",
+          "source_revision": "main"
+        },
+        {
+          "id": "test-paired-jsonl",
+          "url": "https://huggingface.co/datasets/colin/PrimeVul/resolve/main/primevul_test_paired.jsonl?download=true",
+          "sha256": "384758c25142b640f1768bb0d334c43f315c580022ae94973c66e77128fb3821",
+          "kind": "jsonl",
+          "license": "MIT",
+          "source_revision": "main"
+        }
+      ]
+    },
+    {
+      "id": "secvuleval",
+      "name": "SecVulEval",
+      "provider": "SecVulEval research release",
+      "kind": "real-world-cve-dataset",
+      "url": "https://github.com/basimbd/SecVulEval",
+      "split_policy": "Group by repository/project and preserve CVE/patch context; do not randomly mix near-identical revisions across evaluation partitions.",
+      "huggingface": "arag0rn/SecVulEval",
+      "artifacts": [
+        {
+          "id": "train-parquet",
+          "url": "https://huggingface.co/datasets/arag0rn/SecVulEval/resolve/c1f60f632c4c930193195fce252f249564d6d8b2/data/train-00000-of-00001.parquet?download=true",
+          "sha256": "a849cf0319f7728a17a398d734c7d82cf1dfe5349700c8b1803bd710081ea0cc",
+          "kind": "parquet",
+          "license": "MIT",
+          "source_revision": "c1f60f632c4c930193195fce252f249564d6d8b2"
+        }
+      ]
+    },
+    {
+      "id": "diversevul",
+      "name": "DiverseVul",
+      "provider": "Wagner Group / RAID 2023",
+      "version": "2023-07-02",
+      "kind": "real-world-vulnerability-dataset",
+      "url": "https://github.com/wagner-group/diversevul",
+      "split_policy": "Prefer project-aware and chronological evaluation; never use CWE metadata alone as the vulnerability label.",
+      "source_note": "Research release reports 18,945 vulnerable and 330,492 non-vulnerable functions from 7,514 commits across 150 CWEs.",
+      "license_note": "Follow source release terms.",
+      "artifacts": []
+    }
+  ]
+}

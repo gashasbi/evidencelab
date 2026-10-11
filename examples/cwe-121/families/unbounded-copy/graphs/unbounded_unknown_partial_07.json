@@ -1,0 +1,90 @@
+{
+  "schema_version": "1.0",
+  "format": "evidencelab-canonical-graph",
+  "metadata": {
+    "format": "json",
+    "parser": "synthetic-corpus",
+    "completeness": "partial",
+    "parse_health": "OK",
+    "case_variant": "missing_dataflow_and_reference"
+  },
+  "nodes": [
+    {
+      "id": "u7_s",
+      "type": "METHOD_PARAMETER_IN",
+      "properties": {
+        "name": "u7",
+        "code": "char *u7",
+        "typeFullName": "char*",
+        "derived": {
+          "name": "u7",
+          "storage_duration": "PARAMETER"
+        }
+      }
+    },
+    {
+      "id": "u7_k",
+      "type": "CALL",
+      "properties": {
+        "name": "strcpy",
+        "code": "strcpy(buf_u7, u7)",
+        "methodFullName": "strcpy",
+        "derived": {
+          "name": "strcpy",
+          "call_name": "strcpy",
+          "unbounded_write_like": true
+        }
+      }
+    },
+    {
+      "id": "u7_d",
+      "type": "IDENTIFIER",
+      "properties": {
+        "name": "buf_u7",
+        "code": "buf_u7",
+        "typeFullName": "char[32]",
+        "derived": {
+          "name": "buf_u7",
+          "type_full_name": "char[32]"
+        }
+      }
+    },
+    {
+      "id": "u7_t",
+      "type": "LOCAL",
+      "properties": {
+        "code": "char buf_u7[32]",
+        "name": "buf_u7",
+        "typeFullName": "char[32]",
+        "derived": {
+          "name": "buf_u7",
+          "is_array": true,
+          "length": 32,
+          "storage_duration": "AUTOMATIC",
+          "stack_candidate": true,
+          "physical_stack_region": "UNKNOWN"
+        }
+      }
+    },
+    {
+      "id": "u7_e",
+      "type": "IDENTIFIER",
+      "properties": {
+        "name": "unknown_len",
+        "code": "unknown_len",
+        "derived": {}
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "e1",
+      "source": "u7_k",
+      "target": "u7_d",
+      "type": "ARGUMENT",
+      "properties": {
+        "argumentIndex": 1
+      }
+    }
+  ]
+}
