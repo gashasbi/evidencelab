@@ -33,12 +33,70 @@ def _run(cmd, cwd=None, timeout=1800):
 
 
 def _sha256_path(path: str | Path) -> str:
+    """Hash a file compatibly, or a directory deterministically.
+
+    File inputs keep the historical byte-for-byte SHA-256. Directory inputs are
+    hashed from sorted relative paths, entry types, symlink targets, and file bytes;
+    absolute paths and timestamps are deliberately excluded.
+    """
     import hashlib
 
+    target = Path(path)
+    if target.is_file():
+        h = hashlib.sha256()
+        with target.open("rb") as f:
+            for chunk in iter(lambda: f.read(1024 * 1024), b""):
+                h.update(chunk)
+        return h.hexdigest()
+    if not target.is_dir():
+        raise EvidenceLabError(
+            f"source path is not a regular file or directory: {target}"
+        )
+
     h = hashlib.sha256()
-    with Path(path).open("rb") as f:
-        for chunk in iter(lambda: f.read(1024 * 1024), b""):
-            h.update(chunk)
+    h.update(b"EvidenceLab directory digest v1\0")
+
+    entries: list[Path] = []
+
+    def _raise_walk_error(error: OSError) -> None:
+        raise EvidenceLabError(
+            f"unable to hash source directory: {error}"
+        ) from error
+
+    for current, dirnames, filenames in os.walk(
+        target, followlinks=False, onerror=_raise_walk_error
+    ):
+        dirnames.sort()
+        filenames.sort()
+        base = Path(current)
+        # Include directories too, so empty directories contribute to the digest.
+        entries.extend(base / name for name in dirnames)
+        entries.extend(base / name for name in filenames)
+    entries.sort(key=lambda item: item.relative_to(target).as_posix())
+
+    for entry in entries:
+        relative = entry.relative_to(target).as_posix().encode(
+            "utf-8", errors="surrogateescape"
+        )
+        h.update(len(relative).to_bytes(8, "big"))
+        h.update(relative)
+        if entry.is_symlink():
+            h.update(b"L")
+            link_target = os.fsencode(os.readlink(entry))
+            h.update(len(link_target).to_bytes(8, "big"))
+            h.update(link_target)
+        elif entry.is_dir():
+            h.update(b"D")
+        elif entry.is_file():
+            h.update(b"F")
+            h.update(entry.stat().st_size.to_bytes(8, "big"))
+            with entry.open("rb") as f:
+                for chunk in iter(lambda: f.read(1024 * 1024), b""):
+                    h.update(chunk)
+        else:
+            raise EvidenceLabError(
+                f"unsupported special file in source directory: {entry}"
+            )
     return h.hexdigest()
 
 
