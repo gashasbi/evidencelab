@@ -33,7 +33,7 @@ def test_capture_removes_stale_joern_export_directories(tmp_path, monkeypatch):
             ).write_text("{}", encoding="utf-8")
         elif cmd[0] == "joern-slice":
             Path(str(cmd[-1]) + ".json").write_text(
-                '{"nodes":[],"edges":[]}', encoding="utf-8"
+                '{"$type":"DataFlowSlice","nodes":[],"edges":[]}', encoding="utf-8"
             )
         return "", ""
 

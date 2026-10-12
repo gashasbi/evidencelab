@@ -194,6 +194,18 @@ def capture_joern(
     dataflow_file = None
     dataflow_status = "NOT_REQUESTED"
     if dataflow:
+        def discard_dataflow_output() -> None:
+            candidate = Path(str(dfbase) + ".json")
+            try:
+                if candidate.is_symlink() or candidate.is_file():
+                    candidate.unlink()
+                elif candidate.is_dir():
+                    shutil.rmtree(candidate)
+            except OSError as exc:
+                raise EvidenceLabError(
+                    f"unable to remove invalid dataflow output: {candidate}"
+                ) from exc
+
         slice_cmd = ["joern-slice", "data-flow"]
         if dataflow_slice_depth:
             slice_cmd += ["--slice-depth", str(dataflow_slice_depth)]
@@ -216,9 +228,24 @@ def capture_joern(
                 raise EvidenceLabError(
                     "joern-slice data-flow produced invalid JSON output"
                 ) from exc
-            if not isinstance(payload, dict):
+            if (
+                not isinstance(payload, dict)
+                or payload.get("$type") != "DataFlowSlice"
+                or not isinstance(payload.get("nodes"), list)
+                or not isinstance(payload.get("edges"), list)
+                or any(
+                    not isinstance(node, dict) or node.get("id") is None
+                    for node in payload["nodes"]
+                )
+                or any(
+                    not isinstance(edge, dict)
+                    or edge.get("src") is None
+                    or edge.get("dst") is None
+                    for edge in payload["edges"]
+                )
+            ):
                 raise EvidenceLabError(
-                    "joern-slice data-flow JSON output must be an object"
+                    "joern-slice data-flow JSON output does not match DataFlowSlice schema"
                 )
             dataflow_file = cand
             stdout["dataflow"] = {
@@ -229,6 +256,7 @@ def capture_joern(
             }
             dataflow_status = "OK"
         except subprocess.TimeoutExpired as exc:
+            discard_dataflow_output()
             stdout["dataflow"] = {
                 "status": "TIMEOUT",
                 "timeout_seconds": dataflow_timeout,
@@ -242,6 +270,7 @@ def capture_joern(
                     f"joern-slice data-flow timed out after {dataflow_timeout}s"
                 ) from exc
         except EvidenceLabError as exc:
+            discard_dataflow_output()
             stdout["dataflow"] = {
                 "status": "FAILED",
                 "error": str(exc),
