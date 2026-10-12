@@ -15,6 +15,7 @@ from evidencelab import SCHEMA_VERSION, __version__
 ROOT = Path(__file__).resolve().parents[1]
 ELS = ROOT / "examples/evidence-dsl/cwe121-fixed-write-research-grade.els"
 GRAPH = ROOT / "examples/cwe-121/graphs/vulnerable.json"
+SAFE_GRAPH = ROOT / "examples/cwe-121/graphs/safe.json"
 MODEL = ROOT / "examples/dataset-model/simple-vuln-dataset.json"
 
 
@@ -46,6 +47,27 @@ def test_els_runs_against_canonical_graph_and_emits_trace():
     assert result["evidence_trace"]["analysis_incomplete"] is False
     assert result["evidence_trace"]["witness_search_complete"] is True
     assert result["ledger"]["schema_version"] == "1.0"
+
+
+
+def test_els_does_not_match_safe_canonical_graph():
+    raw = compile_els_file(ELS)
+    pattern = Pattern.from_dict(raw)
+    graph = parse_graph(SAFE_GRAPH)
+    result = Matcher(graph).run(pattern).to_dict()
+
+    assert result["status"] == "NO_MATCH", result
+    assert result["witnesses"], result
+    assert all(
+        witness["status"] == "NO_MATCH"
+        for witness in result["witnesses"]
+    ), result
+
+    trace = result["evidence_trace"]
+    assert trace["analysis_incomplete"] is False
+    assert trace["witness_search_complete"] is True
+    assert trace["graph_complete_for_absence"] is True
+    assert result.get("warnings", []) == []
 
 
 def test_dataset_model_is_explicit_and_preserves_source_record():
