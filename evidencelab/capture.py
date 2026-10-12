@@ -204,6 +204,23 @@ def capture_joern(
         slice_cmd += [str(cpg), "-o", str(dfbase)]
         try:
             out4, err4 = _run(slice_cmd, timeout=dataflow_timeout)
+            cand = Path(str(dfbase) + ".json")
+            if not cand.is_file():
+                raise EvidenceLabError(
+                    "joern-slice data-flow produced no JSON output"
+                )
+            try:
+                with cand.open("r", encoding="utf-8") as stream:
+                    payload = json.load(stream)
+            except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+                raise EvidenceLabError(
+                    "joern-slice data-flow produced invalid JSON output"
+                ) from exc
+            if not isinstance(payload, dict):
+                raise EvidenceLabError(
+                    "joern-slice data-flow JSON output must be an object"
+                )
+            dataflow_file = cand
             stdout["dataflow"] = {
                 "stdout": out4,
                 "stderr": err4,
@@ -233,10 +250,6 @@ def capture_joern(
             dataflow_status = "FAILED"
             if not best_effort_dataflow:
                 raise
-        cand = Path(str(dfbase) + ".json")
-        if cand.exists():
-            dataflow_file = cand
-            dataflow_status = "OK"
     manifest = {
         "format": "evidencelab-capture",
         "version": SCHEMA_VERSION,
