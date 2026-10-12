@@ -1,78 +1,81 @@
 # Evidence model
 
-## 1. The proof chain
+This page defines what EvidenceLab's outcomes mean. For ELS syntax, use the [ELS reference](evidence-dsl.md); for the execution components, see [Architecture](architecture.md).
 
-EvidenceLab separates the source of a statement from the logic that uses it:
+## From input to outcome
 
 ```text
 Raw artifact or analyzer result
-             |
-             v
-Observation with source identity and provenance
-             |
-             v
-Derived fact with named inputs and method
-             |
-             v
-Evidence claim evaluated under a coherent binding
-             |
-             v
-Witness, counter-evidence, uncertainty, and outcome
+             -> observation with identity/provenance
+             -> derived fact with inputs and method
+             -> Evidence claim evaluated under a binding
+             -> witness, counter-evidence, uncertainty, outcome
 ```
 
-A parser finding a property in a graph is an observation. A deterministic rule that calculates a buffer capacity is a derivation. The statement that a write extent exceeds that capacity is an Evidence claim. The final `MATCH` is a result of satisfying the required claims under one witness, not a reflection of a dataset label.
+An external label is not an observation, a derived fact is not automatically proven, and a result is not merely a reflection of a dataset label.
 
-## 2. Claim-level proof states
+## Claim-level proof states
 
-| State | Meaning | Appropriate interpretation |
-|---|---|---|
-| `PROVEN` | Available facts establish the claim under its declared semantics. | The claim is satisfied for this binding. |
-| `DISPROVEN` | Available facts contradict the claim. | This binding does not establish the claim. |
-| `PARTIAL` | Only part of the required evidence or bounded reasoning is available. | Do not treat as a complete proof. |
-| `UNKNOWN` | Available artifacts do not establish or refute the claim. | More analysis or information may be required. |
-| `NOT_APPLICABLE` | The claim is not required on an explicitly selected branch. | This is different from missing evidence. |
+| State | Meaning |
+|---|---|
+| `PROVEN` | Available facts establish the claim under its declared semantics. |
+| `DISPROVEN` | Available facts contradict the claim for this binding. |
+| `PARTIAL` | Only part of the required evidence or bounded reasoning is available. |
+| `UNKNOWN` | Available artifacts establish neither the claim nor its negation. |
+| `NOT_APPLICABLE` | The claim does not apply to an explicitly selected branch; it is not missing evidence. |
 
-## 3. Pattern-level outcomes
+## Pattern-level outcomes
 
 | Outcome | Meaning |
 |---|---|
-| `MATCH` | A required, coherent witness satisfies the Evidence definition and applicable policies. |
-| `NO_MATCH` | The definition is not satisfied by a sufficiently complete and trustworthy input for the decision. |
-| `PARTIAL` | Execution or a declared policy permits a partial result that cannot be promoted to a definitive match. |
-| `UNKNOWN` | The available evidence cannot safely determine the outcome. |
+| `MATCH` | A required, coherent witness satisfies the definition and applicable policies. |
+| `NO_MATCH` | No admissible witness satisfied the definition on input sufficiently complete and trustworthy for that decision. |
+| `PARTIAL` | The result is explicitly incomplete and must not be treated as a definitive match. |
+| `UNKNOWN` | Available evidence is insufficient to decide safely. |
 
-The distinction between `NO_MATCH` and `UNKNOWN` is a core safety property. A missing data-flow edge may mean that the program has no such flow, or that the analyzer did not emit it. The correct result depends on the completeness contract and the available evidence.
+Do not turn a timeout, missing edge, unresolved value, failed export, or truncated candidate search into `NO_MATCH`. The correct outcome depends on the definition and the completeness information available.
 
-## 4. Coherent witnesses
+## Witness coherence
 
-A witness is a consistent mapping from Evidence slots to graph entities. If the Evidence requires a source, sink, destination object, capacity, and write extent, the engine must prove the required relationships for the same selected entities. It cannot use an unrelated object to satisfy the capacity claim and a different operation to satisfy the sink claim.
+A witness binds named Evidence slots to concrete graph entities. If a definition requires a source, sink, destination, capacity, and write extent, every required relation must hold for the same compatible entities. The engine must not combine a path from one operation with the capacity of an unrelated object.
 
-Witness coherence is a semantic guard against accidental proof assembly from disconnected parts of a graph. It is also the reason stored witnesses can be validated independently.
+## Counter-evidence
 
-## 5. Counter-evidence
+Counter-evidence is evaluated against the candidate witness it is intended to refute or qualify. For example, `extent <= capacity` may refute a positive claim that requires `extent > capacity`. A counter-claim in `DISPROVEN` state means that the refuting condition does not hold; an `UNKNOWN` counter-claim must follow the declared policy and must not silently count as false.
 
-Counter-evidence is associated with the same witness that the positive claims describe. Examples include a proven length guard, a write extent no greater than destination capacity, a destination with the wrong object identity, or a safe operation semantic.
+## Completeness and limits
 
-A refuting claim being `DISPROVEN` is not a global failure. It means that the refuting condition is not satisfied for this witness. An `UNKNOWN` counter-claim must follow the declared policy; it must not be silently treated as false.
+A syntactically valid graph can omit semantically important facts. Common causes include partial data-flow slices, lossy export properties, unresolved aliases or library behavior, timeouts, depth limits, and candidate/combination caps. Record the relevant configuration and preserve degraded states. A complete search over a bounded graph answers only the question represented by that graph and bound.
 
-## 6. Analysis completeness
+## Evidence dimensions
 
-A graph may pass structural parsing and still omit facts relevant to a decision. Examples include:
+A reusable definition can combine several dimensions in one witness. Use this table to check what the research question actually requires; the categories are a review aid, not proof that a definition handles each dimension correctly.
 
-- a data-flow slice without the complete source graph;
-- GraphML export loss of list-valued properties;
-- a timeout during interprocedural analysis;
-- a depth-limited search;
-- a candidate cap that truncates bindings;
-- missing source, line, type, or object identity metadata;
-- unresolved aliases or external-library behavior.
+| Dimension | Review question | Example fact |
+|---|---|---|
+| Operation | Which operation and argument roles matter? | Call target, destination argument. |
+| Object/state | Which object is involved, and what is its state? | Object identity, storage lifetime, capacity. |
+| Flow | How does a value reach the operation? | Data-flow edge, reaching definition, call path. |
+| Control/guard | Is a check effective for this operation? | Bounds check and its relation to the write. |
+| Quantitative | Can the required numeric relation be proved? | Extent exceeds a proven capacity. |
+| Source/trust | Where did the value originate, and was it validated? | External input, validated length. |
+| Analysis quality | Is the graph complete enough for this claim? | Timeout, truncated slice, unresolved call. |
+| Provenance | Can a fact be traced to inputs and derivation? | Source digest, observation ID, method. |
+| Coherence/counter-evidence | Do claims use compatible entities, and what could refute them? | Same-object binding, safe extent, correct guard. |
 
-When the Evidence definition depends on facts that these limitations may have hidden, absence is not proof of safety. Preserve the analyzer's completeness report and use conservative outcomes.
+## Review checklist
 
-## 7. Provenance and replay
+Before relying on an Evidence Pattern, review:
 
-For each derived fact, preserve identified inputs and the derivation method. For each evaluated result, retain the Evidence Pattern identity/digest, graph identity/digest, matcher configuration, witness binding, counter-evidence, outcome, and software/analyzer versions as available.
+1. whether bindings identify the same objects and operations;
+2. whether required relations and quantitative assumptions are justified;
+3. what could refute the witness or qualify its interpretation;
+4. how missing facts, timeouts, truncation, and unresolved values are handled;
+5. whether derived facts name their inputs and method;
+6. whether positive, safe-negative, unknown, and counter-evidence cases challenge the definition.
 
-Witness replay validates a stored binding without repeating candidate discovery. It answers a narrower question than a complete scan: given this pattern, graph, and stored witness, do the bound claims still hold? A replay result cannot compensate for an incomplete graph or an invalid benchmark design.
+Prefer canonical graph relations when cross-analyzer reuse is intended. If raw analyzer properties are necessary, document that dependency.
 
-See [Reproducibility](reproducibility.md), [Witness validation](witness-validation.md), and [Security model](security-model.md).
+## Witness replay
+
+Replay checks a stored fixed binding against a graph and Pattern without repeating candidate discovery. It can catch changed artifacts or invalid witness claims, but it cannot discover an unstored witness, repair an incomplete graph, or establish external generalization. See [Reproducibility](reproducibility.md).

@@ -1,10 +1,8 @@
 # Troubleshooting
 
-This page covers common installation and execution problems in EvidenceLab 1.0.0. Start by preserving the complete error output; do not edit project code before identifying which layer failed.
+First preserve the full command, exit code, Python version, and unabridged error output. Identify which layer failed before changing code: package installation, CLI invocation, graph parsing, analyzer capture, or research/evaluation gates.
 
-## `python -m evidencelab --version` fails
-
-Confirm that the virtual environment is active and the package is installed in that interpreter:
+## The CLI cannot be imported or the version command fails
 
 ```bash
 which python
@@ -13,120 +11,82 @@ python -m pip show evidencelab
 python -m evidencelab --version
 ```
 
-The expected project version is `1.0.0`. If `python -m pip show evidencelab` points to a different interpreter or environment, activate the intended `.venv` and reinstall from the repository root.
+Activate the intended `.venv` and run from the project root. If `pip show` points to a different environment, install the package into the active interpreter with `python -m pip install -e .`.
 
 ## `No module named pytest`
 
-This means the test runner is not installed in the active interpreter. `python -m pip install -e .` installs runtime dependencies, not development dependencies. From the project root and with `.venv` active, run:
+Runtime installation intentionally excludes the test runner. From the repository root:
 
 ```bash
 python -m pip install -e ".[dev]"
 python -m pytest --version
 ```
 
-Then retry the test command. Do not mark the suite failed before the test runner has started, and do not report it as passing when it has not run.
+Do not report tests as failed before the test runner starts, and do not report a pass if the tests never ran.
 
-## `pip install -e .` fails while installing build dependencies
+## pip fails while installing build or runtime dependencies
 
-Check Python version, pip version, network policy, configured package index, and availability of the build-system requirement `setuptools>=68`:
+Check the interpreter, pip configuration, configured package index, and full resolver message:
 
 ```bash
 python --version
 python -m pip --version
 python -m pip config list
-python -m pip install "setuptools>=68"
 ```
 
-In an offline environment, use an approved internal index or wheelhouse containing the required build/runtime/test dependencies. Do not assume that a build failure caused by network access is a source defect. Preserve the full pip output for diagnosis.
+The build backend requires `setuptools>=68`; runtime installation requires `jsonschema>=4.21,<5`. Network restrictions, an unavailable mirror, or missing wheels can block installation without indicating a source-code defect. Use an approved package mirror/wheelhouse where required; avoid `sudo pip`.
 
-## `release_test.sh` stops before the first test
+## The release script stops before Joern E2E
 
-The script prints a numbered test name and then starts that test in a subprocess. If the output shows `No module named pytest`, install `.[dev]`. Otherwise, run the reported test file directly to get the focused traceback:
-
-```bash
-python -m pytest -q tests/test_capture_controls.py
-```
-
-To run the full suite without invoking external Joern tools:
+The full release smoke exercises external Joern unless skipped. To run the Python and bundled reference checks only:
 
 ```bash
 SKIP_JOERN_E2E=1 ./scripts/release_test.sh
 ```
 
-This validates the local Python/reference workflows but intentionally skips the live Joern end-to-end test.
+This does **not** test live analyzer integration. To see the exact failed regression, run the named test file directly with `python -m pytest -q tests/test_file.py`.
 
 ## `doctor --joern` reports missing executables
 
-Check every executable that EvidenceLab calls:
-
 ```bash
-command -v joern
 command -v joern-parse
 command -v joern-export
 command -v joern-slice
 printf '%s\n' "$PATH"
 ```
 
-Joern is installed separately. Follow the [official Joern installation guide](https://docs.joern.io/installation/) and the [EvidenceLab Joern integration guide](joern-integration.md). After updating `PATH`, start a new shell and run `hash -r`.
+EvidenceLab does not install Joern. Follow [Joern integration](joern-integration.md), reload the shell after changing `PATH`, and run `python -m evidencelab doctor --joern` again. Finding a command in `PATH` proves discoverability, not that capture succeeds.
 
-## Joern parses but export fails
+## Joern parse succeeds but export or data-flow fails
 
-Save the command output and the complete capture directory. Confirm that `joern-parse` created `cpg.bin`, that the selected Joern release supports the requested export options, and that output directories are writable. Inspect the installed command's `--help`; do not rely on flags from a different Joern release.
+Preserve the capture directory and `capture-manifest.json`. Check that `cpg.bin` exists, inspect the installed command's `--help`, and confirm the output directory is writable. Use `--best-effort-dataflow` only for exploratory runs that can accept a degraded manifest. `TIMEOUT`, `FAILED`, or `DEGRADED` must remain visible; a missing slice is not proof that no flow exists.
 
-## `joern-slice` times out or has no data-flow output
+GraphML may not preserve every list-valued property. Retain GraphSON and the original CPG when those properties matter, and compare exports before treating them as equivalent.
 
-Increase `--dataflow-timeout`, reduce `--dataflow-slice-depth`, or narrow the file/method filters while exploring. Use `--best-effort-dataflow` only when a degraded result is acceptable for exploration. Inspect `capture-manifest.json` and preserve any `TIMEOUT`, `FAILED`, or `DEGRADED` state. A missing slice is not proof that the source has no data flow.
+## Dataset mapping rejects a path
 
-## GraphML and GraphSON results differ
+Mapping artifact paths are resolved relative to `source_root`. Absolute paths and paths escaping that root are rejected. Move the source into the declared root or change the mapping deliberately; do not weaken path checks to force a pass.
 
-GraphML can lose list-valued properties in the current Joern exporter. Keep both exports and the original `cpg.bin`; compare property values and parser metadata. Use GraphSON when the values lost by GraphML are material to the Evidence definition. Do not merge conflicting properties without inspecting which source is authoritative.
+The validation digest and materialization file hash identify different things: `mapping_digest` hashes canonicalized parsed JSON, while `mapping_sha256` hashes the mapping file's exact bytes. They need not be equal.
 
-## `schema-check` or `schema_version` fails
+## Result is `UNKNOWN`, `PARTIAL`, or an unexpected `NO_MATCH`
 
-EvidenceLab 1.0.0 uses public artifact schema version `1.0`. The package version `1.0.0` is a separate value. Validate with the schema that corresponds to the intended artifact type, not an unrelated schema file:
+Check, in order:
 
-```bash
-python -m evidencelab schema-check \
-  --input path/to/artifact.json \
-  --schema schemas/evidence-pattern.schema.json
-```
+1. Was the expected graph or capture artifact created and parsed?
+2. Did the capture manifest report complete or degraded analysis?
+3. Were candidate, path-depth, or combination limits reached?
+4. Do selectors find the intended nodes, and do edges use the right direction/type?
+5. Do required claims refer to one coherent witness?
+6. Is counter-evidence blocking the witness?
+7. Is a required property unresolved or unsupported in the graph?
 
-Confirm the target schema filename exists in the checked-out release before copying a command. For imported Evidence Patterns, `migrate-pattern` can normalize a supported external representation, but migration requires researcher review and fresh semantic validation.
+Use `inspect`, `evidence validate`, `audit`, and witness replay as applicable. Do not weaken required claims until you understand the failed proof obligation.
 
-## Dataset mapping paths are rejected
+## Schema or research gate fails
 
-Paths to input records and artifacts are resolved relative to `source_root`. Absolute artifact paths and path traversal outside the root are prohibited. Move the source artifact under the declared root or adjust the mapping deliberately, then rerun validation and preview. Do not disable the path checks to make an experiment proceed.
-
-## Unexpected `UNKNOWN`, `PARTIAL`, or non-match
-
-Inspect, in order:
-
-1. whether the expected graph artifact was captured and parsed;
-2. whether the capture manifest reports complete or degraded data-flow analysis;
-3. whether candidate search hit a cap or path depth bound;
-4. whether slot selectors actually select the expected nodes;
-5. whether claim relations use the correct direction and canonical relation;
-6. whether derived properties exist and are traceable;
-7. whether all claims refer to a coherent witness;
-8. whether counter-evidence blocks the witness;
-9. whether the expected result assumes information missing from the graph.
-
-Run `evidence validate`, `audit`, `inspect`, and witness replay as appropriate. Do not weaken a required claim until you understand why the current proof obligation fails.
-
-## Research gate fails
-
-Read the full report and identify whether the failure concerns structure, sample counts, independent repositories/projects, missing labels/dimensions, metric thresholds, split leakage, provenance, or hidden validation. The development profile is not interchangeable with a publication/submission profile. Do not satisfy a gate by duplicating cases, relabeling unknown cases, or marking a local set as evaluator-controlled.
+Validate against the schema for the correct artifact type. Package version `1.0.0` and artifact schema version `1.0` are different. For research gates, read the report and identify whether the failure concerns structure, labels, source identity, case coverage, leakage, provenance, witness replay, or profile thresholds. Do not duplicate cases, relabel unknowns, or relax a profile only to obtain a pass.
 
 ## Report a reproducible defect
 
-Include:
-
-- EvidenceLab version and Python version;
-- operating system and Joern/JDK versions if relevant;
-- exact command and return code;
-- minimized input or a clear reference to the shipped fixture;
-- complete error output and relevant manifest/report;
-- whether the issue reproduces on a clean virtual environment;
-- expected versus actual behavior.
-
-Do not attach secrets, restricted corpora, or private source code without authorization.
+Include the EvidenceLab/Python/OS versions, exact command and exit code, minimal input or fixture name, full output, related manifest/report, expected and actual behavior, and whether it reproduces in a clean virtual environment. Do not attach secrets, restricted datasets, or private source without authorization.

@@ -1,59 +1,58 @@
 # Research methodology
 
-EvidenceLab supports a transparent workflow from hypothesis formation to an independently reviewable Evidence artifact. The researcher owns the semantic interpretation; the platform supplies executable contracts, repeatable capture, matching, provenance, and evaluation controls.
+Use this workflow when the goal is to make a defensible claim about a researcher-authored Evidence definition. The software can make the definition executable and results auditable; it cannot decide the research semantics or establish external validity on its own.
 
-## Stage A: define the boundary
+## 1. Define a falsifiable scope
 
-Write a question that can be falsified. Identify the weakness or behavior, supported languages, program constructs in scope, expected deployment or analysis context, and known exclusions. Avoid a definition such as "detect all buffer overflows" without a scope that can be tested.
+State the behavior/weakness, supported languages and constructs, program context, expected analyzer substrate, assumptions, exclusions, and intended claim. A CWE ID is a taxonomy reference, not an executable proof rule. Avoid goals such as “detect all buffer overflows” without a testable scope.
 
-## Stage B: state hypotheses
+## 2. Investigate before writing a rule
 
-Separate the target condition from the analyzer query. For each hypothesis, record what entities and relationships must exist, what would refute it, and what information would leave it unresolved.
+Inspect materially different positive and safe cases. Capture raw analyzer artifacts, exact commands, versions, logs, and hashes. Separate:
 
-## Stage C: gather observations
+- observations directly present in source or analyzer output;
+- derived facts and the method/inputs used to derive them;
+- claims the researcher requires the Evidence engine to prove;
+- missing facts that should leave the case unresolved.
 
-Use Joern or another analyzer to capture raw artifacts and queries. Keep the original source, command, tool version, stdout/stderr, export files, and checksums. A query result is an observation, not automatically a semantic conclusion.
+A name or signature can nominate a candidate, but does not by itself prove behavior or a causal relation.
 
-## Stage D: record derivations
+## 3. Encode and falsify the Evidence
 
-State how each derived fact is calculated from identified observations. Preserve assumptions and replay information where feasible. If a value depends on an external function summary, an unknown type, or a heuristic, record that dependency rather than labeling the value as fully proven.
+Author ELS for the intended bindings, claims, coherent witness, counter-evidence, uncertainty policies, and execution budgets. Validate and compile it, then review the compiled Pattern.
 
-## Stage E: encode the Evidence definition
-
-Author the definition in ELS, validate and compile it, and review the compiled Pattern. Prefer canonical semantics when the intended claim should be analyzer-independent. Set conservative policies and explicit path/candidate budgets.
-
-## Stage F: falsify the definition
-
-Use positive cases, safe negatives, counter-evidence cases, and unknown/incomplete cases. Build tests that isolate one semantic dimension at a time. Inspect the binding and claims of each witness instead of reviewing only the final status.
-
-## Stage G: construct experimental material
-
-Record exact dataset/project snapshots, case identities, labels and their authority, source hashes, mapping code, exclusions, and provenance. Use declarative mappings for simple records and an adapter for complex upstream formats. Do not silently replace unknown labels with heuristic ones.
-
-## Stage H: control leakage
-
-Group related cases by source repository, project, CVE, mutation ancestry, or another relevant identity before splitting. Use chronological splits for time-forward claims. Audit near duplicates and source lineage, then inspect overlap warnings manually.
-
-## Stage I: evaluate
-
-Run the chosen profile. Persist per-case outcomes and matcher artifacts. Report counts and denominators, unknown/infrastructure rates, witness replay outcomes, counter-evidence behavior, localization, runtime, and resource bounds as relevant. Do not rely on aggregate scores alone.
-
-## Stage J: validate externally
-
-Use held-out repositories, projects, or a corpus controlled by an independent evaluator to test generalization. Hidden sealing is an integrity mechanism, not a substitute for evaluator independence.
-
-## Stage K: freeze for reproduction
-
-Hash the ELS file, compiled Pattern, source artifacts, graph exports, benchmark manifests, split manifests, profile, code revision, and evaluation results. Record tool and runtime versions plus the exact commands. Bundle the minimal artifacts needed for another researcher to reproduce or independently replay the result.
-
-## Recommended commands
+Build a case set with positive, safe-negative, unknown/incomplete, and counter-evidence cases. Add one-dimension mutations where useful (for example, change only the extent, object, guard, or flow relation). Inspect bindings and claim-level results, not only the top-level status. Test that timeouts, missing properties, and candidate truncation do not become definitive negatives.
 
 ```bash
 python -m evidencelab evidence validate --spec path/to/evidence.els
-python -m evidencelab audit --pattern path/to/pattern.json --json
-python -m evidencelab benchmark-audit --benchmark path/to/benchmark.json --pattern path/to/pattern.json
-python -m evidencelab research-check --root research/cwe-121 --profile profiles/research-grade-c-cpp-joern.json --summary
-python -m evidencelab research-readiness --root research/cwe-121 --profile profiles/research-grade-c-cpp-joern.json
+python -m evidencelab evidence compile --spec path/to/evidence.els --out /tmp/pattern.json
+python -m evidencelab evidence run --spec path/to/evidence.els --graph path/to/canonical-graph.json --out /tmp/result.json
 ```
 
-Use flags that match the selected profile and your actual package layout. These commands are not interchangeable: pattern audit, benchmark audit, research readiness, research evaluation, and hidden evaluation answer different questions.
+For syntax details, see [ELS reference](evidence-dsl.md); for status semantics, see [Evidence model](evidence-model.md).
+
+## 4. Build trustworthy experimental material
+
+Choose an exact dataset snapshot, repository commit, suite, or archive. Record source identity, license, label authority, case IDs, source hashes, mapping/adapter version, exclusions, and transformations. Keep unknown labels unknown unless there is a documented reason and authority to classify them. Use [Dataset integration](dataset-integration.md) for importer and mapping contracts.
+
+Before importing a full dataset, validate and preview representative records. Inspect the imported case IDs, source references, labels, and relationships. A large imported corpus is not automatically a valid benchmark.
+
+## 5. Control overlap and leakage
+
+Select a split strategy based on the intended claim: repository, project, CVE, mutation ancestry, or chronology. Keep related cases and mutation descendants in the same partition where relevant. Run `leakage-audit`, `leakage-audit-manifest`, `lineage-audit`, and `split-audit` as appropriate, and inspect warnings manually. A deterministic seed makes a split repeatable; it does not make related cases independent.
+
+## 6. Evaluate and report
+
+Use the profile that matches the claim. Keep per-case results and witness artifacts. Report counts and denominators behind each metric; `UNKNOWN`, `PARTIAL`, infrastructure-error, and incomplete-analysis cases; witness replay and counter-evidence; source/project identity, split design, leakage checks, analyzer/version/settings; and runtime/resource budgets and limitations where relevant.
+
+Confidence intervals should reflect the independent sampling unit. Hundreds of mutations from a few repositories are not hundreds of independent projects. Do not remove failed/time-out cases silently from denominators.
+
+## 7. Validate externally and freeze
+
+A publication or generalization claim needs suitable held-out material and an evaluation process not used to tune the definition. A development profile is not a publication profile. A local hidden bundle is not evaluator-controlled simply because it is named “hidden”; sealing can help detect tampering but cannot establish custody.
+
+Freeze the ELS and Pattern, source/graph and dataset digests, profile, split manifests, tool/runtime versions, exact commands, per-case outputs, witness replay, and limitations statement. Use [Reproducibility](reproducibility.md) for artifact inventories and bundles and [Research task and submission](research-task-and-submission.md) for handoff structure.
+
+## Weak evidence for a research claim
+
+None of the following is sufficient alone: a passing unit suite; a schema-valid Pattern; one positive case; many duplicate or mutation-derived cases; a label inferred from a filename; a single aggregate score with no denominator; a successful Joern process; a local “hidden” archive; or a `PASS` from a development gate.

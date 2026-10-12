@@ -1,105 +1,73 @@
 # Quickstart
 
-This walkthrough verifies the installation, validates a researcher-authored Evidence definition, executes it against a canonical graph, and materializes a small external-material mapping. It does not require a live Joern installation because the graph is already bundled in canonical form.
+This walkthrough runs the bundled ELS against two already-normalized reference graphs. It does not call Joern or compile source code.
 
-## Prerequisites
+## 1. Check the environment
 
-From the repository root, activate the virtual environment and install the development extra if you intend to run the complete test suite:
+Run from the repository root with the project installed in the active virtual environment:
 
 ```bash
-source .venv/bin/activate
 python -m evidencelab --version
-```
-
-## 1. Inspect the environment
-
-```bash
 python -m evidencelab doctor
 ```
 
-For live Joern checks, use:
+If the CLI cannot be imported, follow [Installation](installation.md) and [Troubleshooting](troubleshooting.md).
 
-```bash
-python -m evidencelab doctor --joern
-```
-
-## 2. Validate an ELS specification
+## 2. Validate the Evidence definition
 
 ```bash
 python -m evidencelab evidence validate \
   --spec examples/evidence-dsl/cwe121-fixed-write-research-grade.els
 ```
 
-This checks the ELS source against the implemented grammar and semantic constraints. Passing validation does not prove that the Evidence is scientifically sufficient; that requires test material and evaluation.
+This checks the ELS contract. It does not prove that the definition is sufficient for real-world vulnerability detection.
 
-## 3. Compile the specification
+## 3. Run the vulnerable and safe reference graphs
 
-```bash
-python -m evidencelab evidence compile \
-  --spec examples/evidence-dsl/cwe121-fixed-write-research-grade.els \
-  --out /tmp/evidencelab-fixed-write-pattern.json
-```
-
-The output is an Evidence Pattern in the public schema contract. Keep the ELS source and compiled Pattern together so changes can be reviewed and reproduced.
-
-## 4. Execute against a canonical graph
+The CLI prints a detailed JSON report. Redirect stdout for a quieter walkthrough; `--out` still saves the report file. **Exit-code note:** `evidence run` exits `0` for `MATCH` and `1` for every other outcome, including the expected `NO_MATCH` on the safe fixture. The JSON report's `status` is the decision; the non-zero exit for `NO_MATCH` is not, by itself, an execution crash.
 
 ```bash
 python -m evidencelab evidence run \
   --spec examples/evidence-dsl/cwe121-fixed-write-research-grade.els \
   --graph examples/cwe-121/graphs/vulnerable.json \
-  --out /tmp/evidencelab-fixed-write-result.json
-```
+  --out /tmp/evidencelab-vulnerable.json > /dev/null
 
-Inspect the JSON result. The example is expected to produce a positive match because it is a deliberately constructed reference graph. Do not interpret this one-case result as benchmark precision or recall.
-
-Try the safe reference graph as a contrast:
-
-```bash
 python -m evidencelab evidence run \
   --spec examples/evidence-dsl/cwe121-fixed-write-research-grade.els \
   --graph examples/cwe-121/graphs/safe.json \
-  --out /tmp/evidencelab-fixed-write-safe-result.json
+  --out /tmp/evidencelab-safe.json > /dev/null
 ```
 
-The final outcome depends on the precise Evidence claims, available graph facts, and policy; inspect the report rather than assuming that a missing positive witness always means `NO_MATCH`.
-
-## 5. Validate and preview an experimental-material mapping
+Print a compact summary:
 
 ```bash
-python -m evidencelab dataset-model-validate \
-  --model examples/dataset-model/simple-vuln-dataset.json
+python - <<'PY'
+import json
+from pathlib import Path
 
-python -m evidencelab dataset-model-preview \
-  --model examples/dataset-model/simple-vuln-dataset.json \
-  --limit 3
+for name, path in (
+    ("vulnerable", "/tmp/evidencelab-vulnerable.json"),
+    ("safe", "/tmp/evidencelab-safe.json"),
+):
+    report = json.loads(Path(path).read_text(encoding="utf-8"))
+    trace = report.get("evidence_trace", {})
+    print(
+        name,
+        "status=" + str(report.get("status")),
+        "incomplete=" + str(trace.get("analysis_incomplete")),
+        "search_complete=" + str(trace.get("witness_search_complete")),
+    )
 ```
 
-The preview inspects materialization without running a program analyzer.
+For the bundled fixtures, the expected statuses are `MATCH` for the vulnerable graph and `NO_MATCH` for the safe graph. Both should have a complete search and no incomplete-analysis flag. These are small reference examples, not independent benchmark results.
 
-## 6. Materialize the canonical manifest
+## What the result means
 
-```bash
-python -m evidencelab dataset-model-import \
-  --model examples/dataset-model/simple-vuln-dataset.json \
-  --out /tmp/evidencelab-example-material.json
-```
+`MATCH` means the required claims were satisfied by a coherent witness. `NO_MATCH` means no witness satisfied the definition on an input complete enough for that decision. If the report indicates incomplete analysis, truncation, or `UNKNOWN`, do not treat it as a safe result. Read [Evidence model](evidence-model.md) before interpreting a non-match as absence.
 
-The bundled example contains three cases with the declared truth states `BAD`, `GOOD`, and `UNKNOWN`. These truth labels remain dataset-side declarations; they do not force Evidence matcher outcomes.
+## Next step
 
-## 7. Run the regression suite
-
-After installing the development extra:
-
-```bash
-python -m pytest -q
-```
-
-For release verification, use `./scripts/release_test.sh`. If you skip the Joern E2E with `SKIP_JOERN_E2E=1`, record that the external analyzer path was not exercised.
-
-## Next steps
-
-- Learn the Evidence semantics in [Evidence model](evidence-model.md).
-- Author or change a definition using [ELS](evidence-dsl.md).
-- Capture real source with [Joern integration](joern-integration.md).
-- Design an independent benchmark with [Benchmark design](benchmark-design.md) and [Research methodology](research-methodology.md).
+- To author definitions, read [ELS reference](evidence-dsl.md).
+- To import data, use [Dataset integration](dataset-integration.md).
+- To analyze source code, prepare Joern using [Joern integration](joern-integration.md).
+- To design an evaluation, use [Research methodology](research-methodology.md) and [Benchmark design](benchmark-design.md).

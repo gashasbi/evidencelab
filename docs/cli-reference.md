@@ -39,19 +39,7 @@ python -m evidencelab <command> --help
 | `cwe sync` | Refresh a local CWE catalog artifact. | `python -m evidencelab cwe sync [--out FILE]` |
 | `cwe show` | Display a CWE entry from a local catalog. | `--catalog FILE --cwe CWE-121` |
 
-Example ELS workflow:
-
-```bash
-python -m evidencelab evidence validate \
-  --spec examples/evidence-dsl/cwe121-fixed-write-research-grade.els
-python -m evidencelab evidence compile \
-  --spec examples/evidence-dsl/cwe121-fixed-write-research-grade.els \
-  --out /tmp/evidence-pattern.json
-python -m evidencelab evidence run \
-  --spec examples/evidence-dsl/cwe121-fixed-write-research-grade.els \
-  --graph examples/cwe-121/graphs/vulnerable.json \
-  --out /tmp/evidence-result.json
-```
+For the shortest working ELS example, see [Quickstart](quickstart.md).
 
 ## Joern capture and scanning
 
@@ -138,7 +126,7 @@ See [Joern integration](joern-integration.md) before running a live capture. It 
 | `dataset-model-preview` | Preview materialization without running analysis. | `--model FILE [--limit N]` |
 | `dataset-model-import` | Materialize a canonical experimental-material manifest. | `--model FILE --out FILE` |
 
-The presence of an importer is not a statement that EvidenceLab distributes the corresponding dataset, endorses its labels, or has tested every upstream release. Record the exact source version and hashes; consult [Dataset integration](dataset-integration.md) and the [real-world runbook](real-world-runbook.md).
+The presence of an importer is not a statement that EvidenceLab distributes the corresponding dataset, endorses its labels, or has tested every upstream release. Record the exact source version and hashes; consult [Dataset integration](dataset-integration.md) and the [Research methodology](research-methodology.md).
 
 ## SARIF and TEF
 
@@ -149,7 +137,9 @@ The presence of an importer is not a statement that EvidenceLab distributes the 
 | `tef-validate` | Validate a TEF document. | `--input FILE [--out FILE]`; requires YAML support for YAML inputs. |
 | `tef-normalize` | Normalize a TEF document into EvidenceLab notes/artifact form. | `--input FILE --out FILE` |
 
-## JSON output and repeatability recommendations
+## JSON output, exit codes, and repeatability
+
+For `evidence run`, the process exits `0` only when the result status is `MATCH`; `NO_MATCH`, `PARTIAL`, and `UNKNOWN` currently return `1`. Inspect the saved JSON `status`, `evidence_trace`, and warnings to distinguish a completed negative/uncertain decision from an operational error. This matters in shell scripts using `set -e`, where an expected `NO_MATCH` will stop the script unless handled deliberately.
 
 1. Keep command lines and tool versions with the result.
 2. Use absolute, project-local paths for material mappings and avoid path escapes.
