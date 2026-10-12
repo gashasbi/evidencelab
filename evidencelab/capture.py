@@ -311,7 +311,10 @@ def capture_joern(
         raise EvidenceLabError("joern-parse is not installed")
     if not shutil.which("joern-export"):
         raise EvidenceLabError("joern-export is not installed")
+    source_sha256 = _sha256_path(src)
     root.mkdir(parents=True, exist_ok=True)
+    manifest_path = root / "capture-manifest.json"
+    manifest_path.unlink(missing_ok=True)
     cpg = root / "cpg.bin"
     gm = root / "graphml"
     gs = root / "graphson"
@@ -448,12 +451,21 @@ def capture_joern(
             dataflow_status = "FAILED"
             if not best_effort_dataflow:
                 raise
+    try:
+        final_source_sha256 = _sha256_path(src)
+    except (EvidenceLabError, OSError) as exc:
+        raise EvidenceLabError(
+            f"source changed or became unavailable during capture: {src}"
+        ) from exc
+    if final_source_sha256 != source_sha256:
+        raise EvidenceLabError(f"source changed during capture: {src}")
+
     manifest = {
         "format": "evidencelab-capture",
         "version": SCHEMA_VERSION,
         "tool_version": __version__,
         "source": str(src),
-        "source_sha256": _sha256_path(src),
+        "source_sha256": source_sha256,
         "joern_version": joern_version(),
         "artifacts": {
             "cpg": str(cpg),
@@ -478,7 +490,7 @@ def capture_joern(
             else "ANALYZER_DEGRADED",
             "analyzer": "Joern",
             "analyzer_version": joern_version(),
-            "source_sha256": _sha256_path(src),
+            "source_sha256": source_sha256,
             "capture_status": (
                 "PASS" if dataflow_status in {"OK", "NOT_REQUESTED"} else "DEGRADED"
             ),
@@ -488,7 +500,7 @@ def capture_joern(
             "PASS" if dataflow_status in {"OK", "NOT_REQUESTED"} else "DEGRADED"
         ),
     }
-    (root / "capture-manifest.json").write_text(
+    manifest_path.write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8"
     )
     return manifest
