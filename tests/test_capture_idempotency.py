@@ -28,9 +28,16 @@ def test_capture_removes_stale_joern_export_directories(tmp_path, monkeypatch):
             out = Path(cmd[-1])
             assert not out.exists(), f"Joern export directory must not pre-exist: {out}"
             out.mkdir()
-            (
-                out / ("export.xml" if cmd[3] == "--format=graphml" else "export.json")
-            ).write_text("{}", encoding="utf-8")
+            if cmd[3] == "--format=graphml":
+                (out / "export.xml").write_text(
+                    '<graphml xmlns="http://graphml.graphdrawing.org/xmlns"><graph id="G" edgedefault="directed"><node id="1"/></graph></graphml>',
+                    encoding="utf-8",
+                )
+            else:
+                (out / "export.json").write_text(
+                    '{"vertices":[{"id":1,"label":"METHOD","properties":{}}],"edges":[]}',
+                    encoding="utf-8",
+                )
         elif cmd[0] == "joern-slice":
             Path(str(cmd[-1]) + ".json").write_text(
                 '{"$type":"DataFlowSlice","nodes":[],"edges":[]}', encoding="utf-8"

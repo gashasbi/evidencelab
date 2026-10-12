@@ -24,10 +24,14 @@ def _capture_with_slice_action(monkeypatch, tmp_path, slice_action, *, best_effo
             export_dir.mkdir(parents=True)
             if "--format=graphml" in cmd:
                 (export_dir / "export.xml").write_text(
-                    "<graphml/>", encoding="utf-8"
+                    '<graphml xmlns="http://graphml.graphdrawing.org/xmlns"><graph id="G" edgedefault="directed"><node id="1"/></graph></graphml>',
+                    encoding="utf-8",
                 )
             else:
-                (export_dir / "export.json").write_text("{}", encoding="utf-8")
+                (export_dir / "export.json").write_text(
+                    '{"vertices":[{"id":1,"label":"METHOD","properties":{}}],"edges":[]}',
+                    encoding="utf-8",
+                )
         elif cmd[0] == "joern-slice":
             output_file = Path(str(Path(cmd[-1])) + ".json")
             slice_action(output_file)
