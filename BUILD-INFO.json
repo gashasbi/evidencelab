@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "release_type": "stable_public_release",
+  "release_type": "beta_public_release",
   "core_identity": "Evidence Laboratory",
   "primary_contracts": [
     "researcher-authored Evidence",

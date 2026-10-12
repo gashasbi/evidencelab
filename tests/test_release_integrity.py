@@ -73,3 +73,23 @@ def test_release_metadata_has_no_cache_directories():
 def test_scripts_are_executable():
     for p in (ROOT / "scripts").glob("*.sh"):
         assert p.stat().st_mode & stat.S_IXUSR, p
+
+def test_release_maturity_metadata_is_consistent():
+    import json
+    import tomllib
+
+    pyproject = tomllib.loads(
+        (ROOT / "pyproject.toml").read_text(encoding="utf-8")
+    )
+    build_info = json.loads(
+        (ROOT / "BUILD-INFO.json").read_text(encoding="utf-8")
+    )
+
+    maturity = [
+        item
+        for item in pyproject["project"]["classifiers"]
+        if item.startswith("Development Status :: ")
+    ]
+
+    assert maturity == ["Development Status :: 4 - Beta"]
+    assert build_info["release_type"] == "beta_public_release"
