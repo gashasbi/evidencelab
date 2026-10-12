@@ -89,6 +89,21 @@ python -m evidencelab dataset-model-import \
   --out /tmp/canonical-material.json
 ```
 
+### Mapping digest semantics
+
+The `dataset-model-validate` response includes `mapping_digest`, which is
+SHA-256 over the canonical JSON representation of the parsed mapping.
+Object-key order and formatting whitespace do not affect this digest.
+
+The `dataset-model-preview` and `dataset-model-import` outputs include
+`mapping_sha256`, which is SHA-256 over the raw bytes of the mapping file.
+It identifies the exact file representation, so formatting changes can
+change this value even when the parsed JSON is unchanged.
+
+These two values intentionally represent different things and are not
+expected to be equal. Use `mapping_digest` to identify the canonicalized
+mapping content and `mapping_sha256` to identify the exact source file.
+
 ### Programmatic adapter
 
 Use a programmatic adapter for database records, proprietary or binary formats, nested archives, complex SARD structures, or sources with semantic rules that cannot be represented by the declarative mapping. The adapter should produce the current canonical material contract and retain the original record or a stable pointer to it. Do not add source-specific fields to the Evidence matcher merely to avoid implementing the adapter boundary.
