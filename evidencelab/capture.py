@@ -2,6 +2,7 @@ from __future__ import annotations
 from . import SCHEMA_VERSION, __version__
 from pathlib import Path
 import os, signal, shutil, subprocess, re, json
+import xml.etree.ElementTree as ET
 from .errors import EvidenceLabError
 
 
@@ -127,6 +128,170 @@ def _find_export(folder: Path, exts: tuple[str, ...]) -> Path | None:
     return exports[0] if exports else None
 
 
+def _validate_graphml(path: Path) -> None:
+    try:
+        with path.open("rb") as stream:
+            tail = b""
+            while True:
+                chunk = stream.read(65536)
+                if not chunk:
+                    break
+                scan = (tail + chunk).upper()
+                if b"<!DOCTYPE" in scan or b"<!ENTITY" in scan:
+                    raise EvidenceLabError(
+                        f"GraphML output with DTD/entity declarations is rejected: {path}"
+                    )
+                tail = scan[-16:]
+    except OSError as exc:
+        raise EvidenceLabError(
+            f"unable to read GraphML output: {path}"
+        ) from exc
+
+    root_tag = None
+    graph_found = False
+    graph_depth = None
+    node_count = 0
+    node_ids = set()
+    edge_refs = []
+    invalid_node = False
+    invalid_edge = False
+    stack = []
+
+    try:
+        for event, element in ET.iterparse(path, events=("start", "end")):
+            tag = str(element.tag).rsplit("}", 1)[-1].lower()
+            if event == "start":
+                if not stack:
+                    root_tag = tag
+                if not graph_found and tag == "graph":
+                    graph_found = True
+                    graph_depth = len(stack)
+                elif graph_depth is not None and len(stack) == graph_depth + 1:
+                    if tag == "node":
+                        node_id = element.attrib.get("id")
+                        if not node_id or node_id in node_ids:
+                            invalid_node = True
+                        else:
+                            node_count += 1
+                            node_ids.add(node_id)
+                    elif tag == "edge":
+                        source = element.attrib.get("source")
+                        target = element.attrib.get("target")
+                        if not source or not target:
+                            invalid_edge = True
+                        else:
+                            edge_refs.append((source, target))
+                stack.append(element)
+            else:
+                if (
+                    graph_depth is not None
+                    and len(stack) == graph_depth + 1
+                    and tag == "graph"
+                ):
+                    graph_depth = None
+                if stack:
+                    parent = stack[-2] if len(stack) > 1 else None
+                    stack.pop()
+                    if parent is not None:
+                        parent.remove(element)
+                    element.clear()
+    except (ET.ParseError, OSError) as exc:
+        raise EvidenceLabError(
+            f"joern-export produced invalid GraphML output: {path}"
+        ) from exc
+
+    dangling_edge = any(
+        source not in node_ids or target not in node_ids
+        for source, target in edge_refs
+    )
+    if (
+        root_tag != "graphml"
+        or not graph_found
+        or node_count == 0
+        or invalid_node
+        or invalid_edge
+        or dangling_edge
+    ):
+        raise EvidenceLabError(
+            f"joern-export produced invalid or empty GraphML output: {path}"
+        )
+
+
+def _unwrap_graphson_id(value):
+    while isinstance(value, dict) and "@value" in value:
+        value = value["@value"]
+    return value
+
+
+def _validate_graphson(path: Path) -> None:
+    try:
+        with path.open("r", encoding="utf-8") as stream:
+            payload = json.load(stream)
+    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+        raise EvidenceLabError(
+            f"joern-export produced invalid GraphSON output: {path}"
+        ) from exc
+
+    if (
+        isinstance(payload, dict)
+        and "@value" in payload
+        and str(payload.get("@type", "")).lower() in {"tinker:graph", "graph"}
+    ):
+        payload = payload["@value"]
+    elif isinstance(payload, dict) and isinstance(payload.get("graph"), dict):
+        payload = payload["graph"]
+
+    if (
+        not isinstance(payload, dict)
+        or not isinstance(payload.get("vertices"), list)
+        or not isinstance(payload.get("edges"), list)
+    ):
+        raise EvidenceLabError(
+            f"joern-export produced invalid GraphSON output: {path}"
+        )
+
+    vertices = payload["vertices"]
+    edges = payload["edges"]
+    if not vertices:
+        raise EvidenceLabError(
+            f"joern-export produced an empty GraphSON graph: {path}"
+        )
+
+    vertex_ids = set()
+    for vertex in vertices:
+        if not isinstance(vertex, dict) or vertex.get("id") is None:
+            raise EvidenceLabError(
+                f"joern-export produced an invalid GraphSON vertex: {path}"
+            )
+        vertex_id = _unwrap_graphson_id(vertex["id"])
+        if vertex_id is None:
+            raise EvidenceLabError(
+                f"joern-export produced an invalid GraphSON vertex id: {path}"
+            )
+        key = str(vertex_id)
+        if key in vertex_ids:
+            raise EvidenceLabError(
+                f"joern-export produced duplicate GraphSON vertex ids: {path}"
+            )
+        vertex_ids.add(key)
+
+    for edge in edges:
+        if not isinstance(edge, dict):
+            raise EvidenceLabError(
+                f"joern-export produced an invalid GraphSON edge: {path}"
+            )
+        source = _unwrap_graphson_id(edge.get("outV", edge.get("source")))
+        target = _unwrap_graphson_id(edge.get("inV", edge.get("target")))
+        if source is None or target is None:
+            raise EvidenceLabError(
+                f"joern-export produced an invalid GraphSON edge: {path}"
+            )
+        if str(source) not in vertex_ids or str(target) not in vertex_ids:
+            raise EvidenceLabError(
+                f"joern-export produced a GraphSON edge with missing endpoints: {path}"
+            )
+
+
 def capture_joern(
     source: str | Path,
     out: str | Path,
@@ -177,6 +342,7 @@ def capture_joern(
     graphml = _find_export(gm, (".xml", ".graphml"))
     if graphml is None:
         raise EvidenceLabError("joern-export produced no GraphML file")
+    _validate_graphml(graphml)
     graphson_file = None
     if graphson:
         out3, err3 = _run(
@@ -191,6 +357,9 @@ def capture_joern(
         )
         stdout["graphson"] = {"stdout": out3, "stderr": err3}
         graphson_file = _find_export(gs, (".json", ".graphson"))
+        if graphson_file is None:
+            raise EvidenceLabError("joern-export produced no GraphSON file")
+        _validate_graphson(graphson_file)
     dataflow_file = None
     dataflow_status = "NOT_REQUESTED"
     if dataflow:
