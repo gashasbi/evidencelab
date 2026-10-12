@@ -1,77 +1,53 @@
-# Benchmark design and validation
+# Benchmark design and evaluation
 
-## Purpose
-
-A benchmark tests whether an Evidence definition behaves as expected over deliberately selected cases. A benchmark is only as useful as its identities, truth assignments, coverage, independent structure, and source provenance. A large case count alone does not establish validity.
+A benchmark tests whether an Evidence definition behaves as expected over deliberately selected cases. It is only as useful as case identity, label authority, semantic coverage, independence, and source provenance. Case count alone does not establish validity.
 
 ## Required case classes
 
-### Positive cases
+- **Positive:** the target semantic condition is present and required graph facts should be observable.
+- **Negative:** a superficially similar case is safe or outside scope (for example, bounded extent, correct guard, distinct destination, or safe API). Avoid negatives that differ only in spelling.
+- **Unknown/incomplete:** input, labels, or analysis cannot support a definitive decision. Record why.
+- **Counter-evidence:** a concrete condition that refutes or qualifies the same candidate witness, not an unrelated global filter.
 
-Cases where the target semantic condition is present and where the required graph facts should be observable. Include more than one coding shape, project structure, API form, or call path when those differences are relevant to the claimed scope.
+For memory-write claims, vary operation, source, destination, object identity, capacity, extent, aliasing, guards, interprocedural flow, typing, and analysis completeness where those dimensions affect the scope. Other weakness families need their own semantic model.
 
-### Negative cases
+## Mutations, identity, and leakage
 
-Cases where a superficially similar operation is safe or outside the Evidence definition's target. Examples include bounded extents, validated lengths, distinct objects, safe APIs, correct guards, or different storage lifetimes. Avoid negatives that differ only by an irrelevant spelling change.
+A useful mutation changes one semantically relevant dimension while keeping others as stable as practical. Record the seed case, changed files/lines, recipe, expected semantics, and mutation lineage. Mutations are useful controlled tests but are not independent real-world projects.
 
-### Unknown or incomplete cases
-
-Cases where the source, metadata, or analysis cannot support a definitive answer. Examples include missing types, truncated graph export, data-flow timeout, unresolved external behavior, or a test whose ground-truth authority is ambiguous. Do not use `UNKNOWN` as a miscellaneous bucket for cases that are simply inconvenient to classify; document why a decision is not justified.
-
-### Counter-evidence cases
-
-Cases that specifically challenge a proposed witness by satisfying a refuting or qualifying condition. Counter-evidence should bind to the candidate's objects and control conditions rather than applying as an unrelated global filter.
-
-## Dimension coverage
-
-For a memory-write family, independently vary operation, source, destination object, capacity, extent, object identity, aliasing, control guards, interprocedural flow, type information, and analysis completeness where applicable. Other CWE families need their own dimensions. The Evidence taxonomy provides a starting point; it is not a substitute for a threat or semantic model.
-
-## One-dimension mutations
-
-A useful mutation changes one semantically relevant dimension while keeping other conditions as stable as practical. Expected examples:
-
-- make a write extent bounded without changing the destination;
-- change the destination object while preserving the source;
-- introduce or remove an effective bounds check;
-- change object storage lifetime;
-- break a data-flow relation;
-- remove required type or capacity information to create an unknown case.
-
-Record original case identity, mutation recipe, changed lines/files, expected semantics, and mutation lineage. Mutation-generated examples are useful for controlled experiments but are not independent real-world projects.
-
-## Independence and leakage
-
-Choose a split based on the intended claim:
-
-- repository split for repository-level generalization;
-- project split when project identity is the relevant grouping;
-- CVE grouping for vulnerability-instance independence;
-- mutation grouping so descendants of one seed do not cross partitions;
-- chronological split for a time-forward evaluation question.
-
-Run `leakage-audit`, `leakage-audit-manifest`, `lineage-audit`, and `split-audit` as applicable. A deterministic seed makes a split reproducible but does not make it statistically independent if related source cases cross partitions.
+Choose splits to match the intended claim: repository/project, CVE, mutation ancestry, or chronological. Audit near duplicates, source lineage, and cross-partition overlap. Do not let related descendants cross partitions without explicit justification.
 
 ## Metrics and uncertainty
 
-Report the confusion matrix and the denominator behind each metric. Do not count `UNKNOWN`, infrastructure failures, or incomplete analysis as a false negative or true negative without an explicit evaluation policy. Report coverage and missing cases next to precision/recall/specificity. Add witness validity, counter-evidence behavior, localization, and performance when they matter to the research question.
+Report confusion matrices and the denominator for every metric. Keep `UNKNOWN`, infrastructure errors, and incomplete analysis separate from definitive positives/negatives unless an explicit evaluation policy justifies a transformation. Report coverage and missing cases next to precision/recall/specificity. Confidence intervals should reflect independent projects/cases, not the raw number of records when many records are related.
 
-Confidence intervals should reflect the independent sampling unit. Thousands of generated mutations from a small number of repositories do not provide the same evidence of generalization as independent projects.
+If performance matters, record analyzer and matcher time separately, graph size, candidate/path budgets, resource usage, repetitions, and timeouts. A timeout must not disappear from the results merely because it is inconvenient.
 
 ## Hidden evaluation
 
-Hidden benchmarks reduce direct tuning to the evaluator's cases only if the hidden set is actually controlled by an independent evaluator and was not used during design or debugging. A local bundle labeled hidden is not automatically independent. Preserve origin, custody, sealing method, key management, and verification output. The `hidden-seal` and `hidden-verify` commands help with bundle integrity but cannot establish honest custody on their own.
+A hidden set helps reduce tuning only when an independent evaluator controls its selection, custody, and access. A local bundle named “hidden” is not automatically independent. Sealing and HMAC checks can help detect tampering, but do not prove who had access to the data or whether it was used during development.
 
 ## Quality gates
 
-Use `benchmark-quality`, `benchmark-audit`, `research-readiness`, and profile-driven checks. The selected profile should state its minimum case counts, labels, datasets, repositories/projects, splits, dimensions, and metric thresholds. Explain the assumptions behind those thresholds and report failed gates without hiding them.
+Use `benchmark-quality`, `benchmark-audit`, `research-readiness`, and profile-driven checks as appropriate. Profiles should state required case counts, labels, datasets/projects, splits, dimensions, and thresholds; explain why those values support the intended claim. Passing a development profile is not publication-grade external validation.
+
+Example minimum-count gate (change the values only to match the chosen research plan):
 
 ```bash
 python -m evidencelab benchmark-quality \
   --benchmark path/to/benchmark.json \
-  --min-cases 120 \
-  --min-positive 40 \
-  --min-negative 40 \
-  --min-unknown 20
+  --min-cases 120 --min-positive 40 --min-negative 40 --min-unknown 20
 ```
 
-The exact gate requirements depend on the profile and research claim. Passing a development profile is not the same as passing a publication profile.
+## Performance measurements
+
+When runtime/resource cost is part of the claim, measure repeated runs and record hardware, OS/Python/EvidenceLab/analyzer versions, graph size, candidate and path limits, parse/export time, matcher/replay time, memory/disk use where practical, and timeout/failure counts. Keep analyzer startup and I/O separate from matcher time. Do not hide timed-out cases.
+
+```bash
+python -m evidencelab performance \
+  --benchmark path/to/benchmark.json \
+  --pattern path/to/pattern.json \
+  --repeats 5
+```
+
+Check `python -m evidencelab performance --help` for the installed release's exact options and output behavior. See [Research methodology](research-methodology.md) and [Reproducibility](reproducibility.md).

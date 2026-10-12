@@ -120,7 +120,7 @@ Slots are inputs to coherent witness construction. A slot-level candidate cap is
 
 ## 6. Claim kinds
 
-The production Evidence Pattern contract supports these claim kinds:
+The current Evidence Pattern contract supports these claim kinds:
 
 | Claim kind | Purpose |
 |---|---|
