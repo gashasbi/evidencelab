@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 
 from evidencelab.dataset_model import materialize, validate_model
+from evidencelab.provenance import sha256_file, sha256_json
 from evidencelab.evidence_dsl import compile_els_file, validate_els
 from evidencelab.matcher import Matcher
 from evidencelab.parsers import parse_graph
@@ -14,6 +15,7 @@ from evidencelab import SCHEMA_VERSION, __version__
 ROOT = Path(__file__).resolve().parents[1]
 ELS = ROOT / "examples/evidence-dsl/cwe121-fixed-write-research-grade.els"
 GRAPH = ROOT / "examples/cwe-121/graphs/vulnerable.json"
+SAFE_GRAPH = ROOT / "examples/cwe-121/graphs/safe.json"
 MODEL = ROOT / "examples/dataset-model/simple-vuln-dataset.json"
 
 
@@ -47,10 +49,35 @@ def test_els_runs_against_canonical_graph_and_emits_trace():
     assert result["ledger"]["schema_version"] == "1.0"
 
 
+
+def test_els_does_not_match_safe_canonical_graph():
+    raw = compile_els_file(ELS)
+    pattern = Pattern.from_dict(raw)
+    graph = parse_graph(SAFE_GRAPH)
+    result = Matcher(graph).run(pattern).to_dict()
+
+    assert result["status"] == "NO_MATCH", result
+    assert result["witnesses"], result
+    assert all(
+        witness["status"] == "NO_MATCH"
+        for witness in result["witnesses"]
+    ), result
+
+    trace = result["evidence_trace"]
+    assert trace["analysis_incomplete"] is False
+    assert trace["witness_search_complete"] is True
+    assert trace["graph_complete_for_absence"] is True
+    assert result.get("warnings", []) == []
+
+
 def test_dataset_model_is_explicit_and_preserves_source_record():
     result = validate_model(MODEL)
     assert result["status"] == "PASS", result
     data = materialize(MODEL)
+
+    model_data = json.loads(MODEL.read_text(encoding="utf-8"))
+    assert result["mapping_digest"] == sha256_json(model_data)
+    assert data["mapping_sha256"] == sha256_file(MODEL)
     assert data["schema_version"] == "1.0"
     assert data["case_count"] == 3
     by_id = {x["id"]: x for x in data["cases"]}
@@ -60,6 +87,30 @@ def test_dataset_model_is_explicit_and_preserves_source_record():
     assert by_id["V-001"]["source_record"]["label"] == "bad"
     assert by_id["V-001"]["claims"][0]["value"] == "CWE-121"
     assert by_id["V-001"]["artifacts"][0]["status"] == "READY"
+
+
+def test_dataset_mapping_digest_ignores_formatting_but_file_sha_does_not(
+    tmp_path: Path,
+):
+    model_data = json.loads(MODEL.read_text(encoding="utf-8"))
+    reformatted = tmp_path / "reformatted-model.json"
+    reformatted.write_text(
+        json.dumps(model_data, ensure_ascii=False, indent=4, sort_keys=True)
+        + "\n",
+        encoding="utf-8",
+    )
+
+    original_result = validate_model(MODEL)
+    reformatted_result = validate_model(reformatted)
+
+    assert original_result["status"] == "PASS", original_result
+    assert reformatted_result["status"] == "PASS", reformatted_result
+
+    assert (
+        original_result["mapping_digest"]
+        == reformatted_result["mapping_digest"]
+    )
+    assert sha256_file(MODEL) != sha256_file(reformatted)
 
 
 def test_dataset_model_rejects_absolute_and_escape_paths(tmp_path: Path):

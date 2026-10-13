@@ -1,66 +1,56 @@
-# Reproducibility contract
+# Reproducibility and witness replay
 
-## Definition
+Reproduction reconstructs a result from the same inputs, software, configuration, and commands. Replication asks whether the conclusion holds on new material. A matching hash detects byte-level changes relative to a known digest; it does not prove semantic correctness or independent origin.
 
-A result is reproducible when an independent researcher can reconstruct its input artifacts and execution configuration and either reproduce the same Evidence decision or independently validate the stored witness. Reproducibility is different from replication: replication tests whether a result persists on new material.
+## Record identities
 
-## Required identities
+Record the items relevant to the experiment: EvidenceLab/package and artifact-schema versions; repository URL, commit, and local changes; Python/OS and analyzer release/build/configuration; dataset/project release or commit, license, case IDs, source hashes, and mapping/adapter digest; ELS digest, Pattern identity/version/digest, evaluation profile, graph and derived artifact digests; commands, timeouts, filters, depth/binding limits, return codes and warnings; benchmark/split identities, grouping strategy, seed, mutation lineage, per-case outcome and completeness; and witness bindings, counter-evidence, and replay results.
 
-Record, when applicable:
+Do not publish secrets or credentials. Record a key fingerprint or identifier where necessary, not the secret itself.
 
-- EvidenceLab package version and schema contract version;
-- repository URL, commit, and local modifications;
-- Python version, operating system, and relevant runtime configuration;
-- analyzer name, exact version/build, and installation source;
-- original dataset/project identity, release/version, URL, license, and archive digest;
-- case ID and original record identity;
-- source code hash, graph hash, and all derived-artifact hashes;
-- source mapping/adapter version and digest;
-- ELS source digest, compiled Pattern ID/version/digest, and evaluation profile digest;
-- commands, timeouts, slice depth, filters, environment-dependent settings, and return codes;
-- benchmark identity, split strategy, grouping field, seed, split manifests, and mutation lineage;
-- result status, proof states, witness bindings, counter-evidence, completeness, and warnings.
-
-Do not record secrets or credentials in a public experiment manifest. Secret-dependent operations should record the credential identity or key fingerprint if appropriate, not the secret itself.
-
-## Artifact inventory
-
-Create an artifact index:
+## Index and verify artifacts
 
 ```bash
 python -m evidencelab provenance-index \
   --root research/cwe-121 \
   --out research/provenance/artifacts.json
-```
 
-Verify it after copying or archiving the workspace:
-
-```bash
 python -m evidencelab provenance-verify \
   --manifest research/provenance/artifacts.json
 ```
 
-The inventory makes file changes detectable. It does not prove that an upstream dataset was correctly labeled or that the initial artifact was truthful.
+The inventory detects changes to indexed files; it cannot establish that an upstream label was correct or that the starting material was truthful.
 
-## Experiment ledger
-
-Record experiment activities with the relevant hypothesis, tool, exact command, result, cases, and notes:
+## Record activities
 
 ```bash
 python -m evidencelab research-record \
   --root research/cwe-121 \
-  --hypothesis "H1: input reaches the bounded write operation" \
+  --hypothesis "Input reaches the bounded write operation" \
   --tool Joern \
-  --command 'joern-slice data-flow --slice-depth 8 ...' \
+  --command 'joern-slice data-flow ...' \
   --result PASS \
-  --notes "Observed output retained at artifacts/capture-001"
+  --notes "Capture retained under artifacts/capture-001"
 ```
 
-Record raw observations and derived facts separately where those commands are part of the research project. Link observations to their source artifact and derivations to the inputs and method used.
+When observations and derivations are recorded, keep raw observations separate from derived facts and identify their inputs and method.
 
-## Bundle and verification
+## Replay a stored witness
 
-Create a review bundle after deciding which data may be distributed:
+```bash
+python -m evidencelab witness-replay \
+  --report path/to/case-report.json \
+  --graph path/to/canonical-graph.json \
+  --pattern path/to/pattern.json
+
+python -m evidencelab witness-replay-batch \
+  --results-dir path/to/evaluation-results \
+  --pattern path/to/pattern.json
+```
+
+Replay re-evaluates a previously bound witness without running candidate discovery again. It can reveal changed artifacts, invalid IDs, or claims that no longer hold. It cannot find an unstored witness, compensate for missing graph facts, or substitute for full benchmark evaluation.
+
+## Bundle and hand off
 
 ```bash
 python -m evidencelab research-bundle \
@@ -68,13 +58,9 @@ python -m evidencelab research-bundle \
   --out /tmp/cwe-121-reproduction.tar.gz
 ```
 
-Hidden material and external data are controlled by explicit opt-in flags. Inspect the bundle before sharing it to ensure it does not contain prohibited source, licensed files, credentials, keys, or private data.
+Hidden and external data are included only with explicit opt-in flags. Inspect a bundle before sharing it for licenses, secrets, private source, keys, and evaluator-only cases.
 
-## Reproduction versus replication
-
-- **Reproduction:** same pattern, graph/material, configuration, versions, and command path.
-- **Witness replay:** fixed stored witness checked against a graph and pattern without running candidate discovery again.
-- **Replication:** new cases, repositories, projects, or time periods test whether the conclusion generalizes.
-- **External validation:** a distinct evaluation process, ideally controlled by an independent evaluator, assesses the claim on held-out material.
-
-A matching hash is useful for identity and integrity; it is not proof of semantic correctness or independent origin.
+- **Reproduction:** same inputs, versions, configuration, and command path.
+- **Witness replay:** recheck one stored binding against a graph and Pattern.
+- **Replication:** test the claim on new cases, projects, repositories, or time periods.
+- **External validation:** evaluation on held-out material with appropriate independence, ideally by an independent evaluator.

@@ -232,6 +232,12 @@ The script captures each checked-in C source case, merges the graph exports, and
 
 A test run with `SKIP_JOERN_E2E=1` does not perform this validation. Record whether Joern E2E was run, the Joern release, operating system, JDK version, exact command, report path, and any degraded data-flow cases.
 
+## Supported graph inputs and failure classification
+
+The parser supports GraphML, GraphSON, Joern `DataFlowSlice` JSON, supported reachable-by-flow path JSON, and EvidenceLab canonical graph JSON. For auditability, retain the original CPG and exports. GraphML can lose list-valued properties; a data-flow slice is a partial view, not the entire CPG.
+
+Keep these states distinct: tool missing; parse/CPG generation failed; export failed or produced no file; slice timed out; slice failed; export parsed but lacks facts needed by a claim; complete graph did not match; stored witness failed replay. The first six concern installation, capture, or completeness—not proof that a vulnerability is absent. The capture manifest should make the distinction visible.
+
 ## 12. What Joern does not prove for EvidenceLab
 
 A successful Joern parse proves that a particular source input was processed and artifacts were emitted. It does not automatically prove:
