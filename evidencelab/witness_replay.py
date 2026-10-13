@@ -5,7 +5,12 @@ from typing import Any
 import copy
 
 from .models import Graph
-from .semantics import get_property, semantic_edge_types, node_value_range
+from .semantics import (
+    get_property,
+    semantic_edge_types,
+    node_value_range,
+    same_object_call_binding_proof,
+)
 from .canonical import canonicalize_graph
 from .spec import Pattern, Claim, Selector
 from .matcher import _selector_matches, _properties_match, _edge_properties_match
@@ -372,6 +377,23 @@ class WitnessReplay:
                     for e in edges
                     if _edge_properties_match(e, c.edge_equals, c.edge_any_of)[0]
                 ]
+            if (
+                not edges
+                and c.allow_call_binding
+                and set(c.edge_types) == {"REF"}
+                and c.direction == "either"
+                and not c.edge_equals
+                and not c.edge_any_of
+            ):
+                call_proof = same_object_call_binding_proof(
+                    self.graph, src, dst
+                )
+                if call_proof is not None:
+                    return {
+                        "status": "PROVEN",
+                        "matches": [call_proof],
+                        "explanation": "verified call binding establishes object resolution",
+                    }
             return {
                 "status": "PROVEN"
                 if edges
@@ -417,6 +439,13 @@ class WitnessReplay:
                 return {
                     "status": "PROVEN",
                     "matches": [{"source": a.id, "target": b.id}],
+                }
+            call_proof = same_object_call_binding_proof(self.graph, a, b)
+            if call_proof is not None:
+                return {
+                    "status": "PROVEN",
+                    "matches": [call_proof],
+                    "explanation": "call argument maps to the formal parameter and target object",
                 }
             return {"status": "UNKNOWN", "matches": []}
         if c.kind == "range_compare":

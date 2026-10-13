@@ -1,4 +1,5 @@
 from __future__ import annotations
+from .attestation import is_trusted_attestation
 from . import SCHEMA_VERSION
 from dataclasses import dataclass, asdict, field
 from typing import Any
@@ -6,7 +7,13 @@ import itertools
 import re
 import copy
 from .models import Graph, Node
-from .semantics import get_property, enrich_graph, semantic_edge_types, node_value_range
+from .semantics import (
+    get_property,
+    enrich_graph,
+    semantic_edge_types,
+    node_value_range,
+    same_object_call_binding_proof,
+)
 from .spec import Claim, Pattern, Selector, Slot, Witness
 from .evidence import EvidenceLedger, EvidenceItem, EvidenceRef
 from .canonical import canonicalize_graph, canonical_validation
@@ -311,11 +318,8 @@ class Matcher:
             or bool(self.graph.metadata.get("analysis_truncated"))
         )
         attestation = self.graph.metadata.get("analysis_attestation") or {}
-        attestation_level = str(attestation.get("level", "")).upper()
-        if self.require_analyzer_attestation and attestation_level not in {
-            "ANALYZER_ATTESTED",
-            "BENCHMARK_ASSERTED",
-        }:
+        attestation_valid = is_trusted_attestation(attestation)
+        if self.require_analyzer_attestation and not attestation_valid:
             analysis_incomplete = True
             warnings.append(
                 "analyzer attestation is required for definitive publication evaluation"
@@ -1201,6 +1205,31 @@ class Matcher:
                     if ok:
                         filtered.append(e)
                 edges = filtered
+            if (
+                not edges
+                and c.allow_call_binding
+                and set(c.edge_types) == {"REF"}
+                and c.direction == "either"
+                and not c.edge_equals
+                and not c.edge_any_of
+            ):
+                source_node = self.graph.nodes.get(str(src))
+                target_node = self.graph.nodes.get(str(dst))
+                if source_node is not None and target_node is not None:
+                    call_proof = same_object_call_binding_proof(
+                        self.graph, source_node, target_node
+                    )
+                    if call_proof is not None:
+                        return ClaimResult(
+                            c.id,
+                            c.kind,
+                            "PROVEN",
+                            c.required,
+                            c.description,
+                            [call_proof],
+                            "verified call binding establishes object resolution",
+                            c.proof_level,
+                        )
             if edges:
                 return ClaimResult(
                     c.id,
@@ -1361,6 +1390,18 @@ class Matcher:
                     c.description,
                     [{"source": a.id, "target": b.id}],
                     "direct REF establishes object resolution",
+                    c.proof_level,
+                )
+            call_proof = same_object_call_binding_proof(self.graph, a, b)
+            if call_proof is not None:
+                return ClaimResult(
+                    c.id,
+                    c.kind,
+                    "PROVEN",
+                    c.required,
+                    c.description,
+                    [call_proof],
+                    "call-site argument maps to the formal parameter and target object",
                     c.proof_level,
                 )
             # Names alone cannot prove object identity because of shadowing and aliasing.

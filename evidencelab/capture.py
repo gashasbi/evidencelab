@@ -473,6 +473,12 @@ def capture_joern(
             "graphson": str(graphson_file) if graphson_file else None,
             "dataflow": str(dataflow_file) if dataflow_file else None,
         },
+        "merge_input_sha256": {
+            "graphml": _sha256_path(graphml),
+            "dataflow": _sha256_path(dataflow_file)
+            if dataflow_file is not None
+            else None,
+        },
         "analysis": {
             "dataflow": {
                 "requested": dataflow,
@@ -504,3 +510,136 @@ def capture_joern(
         json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8"
     )
     return manifest
+
+def validate_capture_manifest_for_merge(
+    manifest_path: str | Path,
+    graph_paths: list[str | Path],
+) -> dict[str, object]:
+    manifest_file = Path(manifest_path).resolve()
+
+    try:
+        manifest = json.loads(manifest_file.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise EvidenceLabError(
+            f"unable to read capture manifest: {manifest_file}"
+        ) from exc
+
+    if not isinstance(manifest, dict):
+        raise EvidenceLabError("capture manifest must be a JSON object")
+
+    if manifest.get("format") != "evidencelab-capture":
+        raise EvidenceLabError("unsupported capture manifest format")
+
+    if manifest.get("status") != "PASS":
+        raise EvidenceLabError("capture manifest is not marked PASS")
+
+    attestation = manifest.get("analysis_attestation")
+    if not isinstance(attestation, dict):
+        raise EvidenceLabError("capture manifest has no analysis attestation")
+
+    if (
+        str(attestation.get("level", "")).upper() != "ANALYZER_ATTESTED"
+        or str(attestation.get("capture_status", "")).upper() != "PASS"
+        or not str(attestation.get("analyzer", "")).strip()
+    ):
+        raise EvidenceLabError("capture manifest does not contain a successful analyzer attestation")
+
+    analysis = manifest.get("analysis")
+    dataflow = analysis.get("dataflow") if isinstance(analysis, dict) else None
+    dataflow_status = (
+        str(dataflow.get("status", "")).upper()
+        if isinstance(dataflow, dict)
+        else ""
+    )
+
+    if dataflow_status not in {"OK", "NOT_REQUESTED"}:
+        raise EvidenceLabError("capture manifest has incomplete dataflow analysis")
+
+    def resolve_recorded_path(value: object, label: str) -> Path:
+        if not isinstance(value, str) or not value.strip():
+            raise EvidenceLabError(f"capture manifest has no {label} path")
+
+        candidate = Path(value).expanduser()
+        if not candidate.is_absolute():
+            candidate = manifest_file.parent / candidate
+
+        return candidate.resolve()
+
+    source_path = resolve_recorded_path(manifest.get("source"), "source")
+
+    try:
+        actual_source_sha256 = _sha256_path(source_path)
+    except (EvidenceLabError, OSError) as exc:
+        raise EvidenceLabError("capture source is missing or cannot be hashed") from exc
+
+    recorded_source_sha256 = manifest.get("source_sha256")
+
+    if (
+        not isinstance(recorded_source_sha256, str)
+        or actual_source_sha256 != recorded_source_sha256
+        or attestation.get("source_sha256") != recorded_source_sha256
+    ):
+        raise EvidenceLabError("capture source hash does not match the attestation")
+
+    artifacts = manifest.get("artifacts")
+    merge_hashes = manifest.get("merge_input_sha256")
+
+    if not isinstance(artifacts, dict) or not isinstance(merge_hashes, dict):
+        raise EvidenceLabError("capture manifest has no merge-input integrity data")
+
+    graphml_path = resolve_recorded_path(artifacts.get("graphml"), "GraphML artifact")
+
+    dataflow_value = artifacts.get("dataflow")
+    dataflow_path = (
+        resolve_recorded_path(dataflow_value, "DataFlow artifact")
+        if dataflow_value
+        else None
+    )
+
+    if dataflow_status == "OK" and dataflow_path is None:
+        raise EvidenceLabError("DataFlow is marked OK but its artifact is missing")
+
+    expected_inputs = [graphml_path]
+    if dataflow_path is not None:
+        expected_inputs.append(dataflow_path)
+
+    supplied_inputs = [Path(path).expanduser().resolve() for path in graph_paths]
+
+    if supplied_inputs != expected_inputs:
+        raise EvidenceLabError(
+            "ordered merge inputs do not match the GraphML and DataFlow artifacts "
+            "recorded in the capture manifest"
+        )
+
+    verified_hashes: dict[str, str] = {}
+
+    for name, artifact_path in (
+        ("graphml", graphml_path),
+        ("dataflow", dataflow_path),
+    ):
+        if artifact_path is None:
+            if merge_hashes.get(name) not in (None, ""):
+                raise EvidenceLabError(
+                    f"capture manifest records a {name} hash but no artifact"
+                )
+            continue
+
+        if not artifact_path.is_file():
+            raise EvidenceLabError(f"merge artifact is not a regular file: {name}")
+
+        recorded_hash = merge_hashes.get(name)
+        if not isinstance(recorded_hash, str) or not recorded_hash:
+            raise EvidenceLabError(f"capture manifest has no {name} artifact hash")
+
+        actual_hash = _sha256_path(artifact_path)
+        if actual_hash != recorded_hash:
+            raise EvidenceLabError(f"{name} artifact hash mismatch")
+
+        verified_hashes[name] = actual_hash
+
+    validated_attestation = dict(attestation)
+    validated_attestation["integrity_validation"] = "MERGE_INPUTS_VERIFIED"
+    validated_attestation["capture_manifest_sha256"] = _sha256_path(manifest_file)
+    validated_attestation["verified_merge_input_sha256"] = verified_hashes
+
+    return validated_attestation
