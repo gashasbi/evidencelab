@@ -3,7 +3,7 @@ import argparse, json, sys
 from pathlib import Path
 from . import __version__, SCHEMA_VERSION
 from .audit import audit_pattern
-from .capture import capture_joern
+from .capture import capture_joern, validate_capture_manifest_for_merge
 from .cwe import sync_catalog, load_catalog, get
 from .doctor import run as doctor_run
 from .errors import EvidenceLabError
@@ -119,6 +119,7 @@ def build_parser() -> argparse.ArgumentParser:
     m.add_argument("--graph", action="append", required=True)
     m.add_argument("--out", required=True)
     m.add_argument("--pretty", action="store_true")
+    m.add_argument("--manifest", help="capture manifest used to verify analyzer attestation")
     v = s.add_parser("validate")
     v.add_argument("--graph")
     v.add_argument("--pattern", required=True)
@@ -1533,28 +1534,23 @@ def main(argv=None):
             print(args.out)
             return 0
         if args.cmd == "merge":
-            merged = None
-            for path in args.graph:
-                g = enrich_graph(parse_graph(path))
-                if merged is None:
-                    merged = g
-                    continue
-                for nid, n in g.nodes.items():
-                    if nid not in merged.nodes:
-                        merged.add_node(n)
-                    else:
-                        cur = merged.nodes[nid]
-                        for k, v in n.properties.items():
-                            cur.properties.setdefault(k, v)
-                for e in g.edges:
-                    if not any(
-                        x.source == e.source
-                        and x.target == e.target
-                        and x.type == e.type
-                        and x.id == e.id
-                        for x in merged.edges
-                    ):
-                        merged.add_edge(e)
+            from .scanner import _merge
+
+            merge_paths = [Path(path).resolve() for path in args.graph]
+            merged = _merge(merge_paths)
+            if args.manifest:
+                merged.metadata["analysis_attestation"] = (
+                    validate_capture_manifest_for_merge(args.manifest, args.graph)
+                )
+                merged.metadata["capture_manifest"] = str(
+                    Path(args.manifest).resolve()
+                )
+            else:
+                # Merging inputs without a matching capture manifest cannot
+                # preserve an attestation from only one of the input graphs.
+                merged.metadata.pop("analysis_attestation", None)
+                merged.metadata.pop("capture_manifest", None)
+
             Path(args.out).parent.mkdir(parents=True, exist_ok=True)
             Path(args.out).write_text(
                 json.dumps(

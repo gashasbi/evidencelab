@@ -7,7 +7,7 @@ import tempfile
 from pathlib import Path
 from typing import Any, Iterable
 
-from .capture import capture_joern
+from .capture import capture_joern, validate_capture_manifest_for_merge
 from .parsers import parse_graph
 from .semantics import enrich_graph
 from .spec import Pattern
@@ -76,8 +76,19 @@ def scan_source(
         if capture["artifacts"].get("dataflow")
         else None
     )
-    merged = _merge([graphml] + ([dataflow] if dataflow else []))
-    merged.metadata["analysis_attestation"] = capture.get("analysis_attestation", {})
+    merge_inputs = [graphml] + ([dataflow] if dataflow else [])
+    merged = _merge(merge_inputs)
+
+    if str(capture.get("status", "")).upper() == "PASS":
+        attestation = validate_capture_manifest_for_merge(
+            temp_capture / "capture-manifest.json",
+            merge_inputs,
+        )
+    else:
+        # Best-effort captures may continue, but degraded claims are not trusted.
+        attestation = capture.get("analysis_attestation", {})
+
+    merged.metadata["analysis_attestation"] = attestation
     merged.metadata["capture_manifest"] = str(temp_capture / "capture-manifest.json")
     merged_path = out / "canonical-graph.json"
     merged_payload = {

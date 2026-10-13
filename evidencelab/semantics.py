@@ -124,6 +124,13 @@ def _array_info(node: Node) -> dict[str, Any]:
 def _derive_storage(node: Node) -> dict[str, Any]:
     code = str(node.get("code", "") or "")
     if node.type == "LOCAL":
+        if code.lstrip().startswith("<global>"):
+            return {
+                "storage_duration": "STATIC_GLOBAL",
+                "stack_candidate": False,
+                "physical_stack_region": "UNKNOWN",
+                "storage_proof": "CPG_GLOBAL_PLACEHOLDER",
+            }
         if re.search(r"\bstatic\b", code):
             return {
                 "storage_duration": "STATIC_LOCAL",
@@ -785,3 +792,154 @@ def relation_for_edge(edge_type: str) -> list[str]:
     return sorted(
         [name for name, aliases in SEMANTIC_EDGE_ALIASES.items() if et in aliases]
     )
+
+def same_object_call_binding_proof(
+    graph: Graph, source: Node, target: Node
+) -> dict[str, Any] | None:
+    if source.type.upper() != "IDENTIFIER":
+        return None
+
+    parameters: dict[str, Node] = {}
+
+    for edge in graph.outgoing(source.id, {"REF"}):
+        node = graph.nodes.get(edge.target)
+        if node is not None and node.type.upper() == "METHOD_PARAMETER_IN":
+            parameters[node.id] = node
+
+    for edge in graph.incoming(source.id, {"REF"}):
+        node = graph.nodes.get(edge.source)
+        if node is not None and node.type.upper() == "METHOD_PARAMETER_IN":
+            parameters[node.id] = node
+
+    if len(parameters) != 1:
+        return None
+
+    parameter = next(iter(parameters.values()))
+    raw_parameter_index = get_property(parameter, "index", None)
+
+    def positive_index(value: Any) -> int | None:
+        if value is None or isinstance(value, bool):
+            return None
+        if isinstance(value, float) and not value.is_integer():
+            return None
+        if isinstance(value, str) and not value.strip().isdigit():
+            return None
+        try:
+            result = int(value)
+        except (TypeError, ValueError, OverflowError):
+            return None
+        return result if result > 0 else None
+
+    parameter_index = positive_index(raw_parameter_index)
+    if parameter_index is None:
+        return None
+
+    parameter_owner = get_property(
+        parameter, "derived.parent_method_node", None
+    )
+    source_owner = get_property(source, "derived.parent_method_node", None)
+    target_owner = get_property(target, "derived.parent_method_node", None)
+
+    if parameter_owner is None or source_owner is None or target_owner is None:
+        return None
+    if str(source_owner) != str(parameter_owner):
+        return None
+
+    callee = graph.nodes.get(str(parameter_owner))
+    caller = graph.nodes.get(str(target_owner))
+    if callee is None or callee.type.upper() != "METHOD":
+        return None
+    if caller is None or caller.type.upper() != "METHOD":
+        return None
+
+    parameter_refs = graph.matching_edges(
+        source.id, parameter.id, {"REF"}, True
+    )
+    if not parameter_refs:
+        return None
+
+    for call in graph.nodes.values():
+        if call.type.upper() != "CALL":
+            continue
+
+        call_owner = get_property(
+            call, "derived.parent_method_node", None
+        )
+        if call_owner is None or str(call_owner) != str(target_owner):
+            continue
+
+        call_edges = graph.matching_edges(
+            call.id, str(parameter_owner), {"CALL"}
+        )
+        if not call_edges:
+            continue
+
+        for argument_edge in graph.outgoing(call.id, {"ARGUMENT"}):
+            actual = graph.nodes.get(argument_edge.target)
+            if actual is None:
+                continue
+
+            raw_argument_index = get_property(
+                actual, "derived.argument_index", None
+            )
+            argument_index = positive_index(raw_argument_index)
+            if argument_index is None:
+                continue
+
+            provenance = get_property(
+                actual, "derived_provenance.argument_index", None
+            )
+            if provenance is not None and str(provenance).startswith("UNKNOWN:"):
+                continue
+
+            if argument_index != parameter_index:
+                continue
+
+            actual_owner = get_property(
+                actual, "derived.parent_method_node", None
+            )
+            if actual_owner is None or str(actual_owner) != str(target_owner):
+                continue
+
+            object_refs = graph.matching_edges(
+                actual.id, target.id, {"REF"}, True
+            )
+            if not object_refs:
+                continue
+
+            parameter_ref = parameter_refs[0]
+            call_edge = call_edges[0]
+            object_ref = object_refs[0]
+
+            return {
+                "proof": "CALL_ARGUMENT_PARAMETER_REF",
+                "source_expression": source.id,
+                "source_parameter_ref": {
+                    "source": parameter_ref.source,
+                    "target": parameter_ref.target,
+                    "type": parameter_ref.type,
+                },
+                "callsite": call.id,
+                "call_to_callee": {
+                    "source": call_edge.source,
+                    "target": call_edge.target,
+                    "type": call_edge.type,
+                },
+                "formal_parameter": parameter.id,
+                "parameter_index": parameter_index,
+                "actual_argument": actual.id,
+                "argument_index": argument_index,
+                "call_argument": {
+                    "source": argument_edge.source,
+                    "target": argument_edge.target,
+                    "type": argument_edge.type,
+                },
+                "object_reference": {
+                    "source": object_ref.source,
+                    "target": object_ref.target,
+                    "type": object_ref.type,
+                },
+                "target_object": target.id,
+            }
+
+    return None

@@ -1,4 +1,6 @@
 from __future__ import annotations
+
+from .attestation import is_trusted_attestation
 import gzip, json, re, xml.etree.ElementTree as ET
 from dataclasses import dataclass
 from pathlib import Path
@@ -456,6 +458,74 @@ def parse_generic_json(path: Path) -> Graph:
         ):
             if key in declared:
                 g.metadata[key] = declared[key]
+        declared_attestation = declared.get("analysis_attestation")
+        capture_manifest = declared.get("capture_manifest")
+        merge_sources = declared.get("merge_sources")
+        source_paths: list[Path] = []
+
+        if (
+            raw.get("format") == "evidencelab-canonical-graph"
+            and isinstance(declared_attestation, dict)
+            and str(declared_attestation.get("level", "")).upper()
+            == "ANALYZER_ATTESTED"
+            and isinstance(capture_manifest, str)
+            and capture_manifest.strip()
+            and isinstance(merge_sources, list)
+            and merge_sources
+        ):
+            try:
+                manifest_file = Path(capture_manifest).expanduser()
+                if not manifest_file.is_absolute():
+                    manifest_file = path.parent / manifest_file
+                manifest_file = manifest_file.resolve()
+
+                source_paths = []
+                source_hashes = []
+                normalized_sources = []
+
+                for record in merge_sources:
+                    if not isinstance(record, dict):
+                        raise ValueError("invalid merge-source record")
+
+                    raw_path = record.get("path")
+                    if not isinstance(raw_path, str) or not raw_path.strip():
+                        raise ValueError("merge-source record has no path")
+
+                    source_path = Path(raw_path).expanduser()
+                    if not source_path.is_absolute():
+                        source_path = path.parent / source_path
+                    source_path = source_path.resolve()
+
+                    source_paths.append(source_path)
+                    source_hashes.append(record.get("sha256"))
+                    normalized_sources.append(
+                        {**record, "path": str(source_path)}
+                    )
+
+                from .capture import validate_capture_manifest_for_merge
+
+                verified = validate_capture_manifest_for_merge(
+                    manifest_file,
+                    source_paths,
+                )
+
+                verified_hashes = verified["verified_merge_input_sha256"]
+                expected_hashes = [verified_hashes["graphml"]]
+                if "dataflow" in verified_hashes:
+                    expected_hashes.append(verified_hashes["dataflow"])
+
+                if (
+                    source_hashes == expected_hashes
+                    and is_trusted_attestation(verified)
+                ):
+                    # Use the validator's result, not serialized attestation fields.
+                    g.metadata["analysis_attestation"] = verified
+                    g.metadata["capture_manifest"] = str(manifest_file)
+                    g.metadata["merge_sources"] = normalized_sources
+
+            except Exception:
+                # Invalid or unavailable capture evidence must not be promoted.
+                pass
         # Preserve any explicitly authored integrity/provenance records as data.
         if "merge_sources" in declared:
             g.metadata["merge_sources"] = declared["merge_sources"]
@@ -487,6 +557,53 @@ def parse_generic_json(path: Path) -> Graph:
                     )
                 )
         finalize(g)
+
+        claims_analyzer_attestation = (
+            isinstance(declared_attestation, dict)
+            and str(declared_attestation.get("level", "")).upper()
+            == "ANALYZER_ATTESTED"
+        )
+
+        if (
+            raw.get("format") == "evidencelab-canonical-graph"
+            and claims_analyzer_attestation
+        ):
+            try:
+                promoted = g.metadata.get("analysis_attestation")
+
+                if not is_trusted_attestation(promoted):
+                    raise ValueError(
+                        "capture manifest and merge-input validation failed"
+                    )
+
+                declared_digest = raw.get("digest")
+                if (
+                    not isinstance(declared_digest, str)
+                    or declared_digest != g.digest()
+                ):
+                    raise ValueError("canonical graph digest mismatch")
+
+                if not source_paths:
+                    raise ValueError("no verified merge inputs are available")
+
+                # Rebuild using the same merge implementation as the producers.
+                # This also catches edits where someone recalculates the JSON digest.
+                from .scanner import _merge
+
+                rebuilt = _merge(source_paths)
+                if rebuilt.digest() != g.digest():
+                    raise ValueError(
+                        "canonical graph does not match verified merge inputs"
+                    )
+
+            except Exception as exc:
+                # Fail closed: preserve the declared metadata for diagnostics,
+                # but do not allow the graph to claim a trusted attestation.
+                g.metadata.pop("analysis_attestation", None)
+                g.metadata.pop("capture_manifest", None)
+                g.metadata["parse_health"] = "DEGRADED"
+                g.metadata["attestation_integrity_error"] = str(exc)
+
         return g
     raise InputFormatError("Unsupported JSON graph shape")
 

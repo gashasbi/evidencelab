@@ -136,9 +136,20 @@ for index, src in enumerate(sources, start=1):
         continue
 
     print(f'[{index}/{len(sources)}] {stem}: MERGE', flush=True)
-    cmd = [sys.executable, '-m', 'evidencelab', 'merge', '--graph', str(graphml), '--out', str(merged), '--pretty']
+    cmd = [sys.executable, '-m', 'evidencelab', 'merge', '--graph', str(graphml)]
     if dataflow.is_file():
-        cmd[4:4] = ['--graph', str(dataflow)]
+        cmd += ['--graph', str(dataflow)]
+    cmd += ['--out', str(merged), '--pretty']
+    manifest_path = dest / 'capture-manifest.json'
+    if manifest_path.is_file():
+        try:
+            capture_status = json.loads(
+                manifest_path.read_text(encoding='utf-8')
+            ).get('status')
+        except Exception:
+            capture_status = None
+        if capture_status != 'DEGRADED':
+            cmd += ['--manifest', str(manifest_path)]
     try:
         proc = subprocess.Popen(cmd, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, start_new_session=True)
         try:
