@@ -82,6 +82,7 @@ class Claim:
     properties_present: list[str] = field(default_factory=list)
     edge_equals: dict[str, Any] = field(default_factory=dict)
     edge_any_of: dict[str, list[Any]] = field(default_factory=dict)
+    allow_call_binding: bool = False
     min_count: int | None = None
     max_count: int | None = None
     proof_level: str = "PROVEN"
@@ -432,6 +433,7 @@ def _claim(raw: Any, counter: bool = False) -> Claim:
         properties_present=[str(x) for x in raw.get("properties_present", [])],
         edge_equals=edge_equals,
         edge_any_of=edge_any_of,
+        allow_call_binding=bool(raw.get("allow_call_binding", False)),
         min_count=int(raw["min_count"]) if raw.get("min_count") is not None else None,
         max_count=int(raw["max_count"]) if raw.get("max_count") is not None else None,
         proof_level=proof,

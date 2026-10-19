@@ -113,9 +113,21 @@ def capture_dataset(
             from .scanner import _merge
 
             merged = _merge([graphml] + ([dataflow] if dataflow else []))
-            merged.metadata["analysis_attestation"] = manifest.get(
-                "analysis_attestation", {}
-            )
+            attestation = manifest.get("analysis_attestation", {})
+            if (
+                isinstance(attestation, dict)
+                and str(attestation.get("level", "")).upper() == "ANALYZER_ATTESTED"
+            ):
+                from .capture import validate_capture_manifest_for_merge
+
+                merged.metadata["analysis_attestation"] = (
+                    validate_capture_manifest_for_merge(
+                        case_out / "capture-manifest.json",
+                        [graphml] + ([dataflow] if dataflow else []),
+                    )
+                )
+            else:
+                merged.metadata["analysis_attestation"] = attestation
             merged.metadata["capture_manifest"] = str(
                 case_out / "capture-manifest.json"
             )

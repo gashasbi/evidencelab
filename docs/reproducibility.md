@@ -1,14 +1,21 @@
 # Reproducibility and witness replay
 
-Reproduction reconstructs a result from the same inputs, software, configuration, and commands. Replication asks whether the conclusion holds on new material. A matching hash detects byte-level changes relative to a known digest; it does not prove semantic correctness or independent origin.
+**Reproduction** repeats a result with the same inputs, versions, configuration, and commands. **Replication** tests whether the conclusion holds on new material. A matching hash detects byte-level changes relative to a known digest; it does not prove semantic correctness or independent origin.
 
-## Record identities
+## Record the experimental identity
 
-Record the items relevant to the experiment: EvidenceLab/package and artifact-schema versions; repository URL, commit, and local changes; Python/OS and analyzer release/build/configuration; dataset/project release or commit, license, case IDs, source hashes, and mapping/adapter digest; ELS digest, Pattern identity/version/digest, evaluation profile, graph and derived artifact digests; commands, timeouts, filters, depth/binding limits, return codes and warnings; benchmark/split identities, grouping strategy, seed, mutation lineage, per-case outcome and completeness; and witness bindings, counter-evidence, and replay results.
+For each run, preserve as applicable:
 
-Do not publish secrets or credentials. Record a key fingerprint or identifier where necessary, not the secret itself.
+- EvidenceLab package version, schema version, repository commit, and local modifications;
+- Python, OS, analyzer release/build, and relevant configuration;
+- dataset/project release or commit, license, case IDs, source hashes, label authority, and mapping/adapter digest;
+- ELS and Pattern identity/version/digest, evaluation profile, graph and derived-artifact digests;
+- exact commands, timeouts, filters, depth/binding limits, return codes, warnings, and completeness state;
+- benchmark and split identities, grouping strategy, seed, mutation lineage, per-case outcome, and witness/replay artifacts.
 
-## Index and verify artifacts
+Do not put credentials, secrets, or private keys into manifests or logs.
+
+## Build and verify an artifact inventory
 
 ```bash
 python -m evidencelab provenance-index \
@@ -19,9 +26,9 @@ python -m evidencelab provenance-verify \
   --manifest research/provenance/artifacts.json
 ```
 
-The inventory detects changes to indexed files; it cannot establish that an upstream label was correct or that the starting material was truthful.
+Use a project-local path appropriate to your workspace. The inventory can detect changes to indexed files; it cannot prove that upstream labels are correct or that source metadata is truthful.
 
-## Record activities
+## Record an experiment
 
 ```bash
 python -m evidencelab research-record \
@@ -33,7 +40,7 @@ python -m evidencelab research-record \
   --notes "Capture retained under artifacts/capture-001"
 ```
 
-When observations and derivations are recorded, keep raw observations separate from derived facts and identify their inputs and method.
+Keep raw observations separate from derived facts and identify the inputs and method for each derivation.
 
 ## Replay a stored witness
 
@@ -48,7 +55,7 @@ python -m evidencelab witness-replay-batch \
   --pattern path/to/pattern.json
 ```
 
-Replay re-evaluates a previously bound witness without running candidate discovery again. It can reveal changed artifacts, invalid IDs, or claims that no longer hold. It cannot find an unstored witness, compensate for missing graph facts, or substitute for full benchmark evaluation.
+Replay checks a previously bound witness without repeating candidate discovery. It can expose changed artifacts, invalid IDs, or claims that no longer hold. It cannot discover an unstored witness, compensate for missing graph facts, or substitute for a full benchmark evaluation.
 
 ## Bundle and hand off
 
@@ -58,9 +65,13 @@ python -m evidencelab research-bundle \
   --out /tmp/cwe-121-reproduction.tar.gz
 ```
 
-Hidden and external data are included only with explicit opt-in flags. Inspect a bundle before sharing it for licenses, secrets, private source, keys, and evaluator-only cases.
+Inspect any bundle before sharing it. Check licensing, credentials, private source, external data, and evaluator-only material. Hidden or external data should only be included when explicitly intended and authorized.
 
-- **Reproduction:** same inputs, versions, configuration, and command path.
-- **Witness replay:** recheck one stored binding against a graph and Pattern.
-- **Replication:** test the claim on new cases, projects, repositories, or time periods.
-- **External validation:** evaluation on held-out material with appropriate independence, ideally by an independent evaluator.
+## Use precise language
+
+- **Artifact integrity:** indexed bytes match the expected digest.
+- **Witness replay:** a stored binding is rechecked against the graph and Pattern.
+- **Reproduction:** the same experiment is repeated under recorded conditions.
+- **Replication/external validation:** the claim is tested on new or held-out material under an appropriate evaluation design.
+
+These are related but not interchangeable guarantees.

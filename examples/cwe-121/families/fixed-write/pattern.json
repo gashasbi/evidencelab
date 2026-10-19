@@ -305,15 +305,16 @@
     },
     {
       "id": "C8",
-      "kind": "edge",
       "required": true,
+      "kind": "edge",
       "source": "destination",
       "target": "target",
       "direction": "either",
       "edge_types": [
         "REF"
       ],
-      "description": "The destination resolves to the target object."
+      "allow_call_binding": true,
+      "description": "Destination resolves to the target object through a direct reference or a verified call-site argument binding."
     },
     {
       "id": "C9",

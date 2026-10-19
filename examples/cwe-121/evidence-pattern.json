@@ -230,11 +230,12 @@
       "required": true,
       "source": "destination",
       "target": "target",
+      "description": "Destination resolves to the target object through a direct reference or a verified call-site argument binding.",
       "direction": "either",
       "edge_types": [
         "REF"
       ],
-      "description": "The destination expression resolves to the declared target object."
+      "allow_call_binding": true
     },
     {
       "id": "C9",
