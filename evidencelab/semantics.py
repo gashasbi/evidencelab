@@ -193,12 +193,15 @@ def _argument_nodes(g: Graph, call_id: str) -> list[Node]:
     call = g.nodes.get(call_id)
     if call is None:
         return []
-    vals = [
-        g.nodes[e.target]
-        for e in g.outgoing(call_id, {"ARGUMENT", "AST"})
-        if e.target in g.nodes
-    ]
-    vals = [n for n in vals if n.type not in {"BLOCK", "METHOD_RETURN"}]
+
+    unique: dict[str, Node] = {}
+    for edge in g.outgoing(call_id, {"ARGUMENT", "AST"}):
+        node = g.nodes.get(edge.target)
+        if node is None or node.type in {"BLOCK", "METHOD_RETURN"}:
+            continue
+        unique.setdefault(node.id, node)
+
+    vals = list(unique.values())
     vals.sort(
         key=lambda n: (
             get_property(
@@ -209,6 +212,53 @@ def _argument_nodes(g: Graph, call_id: str) -> list[Node]:
     )
     return vals
 
+
+
+_ORDER_SENSITIVE_NUMERIC_CALLS = {
+    "<operator>.subtraction",
+    "<operator>.division",
+    "<operator>.modulo",
+    "<operator>.shiftLeft",
+    "<operator>.shiftRight",
+}
+
+
+def _has_trusted_argument_order(g: Graph, call_id: str) -> bool:
+    """Return whether operand order is supported by graph evidence."""
+    call = g.nodes.get(call_id)
+    if call is None:
+        return False
+
+    edges = [
+        e for e in g.outgoing(call_id, {"ARGUMENT"})
+        if e.target in g.nodes
+    ]
+    if len(edges) < 2:
+        return False
+
+    completeness = str(g.metadata.get("completeness", "declared")).lower()
+    parse_ok = str(g.metadata.get("parse_health", "OK")).upper() == "OK"
+
+    # Preserve the existing ordinal inference policy for complete graphs.
+    if completeness in {"full_export", "declared"} and parse_ok:
+        return True
+
+    # Partial graphs require explicit, unique indices for every operand.
+    indices = []
+    for edge in edges:
+        index = edge.properties.get(
+            "argumentIndex", edge.properties.get("ARGUMENT_INDEX")
+        )
+        if index is None:
+            return False
+        try:
+            indices.append(int(index))
+        except (TypeError, ValueError):
+            return False
+
+    return len(set(indices)) == len(edges) and set(indices) == set(
+        range(1, len(edges) + 1)
+    )
 
 def _numeric_from_node(
     g: Graph, node_id: str, seen: set[str] | None = None
@@ -236,6 +286,11 @@ def _numeric_from_node(
     name = str(n.get("name", n.get("NAME", "")) or "")
     fn = _NUMERIC_CALLS.get(name)
     if fn is None:
+        return None, None
+    if (
+        name in _ORDER_SENSITIVE_NUMERIC_CALLS
+        and not _has_trusted_argument_order(g, n.id)
+    ):
         return None, None
     args = _argument_nodes(g, n.id)
     values = []
@@ -295,6 +350,14 @@ def _call_info(node: Node) -> dict[str, Any]:
         or lname in fixed | unbounded | bounded
     )
     d["fixed_extent_write_like"] = str(name or "") in fixed or lname in fixed
+    wide_fixed = {"wmemcpy", "wmemmove", "wcsncpy"}
+    byte_fixed = {"memcpy", "memmove", "strncpy"}
+    d["wide_fixed_extent_write_like"] = str(name or "") in wide_fixed or lname in wide_fixed
+    d["write_extent_unit"] = (
+        "ELEMENTS" if d["wide_fixed_extent_write_like"]
+        else "BYTES" if str(name or "") in byte_fixed or lname in byte_fixed
+        else None
+    )
     d["unbounded_write_like"] = str(name or "") in unbounded or lname in unbounded
     d["bounded_write_like"] = str(name or "") in bounded or lname in bounded
     d["input_operation_like"] = (
@@ -493,6 +556,12 @@ def _range_from_node(
         if r:
             return r[0], r[1], "REACHING_DEF:" + r[2]
     if n.type == "CALL" and str(n.get("name", "")) in _NUMERIC_CALLS:
+        name = str(n.get("name", ""))
+        if (
+            name in _ORDER_SENSITIVE_NUMERIC_CALLS
+            and not _has_trusted_argument_order(g, n.id)
+        ):
+            return None
         args = _argument_nodes(g, n.id)
         ranges = [_range_from_node(g, a.id, seen) for a in args]
         if ranges and all(r is not None for r in ranges):

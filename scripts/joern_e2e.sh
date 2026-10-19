@@ -52,7 +52,8 @@ from pathlib import Path
 root = Path('.').resolve()
 out = Path(sys.argv[1]).resolve()
 case_timeout = int(sys.argv[2])
-sources = sorted((root / 'examples/cwe-121/corpus/source').glob('*.c'))
+source_root = root / 'examples/cwe-121/corpus/source'
+sources = sorted([*source_root.glob('*.c'), *source_root.glob('*.cpp')])
 
 if not sources:
     print('[E2E] ERROR: no C source cases found', file=sys.stderr, flush=True)
@@ -213,3 +214,7 @@ print(json.dumps(payload, indent=2), flush=True)
 strict = os.environ.get('EVIDENCELAB_E2E_STRICT', '0') == '1'
 raise SystemExit(0 if status == 'PASS' or (status == 'PASS_WITH_WARNINGS' and not strict) else 1)
 PY
+if [[ "${EVIDENCELAB_E2E_EVALUATE:-1}" == "1" ]]; then
+  echo "[E2E] Evaluating captured graphs against the CWE-121 reference families"
+  "$PYTHON" scripts/cwe121_source_evaluate.py "$OUT"
+fi
