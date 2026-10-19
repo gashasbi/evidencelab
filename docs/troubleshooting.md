@@ -30,9 +30,9 @@ Check the interpreter, pip configuration, package index, and full resolver error
 python --version
 python -m pip --version
 python -m pip config list
+```
 
 Before sharing this output, inspect and redact credentials, tokens, private repository URLs, usernames, or other sensitive configuration values.
-```
 
 The build backend requires `setuptools>=68`; runtime installation requires `jsonschema>=4.21,<5`. Network restrictions or missing wheels can block installation without indicating a source-code defect. Use an approved mirror/wheelhouse when needed and avoid `sudo pip`.
 
