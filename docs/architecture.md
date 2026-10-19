@@ -1,51 +1,60 @@
 # Architecture
 
-EvidenceLab separates **what an analyzer observed**, **what the researcher claims**, and **what the evidence supports**. Its central artifact is the researcher-authored Evidence definition; datasets and analyzers are inputs, not the authority on Evidence semantics.
-
-![EvidenceLab architecture](../images/architecture.jpg)
+EvidenceLab separates what an analyzer observed, what a researcher asserts, and what the available evidence supports. Its central object is a researcher-authored Evidence definition. Dataset labels and analyzer output are inputs; neither automatically dictates the final result.
 
 ## Execution path
 
 ```text
-External source / dataset
-        |
-        +--> Analyzer or importer --> raw artifacts + provenance
+Source code or dataset
+       |
+       +--> Analyzer / importer --> raw artifacts and identity/provenance
                                       |
 ELS definition --> validate --> compile |
                                       v
-                         canonical graph / material contract
+                         graph / material contract
                                       |
                                       v
-                     candidate bindings and claim evaluation
+                      candidate bindings and claims
                                       |
                                       v
-                  witness + counter-evidence + completeness
+                      witness / counter-evidence
+                         / completeness state
                                       |
                                       v
-                          report / evaluation artifacts
+                          report and audit artifacts
 ```
 
-## Main boundaries
+## Main components
 
-- **ELS definition layer:** parses and validates researcher-authored concepts, slots, claims, witnesses, counter-evidence, and execution policies.
-- **Analyzer boundary:** parsers accept supported graph inputs, including EvidenceLab canonical graph JSON and selected GraphML, GraphSON, and Joern slice forms. The Joern adapter orchestrates external tools; it does not implement Joern.
-- **Experimental-material boundary:** built-in importers, declarative mappings, or programmatic adapters translate external records into a supported manifest while preserving identity and label authority.
-- **Matching boundary:** evaluates required claims under coherent bindings. Unrelated objects cannot be combined into a single witness to manufacture a proof.
-- **Research boundary:** audits and evaluates patterns, benchmarks, provenance, partitions, leakage, replay results, and research gates.
+- **ELS and Pattern layer:** parses and validates concepts, selectors, slots, claims, witnesses, counter-evidence, and execution policies.
+- **Analyzer boundary:** parsers accept supported graph representations, including EvidenceLab canonical graph JSON and selected GraphML, GraphSON, and Joern slice forms. The Joern adapter invokes external tools; it does not implement Joern.
+- **Material integration:** importers and declarative mappings convert supported external records into canonical experimental-material manifests while retaining identity and label authority.
+- **Matcher:** evaluates claims under coherent bindings. Required facts about unrelated objects must not be combined into one witness.
+- **Research tooling:** supports benchmark checks, provenance inventories, witness replay, splits, leakage audits, evaluation reports, and research-package gates.
 
-## The important separations
+## Keep these concepts separate
 
 ```text
-Dataset label != analyzer observation != derived fact
-              != Evidence claim != witness != evaluation outcome
+dataset label
+    != analyzer observation
+    != derived fact
+    != Evidence claim
+    != witness
+    != evaluation outcome
 ```
 
-A dataset can label a case `BAD`; that label does not force `MATCH`. An analyzer can omit a relation; the omission does not prove the relation is absent. See [Evidence model](evidence-model.md) for outcome semantics and [Dataset integration](dataset-integration.md) for material identity.
+A dataset label such as `BAD` does not force `MATCH`. An analyzer's failure to emit a relation does not prove that the relation is absent. A derived fact should identify the observations and method from which it was derived.
 
-## Artifacts and versions
+## Package versions, schemas, and artifacts
 
-The package version is `1.0.0`; the current public artifact schema version is `1.0`. They serve different purposes. Schemas live in `schemas/`; reference artifacts live in `examples/`. Pattern migration normalizes a supported representation to the current contract but is not semantic certification; review and re-evaluate migrated patterns.
+The package version identifies a distribution of EvidenceLab. A schema or artifact-format version identifies the contract used to interpret a particular kind of data. These identifiers serve different purposes and must not be treated as interchangeable. When exchanging artifacts, consult the schema metadata and compatibility rules for that artifact type.
 
-## Failure boundaries
+Schemas are stored in `schemas/`; reference patterns, graphs, and example workflows are under `examples/`.
 
-A valid JSON file can still be semantically incomplete. A successful analyzer process can omit a relation needed by a claim. Keep missing executables, failed parse/export, timeouts, candidate truncation, witness rejection, and complete non-matches distinguishable. EvidenceLab is not a sandbox for hostile code; isolate analyzers and apply host/container limits. See [Security model](security-model.md).
+Pattern migration normalizes a supported representation to the current contract. It does not certify the meaning or correctness of a migrated pattern; review and re-evaluate it.
+
+## Failure and completeness boundaries
+
+A syntactically valid artifact can still be semantically incomplete. A successful analyzer process can omit a relation needed by a claim. Preserve distinctions between missing executables, failed parsing/export, timeouts, truncated candidate search, rejected witnesses, complete non-matches, and unresolved cases.
+
+See [Evidence reference](evidence-reference.md), [Joern integration](joern-integration.md), and [Security model](security-model.md).
