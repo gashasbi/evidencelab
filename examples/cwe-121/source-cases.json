@@ -1,0 +1,165 @@
+{
+  "schema_version": "1.0",
+  "format": "evidencelab-cwe121-source-corpus",
+  "description": "Source-level smoke corpus for the two current CWE-121 reference families. Expected statuses are hypotheses to be checked against live Joern captures; they are not dataset labels or publication evidence.",
+  "families": {
+    "fixed-write": "families/fixed-write/pattern.json",
+    "unbounded-copy": "families/unbounded-copy/pattern.json"
+  },
+  "cases": [
+    {
+      "id": "P01_direct_strcpy",
+      "source": "corpus/source/P01_direct_strcpy.c",
+      "scope": "in_scope",
+      "expected": {
+        "fixed-write": "NO_MATCH",
+        "unbounded-copy": "MATCH"
+      },
+      "rationale": "Direct unbounded string copy into an automatic local array."
+    },
+    {
+      "id": "P02_direct_strcat",
+      "source": "corpus/source/P02_direct_strcat.c",
+      "scope": "in_scope",
+      "expected": {
+        "fixed-write": "NO_MATCH",
+        "unbounded-copy": "MATCH"
+      },
+      "rationale": "Unbounded concatenation into an automatic local array."
+    },
+    {
+      "id": "P03_fixed_memcpy",
+      "source": "corpus/source/P03_fixed_memcpy.c",
+      "scope": "in_scope",
+      "expected": {
+        "fixed-write": "MATCH",
+        "unbounded-copy": "NO_MATCH"
+      },
+      "rationale": "Direct fixed-extent write larger than the local array capacity."
+    },
+    {
+      "id": "P04_wrapper",
+      "source": "corpus/source/P04_wrapper.c",
+      "scope": "in_scope",
+      "expected": {
+        "fixed-write": "MATCH",
+        "unbounded-copy": "NO_MATCH"
+      },
+      "rationale": "Same-file interprocedural wrapper around a fixed-extent write."
+    },
+    {
+      "id": "P05_loop",
+      "source": "corpus/source/P05_loop.c",
+      "scope": "exploratory_out_of_scope",
+      "expected": {},
+      "rationale": "Indexed loop write; not represented by either current family."
+    },
+    {
+      "id": "P06_fixed_memmove",
+      "source": "corpus/source/P06_fixed_memmove.c",
+      "scope": "in_scope",
+      "expected": {
+        "fixed-write": "MATCH",
+        "unbounded-copy": "NO_MATCH"
+      },
+      "rationale": "Fixed-extent memmove into an automatic local array."
+    },
+    {
+      "id": "P07_fixed_expression_extent",
+      "source": "corpus/source/P07_fixed_expression_extent.c",
+      "scope": "in_scope",
+      "expected": {
+        "fixed-write": "MATCH",
+        "unbounded-copy": "NO_MATCH"
+      },
+      "rationale": "Constant arithmetic expression used as the fixed write extent."
+    },
+    {
+      "id": "N01_safe_memcpy",
+      "source": "corpus/source/N01_safe_memcpy.c",
+      "scope": "in_scope",
+      "expected": {
+        "fixed-write": "NO_MATCH",
+        "unbounded-copy": "NO_MATCH"
+      },
+      "rationale": "Fixed extent is smaller than the local array capacity."
+    },
+    {
+      "id": "N02_static",
+      "source": "corpus/source/N02_static.c",
+      "scope": "in_scope",
+      "expected": {
+        "fixed-write": "NO_MATCH",
+        "unbounded-copy": "NO_MATCH"
+      },
+      "rationale": "Static storage is not automatic local storage."
+    },
+    {
+      "id": "N03_heap_memcpy",
+      "source": "corpus/source/N03_heap_memcpy.c",
+      "scope": "in_scope",
+      "expected": {
+        "fixed-write": "NO_MATCH",
+        "unbounded-copy": "NO_MATCH"
+      },
+      "rationale": "Heap destination discriminator."
+    },
+    {
+      "id": "N04_safe_strncpy",
+      "source": "corpus/source/N04_safe_strncpy.c",
+      "scope": "in_scope",
+      "expected": {
+        "fixed-write": "NO_MATCH",
+        "unbounded-copy": "NO_MATCH"
+      },
+      "rationale": "Fixed copy extent does not exceed the destination array capacity."
+    },
+    {
+      "id": "P08_wide_strcpy",
+      "source": "corpus/source/P08_wide_strcpy.c",
+      "scope": "in_scope",
+      "expected": {
+        "fixed-write": "NO_MATCH",
+        "unbounded-copy": "MATCH"
+      },
+      "rationale": "Wide-character unbounded copy into an automatic local array."
+    },
+    {
+      "id": "U01_symbolic_extent",
+      "source": "corpus/source/U01_symbolic_extent.c",
+      "scope": "in_scope",
+      "expected": {
+        "fixed-write": "UNKNOWN",
+        "unbounded-copy": "NO_MATCH"
+      },
+      "rationale": "Symbolic extent is not a proven numeric overflow."
+    },
+    {
+      "id": "U02_wide_memmove",
+      "source": "corpus/source/U02_wide_memmove.c",
+      "scope": "in_scope",
+      "expected": {
+        "fixed-write": "UNKNOWN",
+        "unbounded-copy": "NO_MATCH"
+      },
+      "rationale": "Wide-element extent must not be silently treated as byte capacity."
+    },
+    {
+      "id": "P09_sprintf",
+      "source": "corpus/source/P09_sprintf.c",
+      "scope": "exploratory_out_of_scope",
+      "expected": {},
+      "rationale": "Formatted-output semantics require a distinct evidence family."
+    },
+    {
+      "id": "P10_cpp_fixed_memcpy",
+      "source": "corpus/source/P10_cpp_fixed_memcpy.cpp",
+      "scope": "in_scope",
+      "expected": {
+        "fixed-write": "MATCH",
+        "unbounded-copy": "NO_MATCH"
+      },
+      "rationale": "C++ translation-unit smoke case for fixed-extent writes."
+    }
+  ]
+}

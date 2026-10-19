@@ -1,0 +1,551 @@
+{
+  "schema_version": "1.0",
+  "pattern_id": "cwe-121-wide-fixed-write-001",
+  "cwe": "CWE-121",
+  "name": "Wide-character element-count write beyond an automatic local array",
+  "version": "1.0.0",
+  "language": "C/C++",
+  "description": "Experimental evidence family for wide-character writes where a proven element count exceeds an automatic local array's proven element capacity. Element counts are never compared to byte capacity. A MATCH is an evidence-pattern match, not a claim of exploitability or physical stack placement. This experiment has not yet passed the required independent benchmark quality gates and is not an official research benchmark family.",
+  "unknown_policy": "unknown",
+  "counter_unknown_policy": "ignore",
+  "metadata": {
+    "research_question": "What graph evidence establishes a coherent wide-character write whose proven element count exceeds the destination array's element capacity?",
+    "evidence_definition_version": "1.0",
+    "scope": "C/C++ + Joern",
+    "physical_stack_note": "Automatic storage duration is proven from CPG LOCAL semantics; physical stack residency remains UNKNOWN.",
+    "evidence_class": "EXPERIMENTAL_UNVALIDATED",
+    "analyzer_scope": "Joern observations normalized through EvidenceLab canonical semantic layer",
+    "cwe_boundary_reference": "https://cwe.mitre.org/data/definitions/121.html",
+    "capacity_unit_contract": "ELEMENT_CAPACITY_ONLY"
+  },
+  "provenance": [
+    {
+      "kind": "cwe",
+      "source": "MITRE CWE-121",
+      "url": "https://cwe.mitre.org/data/definitions/121.html"
+    },
+    {
+      "kind": "tool",
+      "source": "Joern",
+      "url": "https://docs.joern.io/"
+    },
+    {
+      "kind": "query",
+      "source": "reachableBy / reachableByFlows / ARGUMENT / REF / AST observations"
+    },
+    {
+      "kind": "dataset",
+      "source": "NIST SAMATE SARD — Juliet C/C++ 1.3.1 with extra support",
+      "url": "https://samate.nist.gov/SARD/test-suites/116"
+    },
+    {
+      "kind": "cwe_view",
+      "source": "MITRE CWE-121 definition and relationships",
+      "url": "https://cwe.mitre.org/data/definitions/121.html"
+    },
+    {
+      "kind": "tool_spec",
+      "source": "Joern Code Property Graph specification",
+      "url": "https://cpg.joern.io/",
+      "supports": [
+        "node/edge/property schema"
+      ]
+    },
+    {
+      "kind": "query",
+      "source": "Joern CPGQL dataflow: reachableBy and reachableByFlows",
+      "url": "https://docs.joern.io/cpgql/data-flow-steps/",
+      "supports": [
+        "source-to-sink dataflow observations"
+      ]
+    },
+    {
+      "kind": "dataset",
+      "source": "NIST SAMATE SARD — Juliet C/C++ 1.3.1 with extra support",
+      "url": "https://samate.nist.gov/SARD/test-suites/116",
+      "supports": [
+        "benchmark provenance"
+      ]
+    },
+    {
+      "kind": "methodology",
+      "source": "EvidenceLab research methodology",
+      "artifact": "docs/research-methodology.md",
+      "supports": [
+        "tri-state evidence",
+        "witness validation",
+        "provenance"
+      ]
+    },
+    {
+      "kind": "methodology",
+      "source": "EvidenceLab canonical semantic contract",
+      "artifact": "docs/architecture.md",
+      "supports": [
+        "analyzer-independent semantic layer"
+      ]
+    },
+    {
+      "kind": "literature",
+      "source": "Yamaguchi, Gold, Arp, Rieck. Modeling and Discovering Vulnerabilities with Code Property Graphs (IEEE S&P 2014)",
+      "url": "https://www.ieee-security.org/TC/SP2014/papers/ModelingandDiscoveringVulnerabilitieswithCodePropertyGraphs.pdf",
+      "doi": "10.1109/SP.2014.44",
+      "supports": [
+        "graph-based vulnerability templates",
+        "AST/CFG/PDG integration",
+        "buffer-overflow pattern modeling"
+      ]
+    },
+    {
+      "kind": "methodology",
+      "source": "EvidenceLab evidence-first research methodology",
+      "artifact": "docs/architecture.md",
+      "supports": [
+        "canonical semantic layer",
+        "strict outcome lattice",
+        "reproducibility"
+      ]
+    }
+  ],
+  "coverage": {
+    "required_dimensions": [
+      "positive",
+      "negative",
+      "unknown",
+      "direct",
+      "interprocedural",
+      "cross_file",
+      "counter_evidence",
+      "bounded_extent",
+      "automatic_storage",
+      "semantic_dataflow",
+      "object_identity",
+      "control_conditions",
+      "analysis_completeness",
+      "adversarial",
+      "mutation",
+      "provenance"
+    ],
+    "research_variants": [
+      "literal_extent",
+      "smaller_extent",
+      "unknown_extent",
+      "heap_discriminator",
+      "static_discriminator",
+      "alias_discriminator",
+      "interprocedural",
+      "argument_role_binding",
+      "unrelated_literal_distractor",
+      "alpha_renaming",
+      "missing_extent_role"
+    ],
+    "requires_adversarial_mutations": true,
+    "minimum_public_cases": 40,
+    "minimum_hidden_cases": 40,
+    "adversarial_mutations": [
+      "change only extent from >capacity to <=capacity",
+      "replace automatic local array with static local",
+      "replace array with non-array pointer/heap object",
+      "remove only source-to-destination data flow",
+      "remove only destination-to-target reference",
+      "remove only sink-to-extent argument edge",
+      "add an unrelated numeric literal larger than capacity"
+    ]
+  },
+  "concepts": {
+    "source_parameter": {
+      "selectors": [
+        {
+          "canonical_type_any": [
+            "PARAMETER"
+          ]
+        }
+      ]
+    },
+    "memory_write": {
+      "selectors": [
+        {
+          "canonical_type_any": [
+            "CALL"
+          ],
+          "properties": {
+            "derived.fixed_extent_write_like": true
+          }
+        }
+      ]
+    },
+    "destination_expression": {
+      "selectors": [
+        {
+          "canonical_type_any": [
+            "IDENTIFIER",
+            "CALL"
+          ]
+        }
+      ]
+    },
+    "automatic_array": {
+      "selectors": [
+        {
+          "canonical_type_any": [
+            "LOCAL"
+          ],
+          "properties": {
+            "derived.is_array": true,
+            "derived.storage_duration": "AUTOMATIC"
+          }
+        }
+      ]
+    },
+    "write_extent": {
+      "selectors": [
+        {
+          "canonical_type_any": [
+            "LITERAL",
+            "IDENTIFIER",
+            "CALL"
+          ]
+        }
+      ]
+    },
+    "object_identity": {
+      "selectors": [
+        {
+          "canonical_type_any": [
+            "IDENTIFIER",
+            "LOCAL",
+            "PARAMETER"
+          ]
+        }
+      ]
+    }
+  },
+  "slots": [
+    {
+      "id": "source",
+      "concept": "source_parameter",
+      "max_matches": 100
+    },
+    {
+      "id": "sink",
+      "concept": "memory_write",
+      "max_matches": 100
+    },
+    {
+      "id": "destination",
+      "concept": "destination_expression",
+      "max_matches": 300
+    },
+    {
+      "id": "target",
+      "concept": "automatic_array",
+      "max_matches": 100
+    },
+    {
+      "id": "extent",
+      "concept": "write_extent",
+      "max_matches": 100
+    }
+  ],
+  "claims": [
+    {
+      "id": "C1",
+      "kind": "node",
+      "required": true,
+      "slot": "source",
+      "description": "An input parameter node exists."
+    },
+    {
+      "id": "C2",
+      "kind": "node",
+      "required": true,
+      "slot": "sink",
+      "description": "A bounded memory-write call exists."
+    },
+    {
+      "id": "C3",
+      "kind": "node",
+      "required": true,
+      "slot": "destination",
+      "description": "A concrete destination expression exists."
+    },
+    {
+      "id": "C4",
+      "kind": "node",
+      "required": true,
+      "slot": "target",
+      "description": "The target is an automatic local object."
+    },
+    {
+      "id": "C5",
+      "kind": "node",
+      "required": true,
+      "slot": "extent",
+      "description": "A write extent expression with a deterministic numeric value exists."
+    },
+    {
+      "id": "C6",
+      "kind": "edge",
+      "required": true,
+      "source": "sink",
+      "target": "destination",
+      "edge_types": [
+        "ARGUMENT"
+      ],
+      "description": "The destination is passed as a sink argument."
+    },
+    {
+      "id": "C7",
+      "kind": "relation",
+      "required": true,
+      "source": "source",
+      "target": "destination",
+      "relation": "DATA_FLOW",
+      "max_hops": 12,
+      "description": "The input reaches the destination through semantic data flow."
+    },
+    {
+      "id": "C8",
+      "required": true,
+      "kind": "edge",
+      "source": "destination",
+      "target": "target",
+      "direction": "either",
+      "edge_types": [
+        "REF"
+      ],
+      "allow_call_binding": true,
+      "description": "Destination resolves to the target object through a direct reference or a verified call-site argument binding."
+    },
+    {
+      "id": "C9",
+      "kind": "property",
+      "required": true,
+      "slot": "target",
+      "equals": {
+        "derived.storage_duration": "AUTOMATIC"
+      },
+      "description": "Target storage duration is automatic."
+    },
+    {
+      "id": "C10",
+      "kind": "property",
+      "required": true,
+      "slot": "target",
+      "equals": {
+        "derived.is_array": true
+      },
+      "description": "Target is an array."
+    },
+    {
+      "id": "C11",
+      "kind": "property",
+      "required": true,
+      "slot": "extent",
+      "properties_present": [
+        "derived.numeric_value"
+      ],
+      "description": "The extent has deterministic numeric evidence."
+    },
+    {
+      "id": "C12",
+      "kind": "compare",
+      "required": true,
+      "left": {
+        "slot": "extent",
+        "property": "derived.numeric_value"
+      },
+      "operator": ">",
+      "right": {
+        "slot": "target",
+        "property": "derived.memory_capacity_elements"
+      },
+      "description": "The proven wide-character element count exceeds the proven target element capacity."
+    },
+    {
+      "id": "C13",
+      "kind": "edge",
+      "required": true,
+      "source": "sink",
+      "target": "extent",
+      "edge_types": [
+        "ARGUMENT"
+      ],
+      "description": "The numeric extent expression is passed to the bounded-write sink."
+    },
+    {
+      "id": "C14",
+      "kind": "property",
+      "required": true,
+      "slot": "extent",
+      "equals": {
+        "derived.argument_index": 3
+      },
+      "description": "The bound extent is specifically the third CPG argument (the write-size argument for memcpy/memmove)."
+    },
+    {
+      "id": "C15",
+      "kind": "property",
+      "required": true,
+      "slot": "destination",
+      "equals": {
+        "derived.argument_index": 1
+      },
+      "description": "The destination expression is the first CPG argument of the bounded-write sink."
+    },
+    {
+      "id": "C16",
+      "kind": "semantic",
+      "required": true,
+      "slot": "sink",
+      "equals": {
+        "derived.wide_fixed_extent_write_like": true
+      },
+      "description": "Sink is a wide-character fixed-extent write."
+    },
+    {
+      "id": "C18",
+      "kind": "property",
+      "required": true,
+      "description": "Target capacity is explicitly measured in elements.",
+      "slot": "target",
+      "equals": {
+        "derived.capacity_unit": "ELEMENTS"
+      }
+    },
+    {
+      "id": "C19",
+      "kind": "property",
+      "required": true,
+      "description": "Target has array semantics; element capacity is derived from its array shape.",
+      "slot": "target",
+      "equals": {
+        "derived.is_array": true
+      }
+    },
+    {
+      "id": "C17",
+      "kind": "same_object",
+      "required": true,
+      "source": "destination",
+      "target": "target",
+      "description": "Destination and target resolve to the same memory object."
+    },
+    {
+      "id": "C20",
+      "kind": "property",
+      "required": true,
+      "slot": "sink",
+      "equals": {
+        "derived.write_extent_unit": "ELEMENTS"
+      },
+      "description": "The sink's extent argument is explicitly measured in elements."
+    }
+  ],
+  "counter_evidence": [
+    {
+      "id": "X1",
+      "kind": "compare",
+      "required": false,
+      "left": {
+        "slot": "extent",
+        "property": "derived.numeric_value"
+      },
+      "operator": "<=",
+      "right": {
+        "slot": "target",
+        "property": "derived.memory_capacity_elements"
+      },
+      "description": "A non-exceeding element count refutes the overflow-size condition."
+    },
+    {
+      "id": "X2",
+      "kind": "property",
+      "required": false,
+      "slot": "target",
+      "equals": {
+        "derived.storage_duration": "STATIC_LOCAL"
+      },
+      "description": "Static storage refutes the automatic-storage condition."
+    }
+  ],
+  "witnesses": [
+    {
+      "id": "W1",
+      "slots": [
+        "source",
+        "sink",
+        "destination",
+        "target",
+        "extent"
+      ],
+      "claims": [
+        "C1",
+        "C2",
+        "C3",
+        "C4",
+        "C5",
+        "C6",
+        "C7",
+        "C8",
+        "C9",
+        "C10",
+        "C11",
+        "C12",
+        "C13",
+        "C14",
+        "C15",
+        "C16",
+        "C17",
+        "C18",
+        "C19",
+        "C20"
+      ],
+      "counter_claims": [
+        "X1",
+        "X2"
+      ],
+      "required": true,
+      "distinct_slots": true,
+      "max_combinations": 50000
+    }
+  ],
+  "required_claim_groups": [],
+  "family_id": "cwe-121-wide-fixed-write-001",
+  "evidence_contract": {
+    "unknown_policy": "unknown",
+    "counter_unknown_policy": "ignore",
+    "tri_state": true,
+    "counter_evidence_binding": "same_witness",
+    "minimum_sufficient_witness": true,
+    "required_analysis_dimensions": [],
+    "version": "1.0.0",
+    "researcher_authored": false,
+    "requires_review": true
+  },
+  "semantic_contract": {
+    "canonical_graph_required": true,
+    "analyzer_independent": true,
+    "required_analysis_dimensions": [],
+    "canonical_semantic_layer": "EvidenceLab-Canonical-Semantic-1",
+    "capacity_unit_contract": "ELEMENT_CAPACITY_ONLY"
+  },
+  "relevance_policy": {
+    "minimum_sufficient_witness": true,
+    "max_path_hops": 12,
+    "reject_unrelated_bindings": true,
+    "same_object_binding_required": true
+  },
+  "path_budget": {
+    "max_hops": 12,
+    "max_paths_per_claim": 100
+  },
+  "provenance_policy": {
+    "derived_facts_require_inputs": true,
+    "literature_linkage": true,
+    "artifact_hashes": true,
+    "require_query_hash": true,
+    "cwe_boundary_traceable": true,
+    "case_identity_required": true
+  }
+}

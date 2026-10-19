@@ -52,7 +52,8 @@ from pathlib import Path
 root = Path('.').resolve()
 out = Path(sys.argv[1]).resolve()
 case_timeout = int(sys.argv[2])
-sources = sorted((root / 'examples/cwe-121/corpus/source').glob('*.c'))
+source_root = root / 'examples/cwe-121/corpus/source'
+sources = sorted([*source_root.glob('*.c'), *source_root.glob('*.cpp')])
 
 if not sources:
     print('[E2E] ERROR: no C source cases found', file=sys.stderr, flush=True)
@@ -136,9 +137,20 @@ for index, src in enumerate(sources, start=1):
         continue
 
     print(f'[{index}/{len(sources)}] {stem}: MERGE', flush=True)
-    cmd = [sys.executable, '-m', 'evidencelab', 'merge', '--graph', str(graphml), '--out', str(merged), '--pretty']
+    cmd = [sys.executable, '-m', 'evidencelab', 'merge', '--graph', str(graphml)]
     if dataflow.is_file():
-        cmd[4:4] = ['--graph', str(dataflow)]
+        cmd += ['--graph', str(dataflow)]
+    cmd += ['--out', str(merged), '--pretty']
+    manifest_path = dest / 'capture-manifest.json'
+    if manifest_path.is_file():
+        try:
+            capture_status = json.loads(
+                manifest_path.read_text(encoding='utf-8')
+            ).get('status')
+        except Exception:
+            capture_status = None
+        if capture_status != 'DEGRADED':
+            cmd += ['--manifest', str(manifest_path)]
     try:
         proc = subprocess.Popen(cmd, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, start_new_session=True)
         try:
@@ -202,3 +214,7 @@ print(json.dumps(payload, indent=2), flush=True)
 strict = os.environ.get('EVIDENCELAB_E2E_STRICT', '0') == '1'
 raise SystemExit(0 if status == 'PASS' or (status == 'PASS_WITH_WARNINGS' and not strict) else 1)
 PY
+if [[ "${EVIDENCELAB_E2E_EVALUATE:-1}" == "1" ]]; then
+  echo "[E2E] Evaluating captured graphs against the CWE-121 reference families"
+  "$PYTHON" scripts/cwe121_source_evaluate.py "$OUT"
+fi
