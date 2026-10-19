@@ -1,0 +1,32 @@
+{
+  "purpose": "Initial EvidenceLab CWE-121 pilot",
+  "samples": [
+    {
+      "id": "CWE-121-stack-buffer-overflow-V01_unbounded_copy",
+      "cwe": "CWE-121",
+      "family": "stack-buffer-overflow",
+      "title": "Stack-based Buffer Overflow",
+      "label": "VULN",
+      "file": "samples/stack-buffer-overflow/vuln/V01_unbounded_copy.c",
+      "intent": "Unbounded copy into a fixed-size stack buffer."
+    },
+    {
+      "id": "CWE-121-stack-buffer-overflow-S01_bounded_copy",
+      "cwe": "CWE-121",
+      "family": "stack-buffer-overflow",
+      "title": "Stack-based Buffer Overflow",
+      "label": "SAFE",
+      "file": "samples/stack-buffer-overflow/safe/S01_bounded_copy.c",
+      "intent": "Rejects input that cannot fit, including the terminator."
+    },
+    {
+      "id": "CWE-121-stack-buffer-overflow-U01_external_capacity",
+      "cwe": "CWE-121",
+      "family": "stack-buffer-overflow",
+      "title": "Stack-based Buffer Overflow",
+      "label": "UNKNOWN",
+      "file": "samples/stack-buffer-overflow/unknown/U01_external_capacity.c",
+      "intent": "Safety depends on external capacity and function contracts."
+    }
+  ]
+}

@@ -1,0 +1,255 @@
+[
+  {
+    "cwe": "CWE-121",
+    "slug": "stack-buffer-overflow",
+    "title": "Stack-based Buffer Overflow",
+    "sample_count": 3,
+    "labels": {
+      "VULN": 1,
+      "SAFE": 1,
+      "UNKNOWN": 1
+    }
+  },
+  {
+    "cwe": "CWE-122",
+    "slug": "heap-buffer-overflow",
+    "title": "Heap-based Buffer Overflow",
+    "sample_count": 3,
+    "labels": {
+      "VULN": 1,
+      "SAFE": 1,
+      "UNKNOWN": 1
+    }
+  },
+  {
+    "cwe": "CWE-120",
+    "slug": "classic-buffer-overflow",
+    "title": "Classic Buffer Overflow",
+    "sample_count": 3,
+    "labels": {
+      "VULN": 1,
+      "SAFE": 1,
+      "UNKNOWN": 1
+    }
+  },
+  {
+    "cwe": "CWE-125",
+    "slug": "out-of-bounds-read",
+    "title": "Out-of-bounds Read",
+    "sample_count": 3,
+    "labels": {
+      "VULN": 1,
+      "SAFE": 1,
+      "UNKNOWN": 1
+    }
+  },
+  {
+    "cwe": "CWE-787",
+    "slug": "out-of-bounds-write",
+    "title": "Out-of-bounds Write",
+    "sample_count": 3,
+    "labels": {
+      "VULN": 1,
+      "SAFE": 1,
+      "UNKNOWN": 1
+    }
+  },
+  {
+    "cwe": "CWE-190",
+    "slug": "integer-overflow",
+    "title": "Integer Overflow",
+    "sample_count": 3,
+    "labels": {
+      "VULN": 1,
+      "SAFE": 1,
+      "UNKNOWN": 1
+    }
+  },
+  {
+    "cwe": "CWE-191",
+    "slug": "integer-underflow",
+    "title": "Integer Underflow",
+    "sample_count": 3,
+    "labels": {
+      "VULN": 1,
+      "SAFE": 1,
+      "UNKNOWN": 1
+    }
+  },
+  {
+    "cwe": "CWE-369",
+    "slug": "divide-by-zero",
+    "title": "Divide by Zero",
+    "sample_count": 3,
+    "labels": {
+      "VULN": 1,
+      "SAFE": 1,
+      "UNKNOWN": 1
+    }
+  },
+  {
+    "cwe": "CWE-476",
+    "slug": "null-pointer-dereference",
+    "title": "NULL Pointer Dereference",
+    "sample_count": 3,
+    "labels": {
+      "VULN": 1,
+      "SAFE": 1,
+      "UNKNOWN": 1
+    }
+  },
+  {
+    "cwe": "CWE-415",
+    "slug": "double-free",
+    "title": "Double Free",
+    "sample_count": 3,
+    "labels": {
+      "VULN": 1,
+      "SAFE": 1,
+      "UNKNOWN": 1
+    }
+  },
+  {
+    "cwe": "CWE-416",
+    "slug": "use-after-free",
+    "title": "Use After Free",
+    "sample_count": 3,
+    "labels": {
+      "VULN": 1,
+      "SAFE": 1,
+      "UNKNOWN": 1
+    }
+  },
+  {
+    "cwe": "CWE-401",
+    "slug": "memory-leak",
+    "title": "Memory Leak",
+    "sample_count": 3,
+    "labels": {
+      "VULN": 1,
+      "SAFE": 1,
+      "UNKNOWN": 1
+    }
+  },
+  {
+    "cwe": "CWE-134",
+    "slug": "format-string",
+    "title": "Uncontrolled Format String",
+    "sample_count": 3,
+    "labels": {
+      "VULN": 1,
+      "SAFE": 1,
+      "UNKNOWN": 1
+    }
+  },
+  {
+    "cwe": "CWE-78",
+    "slug": "command-injection",
+    "title": "OS Command Injection",
+    "sample_count": 3,
+    "labels": {
+      "VULN": 1,
+      "SAFE": 1,
+      "UNKNOWN": 1
+    }
+  },
+  {
+    "cwe": "CWE-22",
+    "slug": "path-traversal",
+    "title": "Path Traversal",
+    "sample_count": 3,
+    "labels": {
+      "VULN": 1,
+      "SAFE": 1,
+      "UNKNOWN": 1
+    }
+  },
+  {
+    "cwe": "CWE-362",
+    "slug": "race-condition",
+    "title": "Race Condition / TOCTOU",
+    "sample_count": 3,
+    "labels": {
+      "VULN": 1,
+      "SAFE": 1,
+      "UNKNOWN": 1
+    }
+  },
+  {
+    "cwe": "CWE-252",
+    "slug": "unchecked-return-value",
+    "title": "Unchecked Return Value",
+    "sample_count": 3,
+    "labels": {
+      "VULN": 1,
+      "SAFE": 1,
+      "UNKNOWN": 1
+    }
+  },
+  {
+    "cwe": "CWE-327",
+    "slug": "weak-cryptography",
+    "title": "Weak Cryptography",
+    "sample_count": 3,
+    "labels": {
+      "VULN": 1,
+      "SAFE": 1,
+      "UNKNOWN": 1
+    }
+  },
+  {
+    "cwe": "CWE-330",
+    "slug": "insufficient-randomness",
+    "title": "Insufficient Randomness",
+    "sample_count": 3,
+    "labels": {
+      "VULN": 1,
+      "SAFE": 1,
+      "UNKNOWN": 1
+    }
+  },
+  {
+    "cwe": "CWE-798",
+    "slug": "hardcoded-credentials",
+    "title": "Hard-coded Credentials",
+    "sample_count": 3,
+    "labels": {
+      "VULN": 1,
+      "SAFE": 1,
+      "UNKNOWN": 1
+    }
+  },
+  {
+    "cwe": "CWE-117",
+    "slug": "log-injection",
+    "title": "Log Injection",
+    "sample_count": 3,
+    "labels": {
+      "VULN": 1,
+      "SAFE": 1,
+      "UNKNOWN": 1
+    }
+  },
+  {
+    "cwe": "CWE-667",
+    "slug": "improper-locking",
+    "title": "Improper Locking",
+    "sample_count": 3,
+    "labels": {
+      "VULN": 1,
+      "SAFE": 1,
+      "UNKNOWN": 1
+    }
+  },
+  {
+    "cwe": "CWE-704",
+    "slug": "incorrect-type-conversion",
+    "title": "Incorrect Type Conversion",
+    "sample_count": 3,
+    "labels": {
+      "VULN": 1,
+      "SAFE": 1,
+      "UNKNOWN": 1
+    }
+  }
+]
