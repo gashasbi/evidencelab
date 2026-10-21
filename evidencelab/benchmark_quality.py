@@ -31,21 +31,24 @@ ALIASES = {
 
 
 def _case_dimensions(case: dict[str, Any]) -> set[str]:
-    tags = {str(x) for x in case.get("tags", [])}
+    # Normalize aliases in both metadata channels. Otherwise the same semantic
+    # dimension can be counted differently depending on whether it was recorded
+    # as a tag or in the explicit dimensions list.
+    tags = {ALIASES.get(str(x), str(x)) for x in case.get("tags", [])}
     dimensions = (
-        {str(x) for x in case.get("dimensions", [])}
+        {ALIASES.get(str(x), str(x)) for x in case.get("dimensions", [])}
         if isinstance(case.get("dimensions"), list)
         else set()
     )
-    out = dimensions | {ALIASES.get(t, t) for t in tags}
-    if str(case.get("expected", "UNKNOWN")).upper() == "MATCH":
+    out = dimensions | tags
+    expected = str(case.get("expected", "UNKNOWN")).upper()
+    if expected == "MATCH":
         out.add("positive")
-    elif str(case.get("expected", "UNKNOWN")).upper() == "NO_MATCH":
+    elif expected == "NO_MATCH":
         out.add("negative")
     else:
         out.add("unknown")
     return out
-
 
 def _real_world_identity(case: dict[str, Any]) -> tuple[bool, list[str]]:
     dataset = case.get("dataset") or {}
@@ -71,10 +74,11 @@ def _real_world_identity(case: dict[str, Any]) -> tuple[bool, list[str]]:
         or dataset.get("vulnerability")
         or dataset.get("bug_id")
     )
+    # A label's source is provenance, not evidence that an issue/patch exists.
+    # Keep vulnerability identity and label provenance as separate requirements.
     has_patch = bool(
         dataset.get("patch_context")
         or dataset.get("patch_url")
-        or dataset.get("label_source")
         or case.get("counterpart")
         or dataset.get("vulnerable_commit")
         or dataset.get("pair_id")
@@ -90,7 +94,6 @@ def _real_world_identity(case: dict[str, Any]) -> tuple[bool, list[str]]:
     ):
         missing.append("dataset.provenance_url/source")
     return not missing, missing
-
 
 def _is_mutation(case: dict[str, Any]) -> bool:
     return bool(

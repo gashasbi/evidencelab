@@ -1,0 +1,46 @@
+{
+  "campaign_id": "evidencelab-realdata-validation-v1",
+  "purpose": "Run the existing EvidenceLab C/C++ CWE-120 or CWE-121 evidence families against external source corpora and preserve auditable outputs.",
+  "scope": {
+    "cwes": ["CWE-120", "CWE-121"],
+    "languages": ["C", "C++"],
+    "analysis_backend": "Joern",
+    "reuse_existing_patterns": true,
+    "reuse_existing_dataset_importers": true,
+    "reuse_existing_research_pipeline": true,
+    "no_new_source_analyzer": true
+  },
+  "inputs": {
+    "supported_importers": ["PrimeVul JSONL", "SecVulEval JSON/JSONL/Parquet manifests produced by EvidenceLab importers", "other manifests supported by EvidenceLab"],
+    "raw_dataset_policy": "External raw datasets are not bundled in this pack. Keep licensed data outside the source repository and preserve provider terms.",
+    "provenance_required": ["dataset/source identity", "stable record or source identity", "source hash", "known-label provenance", "commit/repository/date metadata where available"]
+  },
+  "required_stages": [
+    "Acquire dataset artifacts from an authoritative source and verify registry SHA-256 where available.",
+    "Import source records while preserving record IDs, labels, dataset identity, commit and provenance metadata.",
+    "Audit input manifest cardinality, label census, source paths and source hashes.",
+    "Capture each selected source case with Joern and preserve capture failures as explicit uncertainty/failure records.",
+    "Build a corpus using EvidenceLab research-build and retain split and quality reports.",
+    "Materialize the corpus into self-contained directories for the currently supported evidence families.",
+    "Run research-check once to collect metrics and a second time with strict publication gates.",
+    "Review independent-source identity, cluster diversity, source/graph leakage, label authority, witness replay and confidence intervals before making any research claim."
+  ],
+  "publication_policy": {
+    "the_registered_pilot_is_not_automatically_publication_grade": true,
+    "synthetic_fixtures_are_not_real_world_validation": true,
+    "source_dataset_split_metadata_must_be_preserved_and_reviewed": true,
+    "unknown_is_not_no_match": true,
+    "capture_failure_must_not_be_dropped": true,
+    "hidden_validation_must_be_external_and_sealed_when_required_by_profile": true,
+    "profile_thresholds_are_project_acceptance_policy_not_universal_statistical_standards": true
+  },
+  "outputs": [
+    "Imported manifests and a source-safe census report",
+    "EvidenceLab dataset-validate reports",
+    "Build report and captured benchmark/graph artifacts",
+    "Materialization report and self-contained family benchmarks",
+    "Metrics report without strict gate enforcement",
+    "Strict publication-gate report",
+    "Explicit nonzero exit status when strict gates fail"
+  ]
+}

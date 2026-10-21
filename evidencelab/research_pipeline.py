@@ -2,7 +2,7 @@ from __future__ import annotations
 from . import SCHEMA_VERSION
 from pathlib import Path
 from typing import Any, Iterable
-import json, shutil
+import json, shutil, os
 from .benchmark_build import compose_benchmarks, benchmark_plan
 from .benchmark_quality import quality_audit
 from .corpus_runner import capture_dataset
@@ -16,6 +16,25 @@ def _write(path: Path, value: Any) -> None:
     path.write_text(
         json.dumps(value, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )
+
+
+def _cwe_tokens(value: Any) -> set[str]:
+    """Normalize scalar, comma-separated, or nested CWE metadata."""
+    if value is None or isinstance(value, dict):
+        return set()
+
+    if isinstance(value, (list, tuple, set)):
+        result: set[str] = set()
+        for item in value:
+            result.update(_cwe_tokens(item))
+        return result
+
+    text = str(value).upper()
+    return {
+        part.strip()
+        for part in text.replace(";", ",").split(",")
+        if part.strip()
+    }
 
 
 def build_external_research_corpus(
@@ -39,24 +58,41 @@ def build_external_research_corpus(
     for idx, src in enumerate(in_paths):
         raw = json.loads(src.read_text(encoding="utf-8"))
         if cwe:
-            target = str(cwe).upper()
+            targets = _cwe_tokens(cwe)
             filtered = []
             for c in raw.get("cases", []):
-                values = c.get("source_cwe")
-                values = [values] if isinstance(values, str) else (values or [])
+                if not isinstance(c, dict):
+                    continue
+
                 ds = c.get("dataset") or {}
-                values += [ds.get("cwe")]
-                if any(
-                    target == str(x).upper() or target in str(x).upper().split(",")
-                    for x in values
-                    if x
-                ):
+                dataset_cwe = ds.get("cwe") if isinstance(ds, dict) else None
+
+                values = (
+                    _cwe_tokens(c.get("source_cwe"))
+                    | _cwe_tokens(c.get("cwe"))
+                    | _cwe_tokens(dataset_cwe)
+                )
+                if targets.intersection(values):
                     filtered.append(c)
             if not filtered:
                 raise ValueError(f"no cases matched requested CWE {cwe} in {src}")
             clone = dict(raw)
             clone["cases"] = filtered
             fp = out / "staged" / f"{idx:03d}-{src.stem}.json"
+            fp.parent.mkdir(parents=True, exist_ok=True)
+            # The staged manifest lives under out/staged, not beside the input
+            # manifest. Resolve each source against its original manifest first;
+            # otherwise relative source paths silently point at the wrong tree.
+            for staged_case in clone["cases"]:
+                if not isinstance(staged_case, dict):
+                    continue
+                source_ref = staged_case.get("source")
+                if not isinstance(source_ref, str) or not source_ref:
+                    continue
+                source_path = Path(source_ref).expanduser()
+                if not source_path.is_absolute():
+                    source_path = src.parent / source_path
+                staged_case["source"] = str(source_path.resolve())
             _write(fp, clone)
             src_for_capture = fp
         else:
@@ -79,7 +115,7 @@ def build_external_research_corpus(
             )
         if capture and has_sources:
             capdir = out / "captures" / f"{idx:03d}-{src.stem}"
-            bench = out / "captured" / f"{idx:03d}-{src.stem}.json"
+            bench = out / f"captured-{idx:03d}-{src.stem}.json"
             r = capture_dataset(
                 src_for_capture,
                 capdir,
@@ -93,7 +129,87 @@ def build_external_research_corpus(
                 raise RuntimeError(
                     f"Joern capture failed for {src}: {r.get('failures')}"
                 )
-            staged.append(Path(r["benchmark"]).resolve())
+            captured_manifest = Path(r["benchmark"]).resolve()
+            captured_raw = json.loads(
+                captured_manifest.read_text(encoding="utf-8")
+            )
+
+            # capture_dataset writes graph and capture-manifest references
+            # relative to the staged input manifest. The returned benchmark
+            # lives at the corpus root, so normalize those paths before compose.
+            staged_root = src_for_capture.parent.resolve()
+            corpus_root = out.resolve()
+            manifest_root = captured_manifest.parent.resolve()
+
+            for captured_case in captured_raw.get("cases", []):
+                if not isinstance(captured_case, dict):
+                    continue
+
+                case_id = str(captured_case.get("id", "<unknown>"))
+
+                source_ref = captured_case.get("source")
+                if isinstance(source_ref, str) and source_ref:
+                    source_path = Path(source_ref).expanduser()
+                    if not source_path.is_absolute():
+                        source_path = staged_root / source_path
+                    captured_case["source"] = os.path.relpath(
+                        source_path.resolve(), manifest_root
+                    )
+
+                graph_ref = captured_case.get("graph")
+                if isinstance(graph_ref, str) and graph_ref:
+                    graph_path = Path(graph_ref).expanduser()
+                    if not graph_path.is_absolute():
+                        graph_path = staged_root / graph_path
+                    graph_path = graph_path.resolve()
+
+                    try:
+                        graph_path.relative_to(corpus_root)
+                    except ValueError as exc:
+                        raise ValueError(
+                            f"captured graph escapes research corpus root "
+                            f"for case {case_id}: {graph_ref}"
+                        ) from exc
+
+                    if not graph_path.is_file():
+                        raise FileNotFoundError(
+                            f"captured graph missing for case {case_id}: "
+                            f"{graph_path}"
+                        )
+
+                    captured_case["graph"] = os.path.relpath(
+                        graph_path, manifest_root
+                    )
+
+                capture_info = captured_case.get("capture")
+                if isinstance(capture_info, dict):
+                    capture_ref = capture_info.get("manifest")
+                    if isinstance(capture_ref, str) and capture_ref:
+                        capture_path = Path(capture_ref).expanduser()
+                        if not capture_path.is_absolute():
+                            capture_path = staged_root / capture_path
+                        capture_path = capture_path.resolve()
+
+                        try:
+                            capture_path.relative_to(corpus_root)
+                        except ValueError as exc:
+                            raise ValueError(
+                                f"capture manifest escapes research corpus root "
+                                f"for case {case_id}: {capture_ref}"
+                            ) from exc
+
+                        if not capture_path.is_file():
+                            raise FileNotFoundError(
+                                f"capture manifest missing for case {case_id}: "
+                                f"{capture_path}"
+                            )
+
+                        capture_info["manifest"] = os.path.relpath(
+                            capture_path, manifest_root
+                        )
+
+            _write(captured_manifest, captured_raw)
+            staged.append(captured_manifest)
         else:
             staged.append(src_for_capture)
     composed = out / "benchmark.json"
