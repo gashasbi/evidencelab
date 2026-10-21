@@ -350,3 +350,136 @@ def test_quality_audit_fails_when_graph_is_invalid(tmp_path):
         "semantic graph invalid for case 'invalid-empty-graph'" in error
         for error in result["errors"]
     )
+
+
+
+def _load_semantic_fingerprint_fixture(relative_path):
+    from pathlib import Path
+    from evidencelab.parsers import parse_graph
+
+    return parse_graph(Path(__file__).resolve().parents[1] / relative_path)
+
+
+def test_semantic_fingerprint_distinguishes_numeric_literal_values():
+    from copy import deepcopy
+    from evidencelab.canonical import semantic_graph_fingerprint
+
+    graph = _load_semantic_fingerprint_fixture(
+        "examples/cwe-121/graphs/vulnerable.json"
+    )
+    literal = next(n for n in graph.nodes.values() if n.type == "LITERAL")
+    original_code = literal.properties.get(
+        "code", literal.properties.get("CODE")
+    )
+    assert original_code is not None
+
+    changed = deepcopy(graph)
+    changed_literal = next(
+        n for n in changed.nodes.values() if n.type == "LITERAL"
+    )
+    if "code" in changed_literal.properties or "CODE" not in changed_literal.properties:
+        changed_literal.properties["code"] = "31"
+    else:
+        changed_literal.properties["CODE"] = "31"
+
+    assert semantic_graph_fingerprint(graph) != semantic_graph_fingerprint(changed)
+
+
+def test_semantic_fingerprint_distinguishes_call_targets():
+    from copy import deepcopy
+    from evidencelab.canonical import semantic_graph_fingerprint
+
+    graph = _load_semantic_fingerprint_fixture(
+        "examples/cwe-121/graphs/vulnerable.json"
+    )
+    changed = deepcopy(graph)
+    call = next(n for n in changed.nodes.values() if n.type == "CALL")
+    call.properties["name"] = "strcpy"
+    call.properties["methodFullName"] = "strcpy"
+    derived = call.properties.setdefault("derived", {})
+    derived["name"] = "strcpy"
+    derived["call_name"] = "strcpy"
+
+    assert semantic_graph_fingerprint(graph) != semantic_graph_fingerprint(changed)
+
+
+def test_semantic_fingerprint_distinguishes_memory_capacity_values():
+    from copy import deepcopy
+    from evidencelab.canonical import semantic_graph_fingerprint
+
+    graph = _load_semantic_fingerprint_fixture(
+        "examples/cwe-121/graphs/vulnerable.json"
+    )
+    capacity_32 = deepcopy(graph)
+    capacity_64 = deepcopy(graph)
+
+    local_32 = next(n for n in capacity_32.nodes.values() if n.type == "LOCAL")
+    local_64 = next(n for n in capacity_64.nodes.values() if n.type == "LOCAL")
+
+    derived_32 = local_32.properties.setdefault("derived", {})
+    derived_64 = local_64.properties.setdefault("derived", {})
+
+    derived_32["memory_capacity"] = 32
+    derived_64["memory_capacity"] = 64
+    derived_32["memory_capacity_known"] = True
+    derived_64["memory_capacity_known"] = True
+    derived_32["capacity_unit"] = "BYTES"
+    derived_64["capacity_unit"] = "BYTES"
+
+    assert semantic_graph_fingerprint(capacity_32) != semantic_graph_fingerprint(
+        capacity_64
+    )
+
+
+def test_semantic_fingerprint_distinguishes_argument_roles():
+    from copy import deepcopy
+    from evidencelab.canonical import semantic_graph_fingerprint
+
+    graph = _load_semantic_fingerprint_fixture(
+        "examples/cwe-120/families/"
+        "unbounded-format-output/graphs/adv_01.json"
+    )
+    source_node = next(
+        n for n in graph.nodes.values()
+        if (n.properties.get("derived") or {}).get("argument_role") == "source"
+    )
+
+    changed = deepcopy(graph)
+    changed_node = changed.nodes[source_node.id]
+    changed_node.properties.setdefault("derived", {})["argument_role"] = "destination"
+
+    assert semantic_graph_fingerprint(graph) != semantic_graph_fingerprint(changed)
+
+
+def test_semantic_fingerprint_ignores_node_ids_and_method_names():
+    from copy import deepcopy
+    from evidencelab.canonical import semantic_graph_fingerprint
+
+    graph = _load_semantic_fingerprint_fixture(
+        "examples/cwe-120/families/"
+        "unbounded-format-output/graphs/adv_01.json"
+    )
+    changed = deepcopy(graph)
+
+    old_items = list(changed.nodes.items())
+    mapping = {
+        old_id: f"renamed_node_{index}"
+        for index, (old_id, _) in enumerate(old_items)
+    }
+
+    for old_id, node in old_items:
+        node.id = mapping[old_id]
+        if node.type == "METHOD":
+            node.properties["name"] = "renamed_sample_method"
+            node.properties["code"] = "renamed_sample_method"
+
+    changed.nodes = {
+        mapping[old_id]: node
+        for old_id, node in old_items
+    }
+
+    for edge in changed.edges:
+        edge.source = mapping[edge.source]
+        edge.target = mapping[edge.target]
+
+    assert semantic_graph_fingerprint(graph) == semantic_graph_fingerprint(changed)

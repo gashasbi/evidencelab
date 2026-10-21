@@ -8,10 +8,12 @@ from typing import Any
 
 from . import SCHEMA_VERSION
 from .models import Edge, Graph, Node, norm, stable_json
-from .semantics import enrich_graph, semantic_edge_types
+from .semantics import _num, enrich_graph, semantic_edge_types
 
 CANONICAL_GRAPH_FORMAT = "evidencelab-canonical-graph"
 CANONICAL_GRAPH_VERSION = "1.0"
+
+SEMANTIC_FINGERPRINT_ALGORITHM = "canonical-node/edge semantic aggregate sha256 v2"
 
 CANONICAL_NODE_ALIASES = {
     "METHOD_PARAMETER_IN": "PARAMETER",
@@ -183,8 +185,9 @@ def semantic_graph_fingerprint(graph: Graph) -> str:
     colors: dict[str, str] = {}
     for n in g.nodes.values():
         d = n.properties.get("derived") or {}
+        node_type = canonical_node_type(n.type)
         payload = {
-            "type": canonical_node_type(n.type),
+            "type": node_type,
             "external": bool(d.get("potential_external_input")),
             "allocation": bool(d.get("allocation_like")),
             "copy": bool(d.get("copy_like") or d.get("memory_write_like")),
@@ -193,6 +196,63 @@ def semantic_graph_fingerprint(graph: Graph) -> str:
             "region": str(d.get("memory_region", "UNKNOWN")),
             "role": str(d.get("argument_role", "UNKNOWN")),
         }
+
+        # Numeric literals are semantic evidence: e.g. memcpy(..., 16) and
+        # memcpy(..., 31) must not collapse into the same fingerprint.
+        if node_type == "LITERAL":
+            numeric_value = d.get("numeric_value")
+            if not (
+                isinstance(numeric_value, (int, float))
+                and not isinstance(numeric_value, bool)
+            ):
+                # Canonical graph exports may contain literal code without
+                # derived.numeric_value. Recover the value deterministically.
+                numeric_value = _num(n.get("code", n.get("CODE")))
+
+            if isinstance(numeric_value, (int, float)) and not isinstance(
+                numeric_value, bool
+            ):
+                payload["literal_numeric_value"] = numeric_value
+
+            string_length = d.get("string_length")
+            if isinstance(string_length, int) and not isinstance(
+                string_length, bool
+            ):
+                payload["literal_string_length"] = string_length
+
+        # The called operation affects security semantics. Method names and
+        # parser-generated node IDs remain intentionally excluded.
+        if node_type == "CALL":
+            call_target = (
+                d.get("call_name")
+                or d.get("name")
+                or n.get("name")
+                or d.get("method_full_name")
+            )
+            if call_target:
+                payload["call_target"] = norm(str(call_target))
+
+        argument_index = d.get("argument_index")
+        if argument_index is not None:
+            try:
+                payload["argument_index"] = int(argument_index)
+            except (TypeError, ValueError, OverflowError):
+                payload["argument_index"] = str(argument_index)
+
+        # Preserve numeric capacity facts, not just the known/unknown flag.
+        for key in (
+            "memory_capacity",
+            "memory_capacity_elements",
+            "element_count",
+            "length",
+        ):
+            value = d.get(key)
+            if isinstance(value, (int, float)) and not isinstance(value, bool):
+                payload[key] = value
+
+        if d.get("capacity_unit") is not None:
+            payload["capacity_unit"] = norm(str(d["capacity_unit"])).upper()
+
         colors[n.id] = hashlib.sha256(stable_json(payload).encode()).hexdigest()
     adjacency: dict[str, list[tuple[str, str, str]]] = defaultdict(list)
     for e in g.edges:
@@ -240,7 +300,7 @@ def semantic_diversity(graphs: list[Graph]) -> dict[str, Any]:
         "graphs": n,
         "unique_semantic_graphs": unique,
         "semantic_duplicate_rate": round(duplicate_rate, 6),
-        "semantic_fingerprint_algorithm": "canonical-node/edge semantic aggregate sha256 v1",
+        "semantic_fingerprint_algorithm": SEMANTIC_FINGERPRINT_ALGORITHM,
         "effective_semantic_independence_ratio": round(unique / n, 6) if n else 0.0,
     }
 
