@@ -588,3 +588,59 @@ def test_quality_audit_reports_label_cluster_coverage_and_concentration(tmp_path
         "MATCH": 1,
         "NO_MATCH": 1,
     }
+
+
+
+def test_semantic_fingerprint_distinguishes_analysis_completeness():
+    from evidencelab.canonical import semantic_graph_fingerprint
+
+    partial = _load_semantic_fingerprint_fixture(
+        "examples/cwe-120/families/"
+        "unbounded-format-output/graphs/adv_09.json"
+    )
+    complete = _load_semantic_fingerprint_fixture(
+        "examples/cwe-120/families/"
+        "unbounded-format-output/graphs/pos_16.json"
+    )
+
+    assert len(partial.nodes) == len(complete.nodes)
+    assert len(partial.edges) == len(complete.edges)
+    assert semantic_graph_fingerprint(partial) != semantic_graph_fingerprint(complete)
+
+
+def test_semantic_fingerprint_includes_completeness_without_topology_changes():
+    from copy import deepcopy
+    from evidencelab.canonical import semantic_graph_fingerprint
+
+    base = _load_semantic_fingerprint_fixture(
+        "examples/cwe-121/graphs/vulnerable.json"
+    )
+    complete = deepcopy(base)
+    partial = deepcopy(base)
+
+    common = {
+        "nodes": "COMPLETE",
+        "edges": "COMPLETE",
+        "dataflow": "UNKNOWN",
+        "control_flow": "UNKNOWN",
+        "object_identity": "UNKNOWN",
+        "numeric_range": "UNKNOWN",
+        "interprocedural": "UNKNOWN",
+    }
+
+    for graph in (complete, partial):
+        # Treat both graphs as already canonical so this test isolates
+        # the effect of the normalized completeness metadata.
+        graph.metadata["canonical"] = True
+        graph.metadata["parse_health"] = "OK"
+
+    complete.metadata["analysis_completeness"] = {
+        **common,
+        "graph": "COMPLETE",
+    }
+    partial.metadata["analysis_completeness"] = {
+        **common,
+        "graph": "PARTIAL",
+    }
+
+    assert semantic_graph_fingerprint(complete) != semantic_graph_fingerprint(partial)

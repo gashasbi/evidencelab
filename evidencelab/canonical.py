@@ -13,7 +13,7 @@ from .semantics import _num, enrich_graph, semantic_edge_types
 CANONICAL_GRAPH_FORMAT = "evidencelab-canonical-graph"
 CANONICAL_GRAPH_VERSION = "1.0"
 
-SEMANTIC_FINGERPRINT_ALGORITHM = "canonical-node/edge semantic aggregate sha256 v2"
+SEMANTIC_FINGERPRINT_ALGORITHM = "canonical-node/edge semantic aggregate sha256 v3"
 
 CANONICAL_NODE_ALIASES = {
     "METHOD_PARAMETER_IN": "PARAMETER",
@@ -180,6 +180,8 @@ def semantic_graph_fingerprint(graph: Graph) -> str:
 
     A Weisfeiler-Lehman style refinement is used so two graphs with identical node/edge
     counts but different data-flow/control topology are not treated as the same scenario.
+    Normalized analysis-completeness states and parser health are also part of the
+    fingerprint because incomplete evidence can change a security result to UNKNOWN.
     """
     g = graph if graph.metadata.get("canonical") else canonicalize_graph(graph)
     colors: dict[str, str] = {}
@@ -284,9 +286,43 @@ def semantic_graph_fingerprint(graph: Graph) -> str:
         for e in g.edges
     )
     node_sig = Counter(colors.values())
+    completeness = (
+        g.metadata.get("analysis_completeness")
+        or g.metadata.get("completeness_manifest")
+        or {}
+    )
+    if not isinstance(completeness, dict) or not completeness:
+        declared = str(g.metadata.get("completeness", "declared")).strip().lower()
+        graph_state = (
+            "COMPLETE"
+            if declared in {"full_export", "declared"}
+            else "PARTIAL"
+        )
+        completeness = {
+            "graph": graph_state,
+            "nodes": "COMPLETE",
+            "edges": "COMPLETE",
+            "dataflow": "UNKNOWN",
+            "control_flow": "UNKNOWN",
+            "object_identity": "UNKNOWN",
+            "numeric_range": "UNKNOWN",
+            "interprocedural": "UNKNOWN",
+        }
+
+    completeness_signature = sorted(
+        (
+            str(key).strip().lower(),
+            str(value).strip().upper(),
+        )
+        for key, value in completeness.items()
+    )
+    parse_health = str(g.metadata.get("parse_health", "UNKNOWN")).strip().upper()
+
     payload = {
         "nodes": sorted(node_sig.items()),
         "edges": sorted((stable_json(k), v) for k, v in edge_sig.items()),
+        "analysis_completeness": completeness_signature,
+        "parse_health": parse_health,
     }
     return hashlib.sha256(stable_json(payload).encode("utf-8")).hexdigest()
 
