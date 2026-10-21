@@ -517,14 +517,37 @@ def quality_audit(
             f"{invalid_graph['case_id']!r} "
             f"({invalid_graph['graph']}): {invalid_graph['reason']}"
         )
-    clusters = {}
-    for c in independent:
-        ds = c.get("dataset") or {}
-        key = ds.get("repository") or ds.get("repo") or ds.get("project") or c.get("id")
-        clusters[str(key)] = clusters.get(str(key), 0) + 1
-    if independent and len(clusters) == 1 and len(independent) > 1:
+    clusters: dict[str, int] = {}
+    unassigned_cluster_cases = 0
+
+    for case in independent:
+        ds = (
+            case.get("dataset")
+            if isinstance(case.get("dataset"), dict)
+            else {}
+        )
+        repository = (
+            case.get("repository")
+            or case.get("repo")
+            or ds.get("repository")
+            or ds.get("repo")
+        )
+        project = case.get("project") or ds.get("project")
+        key = repository or project
+
+        if key is None or not str(key).strip():
+            # A unique case ID is not evidence of an independent repository.
+            unassigned_cluster_cases += 1
+            continue
+
+        identity = str(key).strip()
+        clusters[identity] = clusters.get(identity, 0) + 1
+
+    assigned_cases = sum(clusters.values())
+    if len(clusters) == 1 and assigned_cases > 1:
         warnings.append(
-            "all independent cases belong to one dependency cluster; confidence intervals should be cluster-aware"
+            "all identified independent cases belong to one dependency cluster; "
+            "confidence intervals should be cluster-aware"
         )
     return {
         "status": "FAIL" if errors else "PASS",
@@ -555,6 +578,8 @@ def quality_audit(
         "independence_clusters": {
             "count": len(clusters),
             "sizes": sorted(clusters.values(), reverse=True),
+            "assigned_cases": assigned_cases,
+            "unassigned_cases": unassigned_cluster_cases,
         },
         "dimension_taxonomy": DIMENSION_TAXONOMY,
     }

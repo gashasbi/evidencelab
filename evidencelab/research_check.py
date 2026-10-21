@@ -338,15 +338,27 @@ def run_research_check(
         }
         for rr in _:
             case = case_by_id.get(rr.case_id, {})
-            ds = case.get("dataset") or {}
-            cluster = str(
-                case.get("pair_id")
-                or ds.get("pair_id")
-                or ds.get("repository")
-                or ds.get("repo")
-                or ds.get("project")
-                or rr.case_id
+            ds = (
+                case.get("dataset")
+                if isinstance(case.get("dataset"), dict)
+                else {}
             )
+            cluster_key = None
+            for cluster_kind, candidate in (
+                ("pair_id", case.get("pair_id") or ds.get("pair_id")),
+                (
+                    "repository",
+                    case.get("repository")
+                    or case.get("repo")
+                    or ds.get("repository")
+                    or ds.get("repo"),
+                ),
+                ("project", case.get("project") or ds.get("project")),
+            ):
+                if candidate is not None and str(candidate).strip():
+                    cluster_key = f"{cluster_kind}:{str(candidate).strip()}"
+                    break
+            cluster = cluster_key
             values.append((cluster, 1.0 if rr.correct else 0.0))
             if rr.expected == "UNKNOWN":
                 unknown_values.append(

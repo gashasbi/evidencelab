@@ -123,13 +123,13 @@ def validate_benchmark_gate(
     cluster_ci = (
         (meta.get("cluster_statistics") or {}).get("classification") or {}
     ).get("ci95") or {}
-    use_cluster = bool(profile.get("require_cluster_aware_statistics")) and bool(
-        cluster_ci
-    )
+    use_cluster = bool(profile.get("require_cluster_aware_statistics"))
     for metric_name, required_lower in ci_minima.items():
         key = ci_map.get(str(metric_name), str(metric_name))
-        ci = (cluster_ci.get(str(metric_name)) if use_cluster else None) or metrics.get(
-            key
+        ci = (
+            cluster_ci.get(str(metric_name))
+            if use_cluster
+            else metrics.get(key)
         )
         label = f"cluster-aware {metric_name}" if use_cluster else str(metric_name)
         valid_ci = (
@@ -193,10 +193,17 @@ def validate_benchmark_gate(
             errors.append(
                 f"independence cluster minimum failed: {clusters} < {profile['min_independence_clusters']}"
             )
-    if profile.get("require_cluster_aware_statistics") and not meta.get(
-        "cluster_statistics"
-    ):
-        errors.append("cluster-aware statistics are required")
+    if profile.get("require_cluster_aware_statistics"):
+        cluster_stats = meta.get("cluster_statistics") or {}
+        classification = cluster_stats.get("classification") or {}
+        if (
+            classification.get("status") != "PASS"
+            or int(classification.get("clusters", 0) or 0) < 2
+        ):
+            errors.append(
+                "cluster-aware statistics require at least two identified "
+                "clusters with complete cluster metadata"
+            )
 
     audit = meta.get("benchmark_audit", {}) or {}
     canonical = audit.get("canonical_graph", {}) or {}

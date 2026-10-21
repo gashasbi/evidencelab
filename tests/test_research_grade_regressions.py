@@ -483,3 +483,38 @@ def test_semantic_fingerprint_ignores_node_ids_and_method_names():
         edge.target = mapping[edge.target]
 
     assert semantic_graph_fingerprint(graph) == semantic_graph_fingerprint(changed)
+
+
+def test_quality_audit_does_not_invent_independence_clusters(tmp_path):
+    import json
+    from evidencelab.benchmark_quality import quality_audit
+
+    manifest = {
+        "schema_version": "1.0",
+        "format": "evidencelab-benchmark",
+        "manifest_id": "missing-cluster-provenance",
+        "cases": [
+            {"id": "unique-a", "expected": "MATCH"},
+            {"id": "unique-b", "expected": "NO_MATCH"},
+            {
+                "id": "repo-a-1",
+                "expected": "MATCH",
+                "dataset": {"repository": "repo-a"},
+            },
+            {
+                "id": "repo-a-2",
+                "expected": "NO_MATCH",
+                "dataset": {"repository": "repo-a"},
+            },
+        ],
+    }
+    path = tmp_path / "benchmark.json"
+    path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    report = quality_audit(path)
+    clusters = report["independence_clusters"]
+
+    assert clusters["count"] == 1
+    assert clusters["sizes"] == [2]
+    assert clusters["assigned_cases"] == 2
+    assert clusters["unassigned_cases"] == 2
