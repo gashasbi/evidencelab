@@ -12,45 +12,114 @@ def _mean(values: list[float]) -> float:
 
 def _cluster_groups(
     cases: Iterable[dict[str, Any]],
-    key_priority=("repository", "project", "dataset", "case_id"),
+    key_priority=("repository", "project", "dataset"),
 ) -> list[list[dict[str, Any]]]:
+    """Group only cases with an evidence-backed cluster identity.
+
+    A case ID is not evidence of statistical independence. Cases whose
+    repository/project/dataset identity is unavailable are not assigned
+    synthetic singleton clusters.
+    """
     groups: dict[str, list[dict[str, Any]]] = defaultdict(list)
-    for i, case in enumerate(cases):
+
+    for case in cases:
         ds = case.get("dataset") if isinstance(case.get("dataset"), dict) else {}
         key = None
-        for k in key_priority:
-            raw = case.get(k) if k in case else ds.get(k)
-            if raw:
-                key = str(raw)
+
+        for name in key_priority:
+            if name in {"id", "case_id"}:
+                continue
+
+            if name == "dataset":
+                raw = case.get("dataset_name") or ds.get("name")
+                if not raw and isinstance(case.get("dataset"), str):
+                    raw = case.get("dataset")
+            else:
+                raw = case.get(name) or ds.get(name)
+
+            if raw is not None and str(raw).strip():
+                key = f"{name}:{str(raw).strip()}"
                 break
-        if key is None:
-            key = f"__case_{i}"
-        groups[key].append(case)
+
+        if key is not None:
+            groups[key].append(case)
+
     return list(groups.values())
 
 
 def cluster_bootstrap_mean(
-    values_by_case: list[tuple[str, float]], *, rounds: int = 2000, seed: int = 7
+    values_by_case: list[tuple[str | None, float]],
+    *,
+    rounds: int = 2000,
+    seed: int = 7,
 ) -> dict[str, Any]:
+    """Estimate a mean and cluster-bootstrap CI only with identified clusters.
+
+    If any observation lacks an identifiable cluster, or fewer than two
+    clusters are available, report the interval as unavailable instead of
+    treating case IDs as independent clusters.
+    """
     grouped: dict[str, list[float]] = defaultdict(list)
+    unclustered = 0
+
     for cluster, value in values_by_case:
-        grouped[cluster].append(float(value))
+        key = str(cluster).strip() if cluster is not None else ""
+        if not key:
+            unclustered += 1
+            continue
+        grouped[key].append(float(value))
+
     clusters = list(grouped.values())
+    unavailable_ci = [None, None]
+
+    if unclustered:
+        return {
+            "status": "UNAVAILABLE_MISSING_CLUSTER_ID",
+            "mean": None,
+            "ci95": unavailable_ci,
+            "clusters": len(clusters),
+            "unclustered_cases": unclustered,
+            "rounds": 0,
+        }
+
     if not clusters:
-        return {"mean": None, "ci95": [None, None], "clusters": 0, "rounds": 0}
+        return {
+            "status": "EMPTY",
+            "mean": None,
+            "ci95": unavailable_ci,
+            "clusters": 0,
+            "unclustered_cases": 0,
+            "rounds": 0,
+        }
+
+    if len(clusters) < 2:
+        return {
+            "status": "UNAVAILABLE_INSUFFICIENT_CLUSTERS",
+            "mean": None,
+            "ci95": unavailable_ci,
+            "clusters": len(clusters),
+            "unclustered_cases": 0,
+            "rounds": 0,
+        }
+
     rng = random.Random(seed)
-    point = _mean([_mean(c) for c in clusters])
+    point = _mean([_mean(cluster) for cluster in clusters])
     samples = []
+
     for _ in range(max(100, rounds)):
         picked = [clusters[rng.randrange(len(clusters))] for _ in clusters]
-        samples.append(_mean([_mean(c) for c in picked]))
+        samples.append(_mean([_mean(cluster) for cluster in picked]))
+
     samples.sort()
     lo = samples[int(0.025 * (len(samples) - 1))]
     hi = samples[int(0.975 * (len(samples) - 1))]
+
     return {
+        "status": "PASS",
         "mean": point,
         "ci95": [lo, hi],
         "clusters": len(clusters),
+        "unclustered_cases": 0,
         "rounds": len(samples),
     }
 
@@ -76,11 +145,13 @@ def _metric_from_counts(tp: int, fp: int, tn: int, fn: int) -> dict[str, float |
     recall = tp / (tp + fn) if tp + fn else None
     specificity = tn / (tn + fp) if tn + fp else None
     fpr = fp / (fp + tn) if fp + tn else None
+    fnr = fn / (tp + fn) if tp + fn else None
     return {
         "precision": precision,
         "recall": recall,
         "specificity": specificity,
         "false_positive_rate": fpr,
+        "false_negative_rate": fnr,
     }
 
 
@@ -94,90 +165,184 @@ def cluster_bootstrap_binary_metrics(
         "repository",
         "project",
         "dataset",
-        "case_id",
     ),
 ) -> dict[str, Any]:
-    """Cluster-bootstrap binary classification metrics.
+    """Cluster-bootstrap classification metrics using identified clusters only.
 
-    A cluster is resampled as a unit. Pair identifiers take precedence over repository
-    identity so vulnerable/fixed counterparts do not masquerade as independent samples.
-    The returned confidence intervals are percentile intervals over cluster resamples.
+    Pair, repository, project, or dataset metadata can identify a cluster.
+    Case IDs cannot: missing cluster identities and fewer than two clusters
+    make cluster-based confidence intervals unavailable.
     """
     rows = list(results)
+    effective_priority = tuple(
+        key for key in cluster_priority if key not in {"case_id", "id"}
+    )
+
+    if not rows:
+        return {
+            "status": "EMPTY",
+            "clusters": 0,
+            "unclustered_cases": 0,
+            "rounds": 0,
+            "point": {},
+            "ci95": {},
+            "cluster_priority": list(effective_priority),
+        }
+
     groups: dict[str, list[Any]] = defaultdict(list)
-    for i, result in enumerate(rows):
+    unclustered = []
+
+    for result in rows:
         detail = getattr(result, "detail", {}) or {}
-        dataset = (
-            detail.get("dataset") if isinstance(detail.get("dataset"), dict) else {}
+        detail_dataset = (
+            detail.get("dataset") if isinstance(detail, dict) else {}
         )
-        cid = str(getattr(result, "case_id", i))
+        dataset = (
+            detail_dataset if isinstance(detail_dataset, dict) else {}
+        )
+
         if isinstance(result, dict):
-            dataset = result.get("dataset") or {}
-            cid = str(result.get("case_id") or result.get("id") or i)
+            candidate = result.get("dataset")
+            if isinstance(candidate, dict):
+                dataset = candidate
+
         key = None
-        if isinstance(result, dict):
-            for k in cluster_priority:
-                raw = result.get(k) if k in result else dataset.get(k)
-                if raw:
-                    key = str(raw)
-                    break
+
+        for name in effective_priority:
+            if name == "dataset":
+                if isinstance(result, dict):
+                    raw = result.get("dataset_name")
+                    candidate = result.get("dataset")
+                    if not raw and isinstance(candidate, dict):
+                        raw = candidate.get("name")
+                    elif not raw and isinstance(candidate, str):
+                        raw = candidate
+                    if not raw:
+                        raw = dataset.get("name")
+                else:
+                    raw = getattr(result, "dataset_name", None)
+                    if not raw:
+                        raw = dataset.get("name")
+                    if not raw and isinstance(detail, dict):
+                        candidate = detail.get("dataset")
+                        if isinstance(candidate, str):
+                            raw = candidate
+            elif isinstance(result, dict):
+                raw = result.get(name) or dataset.get(name)
+            else:
+                raw = getattr(result, name, None)
+                if not raw and isinstance(detail, dict):
+                    raw = detail.get(name)
+                if not raw:
+                    raw = dataset.get(name)
+
+            if (
+                raw is not None
+                and not isinstance(raw, (dict, list, tuple, set))
+                and str(raw).strip()
+            ):
+                key = f"{name}:{str(raw).strip()}"
+                break
+
         if key is None:
-            key = str(getattr(result, "cluster_key", "")) or f"__case_{cid}"
-        groups[key].append(result)
-    if not groups:
-        return {"status": "EMPTY", "clusters": 0, "rounds": 0, "point": {}, "ci95": {}}
+            explicit = (
+                result.get("cluster_key")
+                if isinstance(result, dict)
+                else getattr(result, "cluster_key", None)
+            )
+            if explicit is not None and str(explicit).strip():
+                key = f"cluster_key:{str(explicit).strip()}"
+
+        if key is None:
+            unclustered.append(result)
+        else:
+            groups[key].append(result)
 
     def counts(items: list[Any]) -> tuple[int, int, int, int]:
         tp = fp = tn = fn = 0
-        for r in items:
+
+        for item in items:
             expected = (
-                str(r.get("expected", "")).upper()
-                if isinstance(r, dict)
-                else str(getattr(r, "expected", "")).upper()
+                str(item.get("expected", "")).upper()
+                if isinstance(item, dict)
+                else str(getattr(item, "expected", "")).upper()
             )
             actual = (
-                str(r.get("actual", "")).upper()
-                if isinstance(r, dict)
-                else str(getattr(r, "actual", "")).upper()
+                str(item.get("actual", "")).upper()
+                if isinstance(item, dict)
+                else str(getattr(item, "actual", "")).upper()
             )
+
             if expected == "MATCH":
                 tp += int(actual == "MATCH")
                 fn += int(actual != "MATCH")
             elif expected == "NO_MATCH":
                 fp += int(actual == "MATCH")
                 tn += int(actual == "NO_MATCH")
+
         return tp, fp, tn, fn
 
-    flat = [r for rs in groups.values() for r in rs]
-    point = _metric_from_counts(*counts(flat))
-    rng = random.Random(seed)
+    point = _metric_from_counts(*counts(rows))
     cluster_lists = list(groups.values())
-    series = {k: [] for k in point}
+    unavailable_ci = {key: [None, None] for key in point}
+
+    if unclustered:
+        return {
+            "status": "UNAVAILABLE_MISSING_CLUSTER_ID",
+            "clusters": len(cluster_lists),
+            "unclustered_cases": len(unclustered),
+            "rounds": 0,
+            "unit": "cluster",
+            "cluster_priority": list(effective_priority),
+            "point": point,
+            "ci95": unavailable_ci,
+        }
+
+    if len(cluster_lists) < 2:
+        return {
+            "status": "UNAVAILABLE_INSUFFICIENT_CLUSTERS",
+            "clusters": len(cluster_lists),
+            "unclustered_cases": 0,
+            "rounds": 0,
+            "unit": "cluster",
+            "cluster_priority": list(effective_priority),
+            "point": point,
+            "ci95": unavailable_ci,
+        }
+
+    rng = random.Random(seed)
+    series = {key: [] for key in point}
+
     for _ in range(max(100, rounds)):
         picked = [
-            cluster_lists[rng.randrange(len(cluster_lists))] for _ in cluster_lists
+            cluster_lists[rng.randrange(len(cluster_lists))]
+            for _ in cluster_lists
         ]
-        sampled = [r for c in picked for r in c]
-        m = _metric_from_counts(*counts(sampled))
-        for k, v in m.items():
-            if v is not None:
-                series[k].append(v)
+        sampled = [item for cluster in picked for item in cluster]
+        metrics = _metric_from_counts(*counts(sampled))
+
+        for key, value in metrics.items():
+            if value is not None:
+                series[key].append(value)
+
     ci = {}
-    for k, vals in series.items():
-        vals.sort()
-        if not vals:
-            ci[k] = [None, None]
+    for key, values in series.items():
+        values.sort()
+        if not values:
+            ci[key] = [None, None]
         else:
-            ci[k] = [
-                vals[int(0.025 * (len(vals) - 1))],
-                vals[int(0.975 * (len(vals) - 1))],
+            ci[key] = [
+                values[int(0.025 * (len(values) - 1))],
+                values[int(0.975 * (len(values) - 1))],
             ]
+
     return {
         "status": "PASS",
         "clusters": len(cluster_lists),
+        "unclustered_cases": 0,
         "rounds": max(100, rounds),
         "unit": "cluster",
-        "cluster_priority": list(cluster_priority),
+        "cluster_priority": list(effective_priority),
         "point": point,
         "ci95": ci,
     }

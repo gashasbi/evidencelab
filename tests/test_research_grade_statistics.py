@@ -313,3 +313,133 @@ def test_schema_check_validates_pattern_and_rejects_wrong_schema():
             timeout=30,
         )
         assert bad_run.returncode == 1, bad_run.stdout + bad_run.stderr
+
+
+def test_cluster_groups_do_not_create_singletons_for_missing_provenance():
+    from evidencelab.statistics import _cluster_groups
+
+    unknown_a = {"id": "unique-a"}
+    unknown_b = {"id": "unique-b"}
+    repo_a = {"id": "repo-a-1", "dataset": {"repository": "repo-a"}}
+    repo_b = {"id": "repo-a-2", "dataset": {"repository": "repo-a"}}
+
+    groups = _cluster_groups([unknown_a, unknown_b, repo_a, repo_b])
+
+    assert len(groups) == 1
+    assert set(id(case) for case in groups[0]) == {id(repo_a), id(repo_b)}
+
+
+def test_cluster_bootstrap_mean_rejects_missing_cluster_identity():
+    from evidencelab.statistics import cluster_bootstrap_mean
+
+    result = cluster_bootstrap_mean([(None, 1.0), ("", 0.0)], rounds=100)
+
+    assert result["status"] == "UNAVAILABLE_MISSING_CLUSTER_ID"
+    assert result["clusters"] == 0
+    assert result["unclustered_cases"] == 2
+    assert result["ci95"] == [None, None]
+
+
+def test_cluster_bootstrap_mean_requires_two_identified_clusters():
+    from evidencelab.statistics import cluster_bootstrap_mean
+
+    one = cluster_bootstrap_mean(
+        [("repository:repo-a", 1.0), ("repository:repo-a", 0.0)],
+        rounds=100,
+    )
+    assert one["status"] == "UNAVAILABLE_INSUFFICIENT_CLUSTERS"
+    assert one["clusters"] == 1
+    assert one["ci95"] == [None, None]
+
+    two = cluster_bootstrap_mean(
+        [
+            ("repository:repo-a", 1.0),
+            ("repository:repo-a", 1.0),
+            ("repository:repo-b", 0.0),
+            ("repository:repo-b", 0.0),
+        ],
+        rounds=100,
+    )
+    assert two["status"] == "PASS"
+    assert two["clusters"] == 2
+
+
+def test_binary_cluster_bootstrap_does_not_use_case_ids_as_clusters():
+    from evidencelab.statistics import cluster_bootstrap_binary_metrics
+
+    result = cluster_bootstrap_binary_metrics(
+        [
+            {"case_id": "unique-a", "expected": "MATCH", "actual": "MATCH"},
+            {"case_id": "unique-b", "expected": "NO_MATCH", "actual": "NO_MATCH"},
+        ],
+        rounds=100,
+    )
+
+    assert result["status"] == "UNAVAILABLE_MISSING_CLUSTER_ID"
+    assert result["clusters"] == 0
+    assert result["unclustered_cases"] == 2
+    assert all(ci == [None, None] for ci in result["ci95"].values())
+
+
+def test_binary_cluster_bootstrap_requires_two_identified_clusters():
+    from evidencelab.statistics import cluster_bootstrap_binary_metrics
+
+    rows = [
+        {
+            "case_id": "positive",
+            "repository": "repo-a",
+            "expected": "MATCH",
+            "actual": "MATCH",
+        },
+        {
+            "case_id": "negative",
+            "repository": "repo-b",
+            "expected": "NO_MATCH",
+            "actual": "NO_MATCH",
+        },
+    ]
+    result = cluster_bootstrap_binary_metrics(rows, rounds=100)
+
+    assert result["status"] == "PASS"
+    assert result["clusters"] == 2
+    assert result["unclustered_cases"] == 0
+    assert "false_negative_rate" in result["ci95"]
+
+    same_cluster = [
+        {**rows[0], "repository": "repo-a"},
+        {**rows[1], "repository": "repo-a"},
+    ]
+    unavailable = cluster_bootstrap_binary_metrics(same_cluster, rounds=100)
+    assert unavailable["status"] == "UNAVAILABLE_INSUFFICIENT_CLUSTERS"
+    assert unavailable["clusters"] == 1
+
+
+def test_profile_gate_rejects_unavailable_cluster_statistics():
+    from evidencelab.profile import validate_benchmark_gate
+
+    errors = validate_benchmark_gate(
+        metrics={
+            "total": 2,
+            "known": 2,
+            "tp": 1,
+            "fn": 0,
+            "tn": 1,
+            "fp": 0,
+        },
+        meta={
+            "cluster_statistics": {
+                "classification": {
+                    "status": "UNAVAILABLE_MISSING_CLUSTER_ID",
+                    "clusters": 0,
+                    "ci95": {"recall": [None, None]},
+                }
+            }
+        },
+        profile={"require_cluster_aware_statistics": True},
+    )
+
+    assert any(
+        "cluster-aware statistics require at least two identified clusters"
+        in error
+        for error in errors
+    )
