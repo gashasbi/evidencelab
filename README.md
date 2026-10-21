@@ -1,18 +1,19 @@
 # EvidenceLab 1.0.0
 
-**A researcher-driven framework for defining and evaluating vulnerability evidence.**
+**A researcher-driven framework for defining, evaluating, and auditing vulnerability evidence.**
 
-EvidenceLab lets a researcher express an evidence definition, execute it against supported graph artifacts, and inspect the resulting claims, witnesses, counter-evidence, and uncertainty. It also provides utilities for importing experimental material and auditing research artifacts.
+EvidenceLab makes a researcher's evidence definition executable over supported graph artifacts. It reports the claims and witnesses that support a result, the counter-evidence that qualifies it, and where the available analysis remains incomplete. It also helps researchers prepare experimental material and check whether benchmark and evaluation artifacts are traceable and reproducible.
 
-EvidenceLab is not itself a source-code analyzer. Tools such as Joern produce analysis artifacts; EvidenceLab evaluates researcher-authored evidence definitions against supported representations of those artifacts.
+EvidenceLab is not itself a source-code analyzer. An analyzer such as Joern produces analysis artifacts; EvidenceLab evaluates researcher-authored definitions against the information those artifacts contain. The analyzer's output, a dataset's label, and EvidenceLab's result are separate kinds of information.
 
 ## What it is for
 
 - Define and validate evidence rules with the Evidence Specification Language (ELS).
-- Evaluate those rules against supported graph inputs.
-- Keep a positive finding distinct from a complete non-match and from an inconclusive result.
-- Preserve case identity, artifact hashes, provenance, and analysis completeness where supported.
-- Support research workflows for dataset import, benchmark checks, witness replay, leakage audits, and reproducibility.
+- Evaluate rules against supported graph inputs and inspect coherent witnesses and counter-evidence.
+- Preserve uncertainty when the evidence is incomplete, ambiguous, or insufficient for a definitive decision.
+- Support dataset import, benchmark quality checks, provenance, splits and leakage audits, witness replay, and reproducibility records.
+
+A typical run validates an ELS definition, evaluates it against a supported graph, and reviews the result and its uncertainty. Research-level conclusions also require separate checks of dataset identity, label authority, independence, leakage, and reproducibility.
 
 ## Quick start
 
@@ -62,11 +63,11 @@ Inspect the JSON report's `status`, trace, warnings, and completeness fields. Fo
 | Outcome | Practical interpretation |
 |---|---|
 | `MATCH` | A coherent witness satisfied the required evidence under the definition's policies. |
-| `NO_MATCH` | No admissible witness was established on input complete enough to support that negative decision. |
+| `NO_MATCH` | No admissible witness was established on input complete and trustworthy enough to support that negative decision. |
 | `PARTIAL` | The analysis or proof is incomplete; do not treat it as a definitive positive or negative. |
 | `UNKNOWN` | Available information is insufficient to decide safely. |
 
-A missing edge, timeout, unresolved property, failed export, or truncated search must not be treated as proof that a weakness is absent. Exact behavior depends on the definition, input format, and completeness information available.
+A missing edge, timeout, unresolved property, failed export, or truncated search must not be treated as proof that a weakness is absent. The outcome depends on the definition, input format, and completeness information available.
 
 ## Documentation
 
@@ -100,11 +101,11 @@ Some integration checks may invoke a live Joern installation. If an integration 
 
 ## Scope and limitations
 
-- EvidenceLab checks an executable definition against the observations available in supported artifacts. It cannot recover facts an analyzer did not emit.
+- EvidenceLab evaluates a definition against observations in supported artifacts. It cannot recover facts an analyzer did not emit.
 - A schema-valid definition is not automatically a sound research hypothesis.
-- Passing tests or research gates demonstrates only the checks those tests and gates cover.
+- Passing tests or configured research gates demonstrates only the checks those tests and gates cover.
 - Bundled CWE-120/CWE-121 examples are reference fixtures and workflows, not independent real-world validation. They do not by themselves establish general precision, recall, or external validity.
-- Dataset labels, analyzer observations, derived facts, evidence claims, and final outcomes are different things and should be recorded separately.
+- Dataset labels, analyzer observations, derived facts, evidence claims, witnesses, and final outcomes are different things and should be recorded separately.
 
 ## Security
 
