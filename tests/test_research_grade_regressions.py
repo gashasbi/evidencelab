@@ -644,3 +644,56 @@ def test_semantic_fingerprint_includes_completeness_without_topology_changes():
     }
 
     assert semantic_graph_fingerprint(complete) != semantic_graph_fingerprint(partial)
+
+def test_semantic_fingerprint_preserves_explicit_top_level_range():
+    from copy import deepcopy
+
+    from evidencelab.canonical import (
+        canonicalize_graph,
+        semantic_graph_fingerprint,
+    )
+    from evidencelab.semantics import node_value_range
+
+    fixed = _load_semantic_fingerprint_fixture(
+        "examples/cwe-120/families/fixed-extent-overflow/"
+        "graphs/unknown_03.json"
+    )
+    symbolic = _load_semantic_fingerprint_fixture(
+        "examples/cwe-120/families/symbolic-range-overflow/"
+        "graphs/unknown_03.json"
+    )
+
+    expected_range = {
+        "lower": 16,
+        "upper": 48,
+        "proof": "EXPLICIT_RANGE",
+    }
+
+    assert symbolic.nodes["e"].properties["range"] == expected_range
+    assert node_value_range(symbolic, "e") == expected_range
+
+    canonical_symbolic = canonicalize_graph(symbolic)
+    canonical_node = canonical_symbolic.nodes["e"]
+
+    assert canonical_node.properties["derived"]["range"] == expected_range
+    assert (
+        canonical_node.properties["derived_provenance"]["range"]
+        == "RAW:range"
+    )
+
+    assert (
+        semantic_graph_fingerprint(fixed)
+        != semantic_graph_fingerprint(symbolic)
+    )
+
+    # The representation location must not change the semantic fingerprint.
+    normalized_form = deepcopy(symbolic)
+    raw_range = normalized_form.nodes["e"].properties.pop("range")
+    normalized_form.nodes["e"].properties.setdefault("derived", {})[
+        "range"
+    ] = raw_range
+
+    assert (
+        semantic_graph_fingerprint(symbolic)
+        == semantic_graph_fingerprint(normalized_form)
+    )

@@ -13,7 +13,7 @@ from .semantics import _num, enrich_graph, semantic_edge_types
 CANONICAL_GRAPH_FORMAT = "evidencelab-canonical-graph"
 CANONICAL_GRAPH_VERSION = "1.0"
 
-SEMANTIC_FINGERPRINT_ALGORITHM = "canonical-node/edge semantic aggregate sha256 v3"
+SEMANTIC_FINGERPRINT_ALGORITHM = "canonical-node/edge semantic aggregate sha256 v4"
 
 CANONICAL_NODE_ALIASES = {
     "METHOD_PARAMETER_IN": "PARAMETER",
@@ -254,6 +254,52 @@ def semantic_graph_fingerprint(graph: Graph) -> str:
 
         if d.get("capacity_unit") is not None:
             payload["capacity_unit"] = norm(str(d["capacity_unit"])).upper()
+
+        # Numeric ranges are semantic evidence and must not collapse with
+        # an otherwise identical node that carries no range evidence.
+        range_value = d.get("range")
+        range_lower = (
+            _num(range_value.get("lower"))
+            if isinstance(range_value, dict)
+            else None
+        )
+        range_upper = (
+            _num(range_value.get("upper"))
+            if isinstance(range_value, dict)
+            else None
+        )
+
+        if (
+            range_lower is None
+            or range_upper is None
+            or range_lower > range_upper
+        ):
+            range_value = n.properties.get("range")
+            range_lower = (
+                _num(range_value.get("lower"))
+                if isinstance(range_value, dict)
+                else None
+            )
+            range_upper = (
+                _num(range_value.get("upper"))
+                if isinstance(range_value, dict)
+                else None
+            )
+
+        if (
+            isinstance(range_value, dict)
+            and range_lower is not None
+            and range_upper is not None
+            and range_lower <= range_upper
+        ):
+            range_proof = str(
+                range_value.get("proof", "EXPLICIT_RANGE")
+            ).strip().upper()
+            payload["numeric_range"] = {
+                "lower": range_lower,
+                "upper": range_upper,
+                "proof": range_proof or "EXPLICIT_RANGE",
+            }
 
         colors[n.id] = hashlib.sha256(stable_json(payload).encode()).hexdigest()
     adjacency: dict[str, list[tuple[str, str, str]]] = defaultdict(list)

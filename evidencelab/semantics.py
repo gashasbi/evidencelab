@@ -538,11 +538,16 @@ def _range_from_node(
     n = g.nodes.get(nid)
     if n is None:
         return None
-    explicit = get_property(n, "derived.range", None)
-    if isinstance(explicit, dict) and "lower" in explicit and "upper" in explicit:
-        lo, hi = _num(explicit.get("lower")), _num(explicit.get("upper"))
-        if lo is not None and hi is not None and lo <= hi:
-            return lo, hi, str(explicit.get("proof", "EXPLICIT_RANGE"))
+    # Prefer normalized evidence, but also accept raw properties.range so
+    # callers can query a parsed graph before enrichment.
+    for explicit in (
+        get_property(n, "derived.range", None),
+        n.properties.get("range"),
+    ):
+        if isinstance(explicit, dict) and "lower" in explicit and "upper" in explicit:
+            lo, hi = _num(explicit.get("lower")), _num(explicit.get("upper"))
+            if lo is not None and hi is not None and lo <= hi:
+                return lo, hi, str(explicit.get("proof", "EXPLICIT_RANGE"))
     val = get_property(n, "derived.numeric_value", None)
     if isinstance(val, (int, float)) and not isinstance(val, bool):
         return val, val, "EXACT_VALUE"
@@ -794,6 +799,26 @@ def enrich_graph(g: Graph) -> Graph:
         if n.get("IS_EXTERNAL") is not None and "is_external" not in d:
             d["is_external"] = bool(n.get("IS_EXTERNAL"))
             prov["is_external"] = "RAW:IS_EXTERNAL"
+
+        if "range" not in d:
+            # Preserve an explicit interval supplied at properties.range.
+            raw_range = n.properties.get("range")
+            if (
+                isinstance(raw_range, dict)
+                and "lower" in raw_range
+                and "upper" in raw_range
+            ):
+                lo = _num(raw_range.get("lower"))
+                hi = _num(raw_range.get("upper"))
+                if lo is not None and hi is not None and lo <= hi:
+                    d["range"] = {
+                        "lower": lo,
+                        "upper": hi,
+                        "proof": str(
+                            raw_range.get("proof", "EXPLICIT_RANGE")
+                        ),
+                    }
+                    prov["range"] = "RAW:range"
 
         if "range" not in d:
             rr = node_value_range(g, n.id)
