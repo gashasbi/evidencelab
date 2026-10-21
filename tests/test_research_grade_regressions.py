@@ -253,3 +253,100 @@ def test_semantic_diversity_reports_unreadable_graphs(tmp_path):
         error.get("case_id") == "missing-graph"
         for error in diversity["graph_errors"]
     )
+
+def test_semantic_diversity_excludes_invalid_graphs(tmp_path):
+    import json
+    from evidencelab.benchmark_quality import _semantic_diversity
+
+    manifest = {
+        "schema_version": "1.0",
+        "format": "evidencelab-benchmark",
+        "manifest_id": "invalid-semantic-graph",
+        "cases": [
+            {"id": "empty", "expected": "UNKNOWN", "graph": "graphs/empty.json"},
+        ],
+    }
+    graphs = tmp_path / "graphs"
+    graphs.mkdir()
+    (graphs / "empty.json").write_text(
+        json.dumps({"nodes": [], "edges": []}), encoding="utf-8"
+    )
+    path = tmp_path / "benchmark.json"
+    path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    result = _semantic_diversity(path, manifest["cases"])
+
+    assert result["graph_count"] == 0
+    assert result["effective_semantic_sample_size"] == 0
+    assert len(result["invalid_graphs"]) == 1
+    assert result["invalid_graphs"][0]["case_id"] == "empty"
+
+
+def test_semantic_diversity_retains_degraded_nonempty_graphs(tmp_path):
+    import json
+    from evidencelab.benchmark_quality import _semantic_diversity
+
+    manifest = {
+        "schema_version": "1.0",
+        "format": "evidencelab-benchmark",
+        "manifest_id": "degraded-semantic-graph",
+        "cases": [
+            {"id": "degraded", "expected": "UNKNOWN", "graph": "graphs/partial.json"},
+        ],
+    }
+    graphs = tmp_path / "graphs"
+    graphs.mkdir()
+    (graphs / "partial.json").write_text(
+        json.dumps({
+            "nodes": [
+                {"id": "n1", "type": "CALL", "properties": {"name": "unknown_call"}}
+            ],
+            "edges": [],
+            "metadata": {"parse_health": "DEGRADED", "completeness": "partial"},
+        }),
+        encoding="utf-8",
+    )
+    path = tmp_path / "benchmark.json"
+    path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    result = _semantic_diversity(path, manifest["cases"])
+
+    assert result["graph_count"] == 1
+    assert result["effective_semantic_sample_size"] == 1
+    assert result["invalid_graphs"] == []
+
+
+
+def test_quality_audit_fails_when_graph_is_invalid(tmp_path):
+    import json
+
+    graphs = tmp_path / "graphs"
+    graphs.mkdir()
+    (graphs / "empty.json").write_text(
+        json.dumps({"nodes": [], "edges": []}),
+        encoding="utf-8",
+    )
+
+    manifest = {
+        "schema_version": "1.0",
+        "format": "evidencelab-benchmark",
+        "manifest_id": "invalid-graph-audit-regression",
+        "cases": [
+            {
+                "id": "invalid-empty-graph",
+                "expected": "UNKNOWN",
+                "graph": "graphs/empty.json",
+            }
+        ],
+    }
+
+    path = tmp_path / "benchmark.json"
+    path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    result = quality_audit(path)
+
+    assert result["status"] == "FAIL"
+    assert any(
+        "semantic graph invalid for case 'invalid-empty-graph'" in error
+        for error in result["errors"]
+    )
