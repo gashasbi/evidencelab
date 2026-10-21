@@ -131,21 +131,42 @@ def _semantic_diversity(
 
         fingerprints = []
         graph_errors = []
+        invalid_graphs = []
         graph_count = 0
+
         for case in cases:
             rel = case.get("graph")
             if not rel:
                 continue
+
+            case_id = str(case.get("id", "<unknown>"))
             try:
                 g = parse_graph(_safe_case_path(manifest_path, str(rel)))
-                fingerprints.append(semantic_graph_fingerprint(g))
-                graph_count += 1
             except Exception as exc:
                 graph_errors.append({
-                    "case_id": str(case.get("id", "<unknown>")),
+                    "case_id": case_id,
                     "graph": str(rel),
                     "error": str(exc),
                 })
+                continue
+
+            health = str(g.metadata.get("parse_health", "UNKNOWN")).upper()
+            if health == "INVALID" or (not g.nodes and not g.edges):
+                invalid_graphs.append({
+                    "case_id": case_id,
+                    "graph": str(rel),
+                    "parse_health": health,
+                    "reason": (
+                        "parser marked graph INVALID"
+                        if health == "INVALID"
+                        else "graph contains no nodes or edges"
+                    ),
+                })
+                continue
+
+            fingerprints.append(semantic_graph_fingerprint(g))
+            graph_count += 1
+
         unique = len(set(fingerprints))
         return {
             "graph_count": graph_count,
@@ -155,6 +176,7 @@ def _semantic_diversity(
             else None,
             "effective_semantic_sample_size": unique,
             "graph_errors": graph_errors,
+            "invalid_graphs": invalid_graphs,
         }
     except Exception as exc:
         return {
@@ -162,6 +184,8 @@ def _semantic_diversity(
             "unique_semantic_graphs": 0,
             "semantic_duplicate_rate": None,
             "effective_semantic_sample_size": 0,
+            "graph_errors": [],
+            "invalid_graphs": [],
             "error": str(exc),
         }
 
@@ -484,6 +508,12 @@ def quality_audit(
             "semantic graph unreadable for case "
             f"{graph_error['case_id']!r} "
             f"({graph_error['graph']}): {graph_error['error']}"
+        )
+    for invalid_graph in semantic.get("invalid_graphs", []):
+        errors.append(
+            "semantic graph invalid for case "
+            f"{invalid_graph['case_id']!r} "
+            f"({invalid_graph['graph']}): {invalid_graph['reason']}"
         )
     clusters = {}
     for c in independent:
