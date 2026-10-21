@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Any
 import json
 from .leakage import audit_benchmark_lineage
-from .canonical import semantic_graph_fingerprint
+from .canonical import SEMANTIC_FINGERPRINT_ALGORITHM, semantic_graph_fingerprint
 
 RECOMMENDED_CASE_DIMENSIONS = {
     "positive",
@@ -175,6 +175,7 @@ def _semantic_diversity(
             if graph_count
             else None,
             "effective_semantic_sample_size": unique,
+            "semantic_fingerprint_algorithm": SEMANTIC_FINGERPRINT_ALGORITHM,
             "graph_errors": graph_errors,
             "invalid_graphs": invalid_graphs,
         }
@@ -184,6 +185,7 @@ def _semantic_diversity(
             "unique_semantic_graphs": 0,
             "semantic_duplicate_rate": None,
             "effective_semantic_sample_size": 0,
+            "semantic_fingerprint_algorithm": SEMANTIC_FINGERPRINT_ALGORITHM,
             "graph_errors": [],
             "invalid_graphs": [],
             "error": str(exc),
