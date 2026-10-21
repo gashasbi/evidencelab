@@ -130,6 +130,7 @@ def _semantic_diversity(
         from .evaluator import _safe_case_path
 
         fingerprints = []
+        graph_errors = []
         graph_count = 0
         for case in cases:
             rel = case.get("graph")
@@ -139,8 +140,12 @@ def _semantic_diversity(
                 g = parse_graph(_safe_case_path(manifest_path, str(rel)))
                 fingerprints.append(semantic_graph_fingerprint(g))
                 graph_count += 1
-            except Exception:
-                continue
+            except Exception as exc:
+                graph_errors.append({
+                    "case_id": str(case.get("id", "<unknown>")),
+                    "graph": str(rel),
+                    "error": str(exc),
+                })
         unique = len(set(fingerprints))
         return {
             "graph_count": graph_count,
@@ -149,6 +154,7 @@ def _semantic_diversity(
             if graph_count
             else None,
             "effective_semantic_sample_size": unique,
+            "graph_errors": graph_errors,
         }
     except Exception as exc:
         return {
@@ -473,6 +479,12 @@ def quality_audit(
                 "source similarity audit is required but no source artifacts are available"
             )
     semantic = _semantic_diversity(p, cases)
+    for graph_error in semantic.get("graph_errors", []):
+        errors.append(
+            "semantic graph unreadable for case "
+            f"{graph_error['case_id']!r} "
+            f"({graph_error['graph']}): {graph_error['error']}"
+        )
     clusters = {}
     for c in independent:
         ds = c.get("dataset") or {}

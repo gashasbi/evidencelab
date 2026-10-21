@@ -217,3 +217,39 @@ def test_symbolic_range_witness_replays_independently():
     )
     assert r["status"] == "PASS", r
     assert r["passed_cases"] == 2
+
+
+def test_semantic_diversity_reports_unreadable_graphs(tmp_path):
+    import json
+
+    manifest = {
+        "schema_version": "1.0",
+        "format": "evidencelab-benchmark",
+        "manifest_id": "semantic-diversity-regression",
+        "cases": [
+            {
+                "id": "missing-graph",
+                "expected": "UNKNOWN",
+                "graph": "graphs/missing.json",
+            },
+            {
+                "id": "no-graph",
+                "expected": "UNKNOWN",
+            },
+        ],
+    }
+    path = tmp_path / "benchmark.json"
+    path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    result = quality_audit(path)
+    diversity = result["semantic_diversity"]
+
+    assert diversity["graph_count"] == 0
+    assert diversity["effective_semantic_sample_size"] == 0
+    assert diversity.get("graph_errors"), (
+        "Unreadable graph files must be reported, not silently skipped"
+    )
+    assert any(
+        error.get("case_id") == "missing-graph"
+        for error in diversity["graph_errors"]
+    )
