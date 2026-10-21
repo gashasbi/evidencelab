@@ -443,3 +443,84 @@ def test_profile_gate_rejects_unavailable_cluster_statistics():
         in error
         for error in errors
     )
+
+
+
+def test_repository_split_balances_unequal_group_sizes_and_reports_quality(tmp_path):
+    from evidencelab.splits import audit_split_directory
+
+    manifest = tmp_path / "unequal-repositories.json"
+    out = tmp_path / "split"
+
+    cases = []
+    group_sizes = {
+        "large-train-candidate": 45,
+        "large-test-candidate": 22,
+        "small-a": 3,
+        "small-b": 3,
+        "small-c": 2,
+    }
+
+    for repository, size in group_sizes.items():
+        for index in range(size):
+            cases.append({
+                "id": f"{repository}-{index}",
+                "expected": "MATCH" if index % 2 == 0 else "NO_MATCH",
+                "dataset": {"repository": repository},
+            })
+
+    manifest.write_text(
+        json.dumps({
+            "schema_version": "1.0",
+            "format": "evidencelab-benchmark",
+            "manifest_id": "unequal-repository-split-regression",
+            "cases": cases,
+        }),
+        encoding="utf-8",
+    )
+
+    split = split_benchmark(
+        manifest,
+        out,
+        strategy="repository",
+        train=0.6,
+        validation=0.2,
+        test=0.2,
+    )
+
+    assert split["status"] == "PASS"
+    assert sorted(split["counts"].values()) == [8, 22, 45]
+    assert split["counts"] == {"train": 45, "validation": 22, "test": 8}
+    assert split["partition_group_counts"] == {
+        "train": 1,
+        "validation": 1,
+        "test": 3,
+    }
+    assert split["partition_case_ratios"]["train"] == 0.6
+    assert any(
+        "validation partition has fewer than two indivisible groups" in warning
+        for warning in split["quality_warnings"]
+    )
+    assert any(
+        "test case ratio differs materially from its target" in warning
+        and "relative deviation=46.7%" in warning
+        for warning in split["quality_warnings"]
+    )
+
+    audit = audit_split_directory(out, strategy="repository")
+    assert audit["status"] == "PASS"
+    assert not audit["errors"]
+
+    summary = audit["partition_summary"]
+    assert summary["train"]["case_count"] == 45
+    assert summary["train"]["identified_groups"] == 1
+    assert summary["validation"]["case_count"] == 22
+    assert summary["validation"]["identified_groups"] == 1
+    assert summary["test"]["case_count"] == 8
+    assert summary["test"]["identified_groups"] == 3
+
+    assert any(
+        "validation partition has fewer than two identified repository groups"
+        in warning
+        for warning in audit["quality_warnings"]
+    )
