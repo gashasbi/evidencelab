@@ -673,10 +673,48 @@ def finalize(g: Graph) -> None:
     issues = g.metadata.get("parser_issues", [])
     g.metadata["unknown_node_types"] = unknown_n
     g.metadata["unknown_edge_types"] = unknown_e
-    g.metadata["parse_health"] = (
+    computed_health = (
         "INVALID"
         if not g.nodes and not g.edges
         else ("DEGRADED" if unknown_n or unknown_e or missing or issues else "OK")
+    )
+
+    # Preserve declared health conservatively: successfully parsing a graph must
+    # not erase an upstream DEGRADED/INVALID assessment. Structural problems
+    # found here must likewise not be hidden by a declared OK value.
+    declared_metadata = g.metadata.get("declared_metadata")
+    if (
+        isinstance(declared_metadata, dict)
+        and "parse_health" in declared_metadata
+    ):
+        declared_health = declared_metadata.get("parse_health")
+    else:
+        declared_health = g.metadata.get("parse_health")
+
+    health_rank = {
+        "OK": 0,
+        "UNKNOWN": 1,
+        "DEGRADED": 2,
+        "INVALID": 3,
+    }
+
+    declared_health = (
+        str(declared_health).strip().upper()
+        if declared_health is not None
+        and str(declared_health).strip()
+        else None
+    )
+
+    # An unrecognized non-empty health value is not safe to promote to OK.
+    if declared_health is not None and declared_health not in health_rank:
+        declared_health = "DEGRADED"
+
+    candidates = [computed_health]
+    if declared_health is not None:
+        candidates.append(declared_health)
+
+    g.metadata["parse_health"] = max(
+        candidates, key=lambda health: health_rank[health]
     )
 
 
