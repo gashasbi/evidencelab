@@ -43,7 +43,7 @@ dataset label
     != evaluation outcome
 ```
 
-A dataset label such as `BAD` does not force `MATCH`. An analyzer's failure to emit a relation does not prove that the relation is absent. A derived fact should identify the observations and method from which it was derived.
+A dataset label such as `BAD` does not force `MATCH`. An analyzer's failure to emit a relation does not prove that the relation is absent. A derived fact should identify the observations and method from which it was derived. A research gate checks configured requirements; passing it does not prove that a hypothesis is sound or that results generalize.
 
 ## Package versions, schemas, and artifacts
 
