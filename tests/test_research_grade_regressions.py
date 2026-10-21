@@ -518,3 +518,73 @@ def test_quality_audit_does_not_invent_independence_clusters(tmp_path):
     assert clusters["sizes"] == [2]
     assert clusters["assigned_cases"] == 2
     assert clusters["unassigned_cases"] == 2
+
+
+def test_quality_audit_reports_label_cluster_coverage_and_concentration(tmp_path):
+    import json
+    from evidencelab.benchmark_quality import quality_audit
+
+    cases = [
+        {"id": "unassigned-positive", "expected": "MATCH"},
+        {"id": "unassigned-negative", "expected": "NO_MATCH"},
+        {
+            "id": "repo-a-positive",
+            "expected": "MATCH",
+            "dataset": {"repository": "repo-a"},
+        },
+        {
+            "id": "repo-a-negative",
+            "expected": "NO_MATCH",
+            "dataset": {"repository": "repo-a"},
+        },
+        {
+            "id": "repo-b-negative",
+            "expected": "NO_MATCH",
+            "dataset": {"repository": "repo-b"},
+        },
+        {
+            "id": "project-c-unknown",
+            "expected": "UNKNOWN",
+            "dataset": {"project": "project-c"},
+        },
+    ]
+    path = tmp_path / "cluster-coverage.json"
+    path.write_text(
+        json.dumps({
+            "schema_version": "1.0",
+            "format": "evidencelab-benchmark",
+            "manifest_id": "cluster-coverage-regression",
+            "cases": cases,
+        }),
+        encoding="utf-8",
+    )
+
+    report = quality_audit(path)
+    clusters = report["independence_clusters"]
+
+    assert clusters["count"] == 3
+    assert clusters["assigned_cases"] == 4
+    assert clusters["unassigned_cases"] == 2
+
+    assert clusters["label_supporting_clusters"] == {
+        "MATCH": 1,
+        "NO_MATCH": 2,
+        "UNKNOWN": 1,
+    }
+    assert clusters["identified_case_counts_by_label"] == {
+        "MATCH": 1,
+        "NO_MATCH": 2,
+        "UNKNOWN": 1,
+    }
+    assert clusters["unassigned_case_counts_by_label"] == {
+        "MATCH": 1,
+        "NO_MATCH": 1,
+        "UNKNOWN": 0,
+    }
+    assert clusters["largest_cluster_size"] == 2
+    assert clusters["largest_cluster_share"] == 0.5
+    assert clusters["largest_clusters"][0]["identity"] == "repository:repo-a"
+    assert clusters["largest_clusters"][0]["label_counts"] == {
+        "MATCH": 1,
+        "NO_MATCH": 1,
+    }

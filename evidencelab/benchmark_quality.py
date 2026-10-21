@@ -1,4 +1,5 @@
 from __future__ import annotations
+from collections import Counter
 from pathlib import Path
 from typing import Any
 import json
@@ -518,7 +519,10 @@ def quality_audit(
             f"({invalid_graph['graph']}): {invalid_graph['reason']}"
         )
     clusters: dict[str, int] = {}
+    cluster_labels: dict[str, dict[str, int]] = {}
     unassigned_cluster_cases = 0
+    identified_labels: Counter[str] = Counter()
+    unassigned_labels: Counter[str] = Counter()
 
     for case in independent:
         ds = (
@@ -533,17 +537,61 @@ def quality_audit(
             or ds.get("repo")
         )
         project = case.get("project") or ds.get("project")
-        key = repository or project
+        expected = str(case.get("expected", "UNKNOWN")).upper()
 
-        if key is None or not str(key).strip():
-            # A unique case ID is not evidence of an independent repository.
+        if repository is not None and str(repository).strip():
+            identity = f"repository:{str(repository).strip()}"
+        elif project is not None and str(project).strip():
+            identity = f"project:{str(project).strip()}"
+        else:
+            # Case IDs are not evidence of statistical independence.
             unassigned_cluster_cases += 1
+            unassigned_labels[expected] += 1
             continue
 
-        identity = str(key).strip()
         clusters[identity] = clusters.get(identity, 0) + 1
+        cluster_labels.setdefault(identity, {})
+        cluster_labels[identity][expected] = (
+            cluster_labels[identity].get(expected, 0) + 1
+        )
+        identified_labels[expected] += 1
 
     assigned_cases = sum(clusters.values())
+    label_names = ("MATCH", "NO_MATCH", "UNKNOWN")
+    label_supporting_clusters = {
+        label: sum(
+            1 for counts in cluster_labels.values()
+            if counts.get(label, 0) > 0
+        )
+        for label in label_names
+    }
+    identified_case_counts_by_label = {
+        label: identified_labels.get(label, 0)
+        for label in label_names
+    }
+    unassigned_case_counts_by_label = {
+        label: unassigned_labels.get(label, 0)
+        for label in label_names
+    }
+
+    largest_cluster_size = max(clusters.values(), default=0)
+    largest_cluster_share = (
+        round(largest_cluster_size / assigned_cases, 6)
+        if assigned_cases
+        else None
+    )
+    largest_clusters = [
+        {
+            "identity": identity,
+            "case_count": clusters[identity],
+            "label_counts": cluster_labels[identity],
+        }
+        for identity in sorted(
+            clusters,
+            key=lambda key: (-clusters[key], key),
+        )[:5]
+    ]
+
     if len(clusters) == 1 and assigned_cases > 1:
         warnings.append(
             "all identified independent cases belong to one dependency cluster; "
@@ -580,6 +628,12 @@ def quality_audit(
             "sizes": sorted(clusters.values(), reverse=True),
             "assigned_cases": assigned_cases,
             "unassigned_cases": unassigned_cluster_cases,
+            "label_supporting_clusters": label_supporting_clusters,
+            "identified_case_counts_by_label": identified_case_counts_by_label,
+            "unassigned_case_counts_by_label": unassigned_case_counts_by_label,
+            "largest_cluster_size": largest_cluster_size,
+            "largest_cluster_share": largest_cluster_share,
+            "largest_clusters": largest_clusters,
         },
         "dimension_taxonomy": DIMENSION_TAXONOMY,
     }
