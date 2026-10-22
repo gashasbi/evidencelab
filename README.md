@@ -88,7 +88,7 @@ To install the development dependencies and run the project's tests from a sourc
 
 ```bash
 python -m pip install -e ".[dev]"
-python -m pytest -q
+python scripts/run_isolated_tests.py --timeout 180
 ```
 
 Where available in the checkout, the isolated test runner executes test files in separate processes:

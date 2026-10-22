@@ -44,6 +44,7 @@ def main() -> int:
         return 2
 
     env = os.environ.copy()
+    env["EVIDENCELAB_REPO_ROOT"] = str(root.resolve())
     env["PYTHONPATH"] = str(root) + (
         os.pathsep + env["PYTHONPATH"] if env.get("PYTHONPATH") else ""
     )
