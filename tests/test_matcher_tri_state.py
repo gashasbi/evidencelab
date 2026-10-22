@@ -2,7 +2,7 @@ from evidencelab.models import Graph, Node
 from evidencelab.matcher import Matcher
 from evidencelab.spec import Pattern
 
-def _pattern(required_dimensions=None, selector_name="needle"):
+def _pattern(required_dimensions=None, selector_name="needle", include_witnesses=True):
     dims = required_dimensions or []
     return Pattern.from_dict({
         "schema_version":"1.0","pattern_id":"qa-tristate","cwe":"CWE-999",
@@ -12,7 +12,7 @@ def _pattern(required_dimensions=None, selector_name="needle"):
         "slots":[{"id":"target","concept":"target","required":True}],
         "claims":[{"id":"node","kind":"node","required":True,"slot":"target"}],
         "counter_evidence":[],
-        "witnesses":[{"id":"w1","slots":["target"],"claims":["node"],"required":True}],
+        "witnesses":[{"id":"w1","slots":["target"],"claims":["node"],"required":True}] if include_witnesses else [],
         "evidence_contract":{"unknown_policy":"unknown","counter_unknown_policy":"block_match",
             "tri_state":True,"counter_evidence_binding":"same_witness","minimum_sufficient_witness":True,
             "required_analysis_dimensions":dims},
@@ -67,3 +67,11 @@ def test_analysis_truncation_suppresses_definitive_match():
     g.add_node(Node("c","CALL",{"name":"needle"}))
     r = Matcher(g).run(_pattern())
     assert r.status in {"UNKNOWN","PARTIAL"}, r.to_dict()
+
+
+def test_analysis_truncation_suppresses_match_without_witnesses():
+    g = Graph(metadata={"completeness": "full_export", "parse_health": "OK", "analysis_truncated": True})
+    g.add_node(Node("c", "CALL", {"name": "needle"}))
+    r = Matcher(g).run(_pattern(include_witnesses=False))
+    assert r.status in {"UNKNOWN", "PARTIAL"}, r.to_dict()
+    assert r.to_dict().get("evidence_trace", {}).get("analysis_incomplete") is True
