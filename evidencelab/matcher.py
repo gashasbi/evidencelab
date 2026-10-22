@@ -226,6 +226,10 @@ class Matcher:
     ):
         # Keep enrichment derived-only so caller data, artifact digests, and replay stay stable.
         self.raw_graph_digest = graph.digest()
+        self.has_explicit_analysis_completeness = bool(
+            graph.metadata.get("analysis_completeness")
+            or graph.metadata.get("completeness_manifest")
+        )
         self.graph = canonicalize_graph(graph)
         self.max_global_combinations = int(max_global_combinations)
         self.max_witness_alternatives = int(max_witness_alternatives)
@@ -318,6 +322,25 @@ class Matcher:
             or bool(self.graph.metadata.get("analysis_truncated"))
         )
         attestation = self.graph.metadata.get("analysis_attestation") or {}
+        if isinstance(attestation, dict) and attestation and (
+            str(attestation.get("level", "")).upper() == "ANALYZER_DEGRADED"
+            or str(attestation.get("status", "")).upper() == "ANALYZER_DEGRADED"
+            or str(attestation.get("capture_status", "")).upper() in {"FAIL", "DEGRADED", "TIMEOUT"}
+        ):
+            analysis_incomplete = True
+            warnings.append("analyzer attestation reports degraded analysis")
+        all_pattern_claims = pattern.claims + pattern.counter_claims
+        requires_dataflow = any(
+            str(claim.relation or "").upper() in {"DATA_FLOW", "REACHING_DEF"}
+            or any(str(edge_type).upper() in {"DATA_FLOW", "REACHING_DEF"} for edge_type in claim.edge_types)
+            for claim in all_pattern_claims
+        )
+        completeness_manifest = self.graph.metadata.get("analysis_completeness") or {}
+        if requires_dataflow and self.has_explicit_analysis_completeness and isinstance(completeness_manifest, dict) and "dataflow" in completeness_manifest:
+            dataflow_state = str(completeness_manifest.get("dataflow", "UNKNOWN")).upper()
+            if dataflow_state not in {"COMPLETE", "FULL", "PROVEN"}:
+                analysis_incomplete = True
+                warnings.append(f"required by claim semantics: dataflow analysis is not complete ({dataflow_state})")
         attestation_valid = is_trusted_attestation(attestation)
         if self.require_analyzer_attestation and not attestation_valid:
             analysis_incomplete = True
@@ -342,7 +365,6 @@ class Matcher:
                 else []
             )
         )
-        completeness_manifest = self.graph.metadata.get("analysis_completeness") or {}
         aliases = {
             "data_flow": "dataflow",
             "dataflow": "dataflow",
@@ -376,6 +398,8 @@ class Matcher:
                 )
             elif any(w.status == "PARTIAL" for w in required):
                 status = "PARTIAL"
+            elif analysis_incomplete:
+                status = self._unknown_status(pattern)
             else:
                 status = "NO_MATCH"
         else:
@@ -873,6 +897,7 @@ class Matcher:
                 )
             proven_pairs: list[dict[str, Any]] = []
             saw_unknown = False
+            search_truncated = len(sources) > 100 or len(targets) > 100
             for src, dst in itertools.product(sources[:100], targets[:100]):
                 probe = Claim(
                     id=c.id,
@@ -917,7 +942,7 @@ class Matcher:
                         "forbidden relation exists",
                         c.proof_level,
                     )
-                if saw_unknown or not self._is_complete(self.graph):
+                if saw_unknown or search_truncated or not self._is_complete(self.graph):
                     return ClaimResult(
                         c.id,
                         c.kind,
@@ -938,7 +963,7 @@ class Matcher:
                     "no matching relation exists",
                     c.proof_level,
                 )
-            if saw_unknown or not self._is_complete(self.graph):
+            if saw_unknown or search_truncated or not self._is_complete(self.graph):
                 return ClaimResult(
                     c.id,
                     c.kind,
@@ -946,7 +971,7 @@ class Matcher:
                     c.required,
                     c.description,
                     [],
-                    "relation cannot be proven",
+                    "relation cannot be proven because the graph is incomplete or candidate search was truncated",
                     c.proof_level,
                 )
             return ClaimResult(
@@ -1661,20 +1686,31 @@ class Matcher:
                     "relation claim needs source/target",
                     c.proof_level,
                 )
+            sources = slots.get(c.source, [])
+            targets = slots.get(c.target, [])
+            if not sources or not targets:
+                return ClaimResult(
+                    c.id, c.kind, "UNKNOWN", c.required, c.description, [],
+                    "relation claim has no resolvable source/target candidates", c.proof_level
+                )
+            search_truncated = len(sources) > 100 or len(targets) > 100
             saw_unknown = False
-            for src, dst in itertools.product(
-                slots.get(c.source, [])[:100], slots.get(c.target, [])[:100]
-            ):
+            for src, dst in itertools.product(sources[:100], targets[:100]):
                 r = self._claim_with_binding(c, {c.source: src, c.target: dst}, slots)
-                if r.status == "PROVEN":
-                    return r
-                saw_unknown = saw_unknown or r.status == "UNKNOWN"
-                if c.kind == "path_absence" and r.status == "DISPROVEN":
-                    return r
-            if saw_unknown or not slots.get(c.source) or not slots.get(c.target):
+                if c.kind == "path_absence":
+                    if r.status == "DISPROVEN":
+                        return r
+                    if r.status != "PROVEN":
+                        saw_unknown = True
+                else:
+                    if r.status == "PROVEN":
+                        return r
+                    if r.status == "UNKNOWN":
+                        saw_unknown = True
+            if saw_unknown or search_truncated:
                 status = "UNKNOWN"
             else:
-                status = "DISPROVEN" if c.kind != "path_absence" else "PROVEN"
+                status = "PROVEN" if c.kind == "path_absence" else "DISPROVEN"
             return ClaimResult(
                 c.id,
                 c.kind,
@@ -1682,9 +1718,9 @@ class Matcher:
                 c.required,
                 c.description,
                 [],
-                "no relation proven"
-                if c.kind != "path_absence"
-                else "no forbidden relation exists",
+                "all candidate pairs have no forbidden relation"
+                if c.kind == "path_absence" and status == "PROVEN"
+                else ("a forbidden relation exists" if c.kind == "path_absence" else "no relation proven"),
                 c.proof_level,
             )
 

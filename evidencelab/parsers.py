@@ -173,8 +173,7 @@ def _canonical_edge_type(props: dict[str, Any]) -> str:
 
 def parse_graphml(path: Path) -> Graph:
     raw = _read_bytes(path)
-    head = raw[:8192].decode("utf-8", errors="ignore").upper()
-    if "<!DOCTYPE" in head or "<!ENTITY" in head:
+    if re.search(rb"<!\s*(?:DOCTYPE|ENTITY)\b", raw, flags=re.IGNORECASE):
         raise InputFormatError("GraphML with DTD/entity declarations is rejected")
     try:
         root = ET.fromstring(raw)

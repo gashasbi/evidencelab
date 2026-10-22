@@ -34,40 +34,35 @@ def fetch(
             **({"Range": f"bytes={start}-"} if start else {}),
         },
     )
-    mode = "ab" if start else "wb"
     started = time.time()
     try:
-        with urlopen(req, timeout=timeout) as resp, tmp.open(mode) as f:
+        with urlopen(req, timeout=timeout) as resp:
+            response_status = getattr(resp, "status", 200)
+            append = bool(start and response_status == 206)
+            if append:
+                content_range = resp.headers.get("Content-Range", "")
+                if not content_range.lower().startswith(f"bytes {start}-"):
+                    tmp.unlink(missing_ok=True)
+                    raise ValueError("INVALID_CONTENT_RANGE_FOR_RESUME")
+            elif response_status == 206:
+                tmp.unlink(missing_ok=True)
+                raise ValueError("UNEXPECTED_PARTIAL_RESPONSE")
+            else:
+                start = 0
             content_length = resp.headers.get("Content-Length")
-            if (
-                max_bytes is not None
-                and content_length is not None
-                and start + int(content_length) > int(max_bytes)
-            ):
+            expected_total = start + int(content_length) if append and content_length is not None else (int(content_length) if content_length is not None else None)
+            if max_bytes is not None and expected_total is not None and expected_total > int(max_bytes):
                 return {
                     "status": "FAIL",
                     "error": "DOWNLOAD_EXCEEDS_MAX_BYTES",
                     "max_bytes": int(max_bytes),
-                    "declared_bytes": start + int(content_length),
+                    "declared_bytes": expected_total,
                     "url": url,
                     "out": str(dst),
                 }
+            mode = "ab" if append else "wb"
             downloaded = start
-            if start and getattr(resp, "status", 206) != 206:
-                f.close()
-                tmp.unlink(missing_ok=True)
-                start = 0
-                req = Request(url, headers={"User-Agent": USER_AGENT})
-                with urlopen(req, timeout=timeout) as resp2, tmp.open("wb") as f2:
-                    while True:
-                        chunk = resp2.read(1024 * 1024)
-                        if not chunk:
-                            break
-                        downloaded += len(chunk)
-                        if max_bytes is not None and downloaded > int(max_bytes):
-                            raise ValueError("DOWNLOAD_EXCEEDS_MAX_BYTES")
-                        f2.write(chunk)
-            else:
+            with tmp.open(mode) as f:
                 while True:
                     chunk = resp.read(1024 * 1024)
                     if not chunk:
@@ -101,6 +96,7 @@ def fetch(
         "out": str(dst),
         "bytes": dst.stat().st_size,
         "sha256": digest,
+        "resumed": bool(resume and start),
         "elapsed_seconds": round(time.time() - started, 3),
     }
 
