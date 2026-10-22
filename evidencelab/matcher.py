@@ -389,9 +389,8 @@ class Matcher:
             else:
                 status = (
                     "MATCH"
-                    if not truncated_slots
-                    and (self.graph.metadata.get("parse_health") or "OK") == "OK"
-                    else "PARTIAL"
+                    if not analysis_incomplete
+                    else self._unknown_status(pattern)
                 )
 
         all_wclaims = [c for w in witness_results for c in w.claims]
