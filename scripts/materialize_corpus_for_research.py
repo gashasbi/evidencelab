@@ -6,6 +6,7 @@ captured cases/graphs and (when present) source files into each family directory
 so EvidenceLab's existing research-check command can evaluate each current pattern
 against one identical corpus without changing the repository's reference datasets.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -49,7 +50,9 @@ def materialize(
     corpus_root = benchmark_path.parent
     pattern_root = pattern_root.resolve()
     out_root = out_root.resolve()
-    source_roots = [corpus_root] + [Path(x).expanduser().resolve() for x in (allowed_source_roots or [])]
+    source_roots = [corpus_root] + [
+        Path(x).expanduser().resolve() for x in (allowed_source_roots or [])
+    ]
     raw = json.loads(benchmark_path.read_text(encoding="utf-8"))
     cases = raw.get("cases")
     if not isinstance(cases, list) or not cases:
@@ -80,7 +83,9 @@ def materialize(
             if not isinstance(graph_ref, str) or not graph_ref:
                 raise ValueError(f"{case_id}: graph reference is missing")
             graph_source = resolve_reference(corpus_root, graph_ref)
-            _require_within(graph_source, [corpus_root], description=f"{case_id} graph reference")
+            _require_within(
+                graph_source, [corpus_root], description=f"{case_id} graph reference"
+            )
             if not graph_source.is_file():
                 missing_graphs.append({"id": case_id, "graph": str(graph_ref)})
                 continue
@@ -92,7 +97,11 @@ def materialize(
             source_ref = case.get("source")
             if isinstance(source_ref, str) and source_ref:
                 source_source = resolve_reference(corpus_root, source_ref)
-                _require_within(source_source, source_roots, description=f"{case_id} source reference")
+                _require_within(
+                    source_source,
+                    source_roots,
+                    description=f"{case_id} source reference",
+                )
                 if source_source.is_file():
                     sources_dir.mkdir(parents=True, exist_ok=True)
                     source_name = f"{index:06d}-{slug}{source_source.suffix or '.c'}"
@@ -102,7 +111,9 @@ def materialize(
                 else:
                     missing_sources.append({"id": case_id, "source": str(source_ref)})
                     case["source_missing_original"] = str(source_ref)
-                    case["source_missing_reason"] = "source was not resolvable when materializing evaluation tree"
+                    case["source_missing_reason"] = (
+                        "source was not resolvable when materializing evaluation tree"
+                    )
                     case.pop("source", None)
             copied_cases.append(case)
 
@@ -112,25 +123,31 @@ def materialize(
             )
         family_benchmark = dict(raw)
         family_benchmark["cases"] = copied_cases
-        family_benchmark["manifest_id"] = f"{raw.get('manifest_id', benchmark_path.stem)}-{family_name}"
+        family_benchmark["manifest_id"] = (
+            f"{raw.get('manifest_id', benchmark_path.stem)}-{family_name}"
+        )
         family_metadata = family_benchmark.get("metadata")
         if not isinstance(family_metadata, dict):
             family_metadata = {}
         family_metadata["materialized_for_pattern"] = family_name
-        family_metadata["materialization_policy"] = "copy unchanged graph/source content; rewrite only local paths"
+        family_metadata["materialization_policy"] = (
+            "copy unchanged graph/source content; rewrite only local paths"
+        )
         family_benchmark["metadata"] = family_metadata
         (family_dir / "benchmark.json").write_text(
             json.dumps(family_benchmark, ensure_ascii=False, indent=2) + "\n",
             encoding="utf-8",
         )
-        family_summaries.append({
-            "family": family_name,
-            "cases": len(copied_cases),
-            "graphs_copied": len(copied_cases),
-            "source_files_missing": len(missing_sources),
-            "missing_sources": missing_sources[:50],
-            "path": str(family_dir),
-        })
+        family_summaries.append(
+            {
+                "family": family_name,
+                "cases": len(copied_cases),
+                "graphs_copied": len(copied_cases),
+                "source_files_missing": len(missing_sources),
+                "missing_sources": missing_sources[:50],
+                "path": str(family_dir),
+            }
+        )
 
     return {
         "status": "PASS",
@@ -147,9 +164,25 @@ def materialize(
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--benchmark", type=Path, required=True)
-    parser.add_argument("--pattern-root", type=Path, required=True, help="folder containing family-name/pattern.json directories")
-    parser.add_argument("--out-root", type=Path, required=True, help="evaluation project root; a families/ directory is created here")
-    parser.add_argument("--allowed-source-root", type=Path, action="append", default=[], help="additional trusted roots from which declared source files may be copied; may be repeated")
+    parser.add_argument(
+        "--pattern-root",
+        type=Path,
+        required=True,
+        help="folder containing family-name/pattern.json directories",
+    )
+    parser.add_argument(
+        "--out-root",
+        type=Path,
+        required=True,
+        help="evaluation project root; a families/ directory is created here",
+    )
+    parser.add_argument(
+        "--allowed-source-root",
+        type=Path,
+        action="append",
+        default=[],
+        help="additional trusted roots from which declared source files may be copied; may be repeated",
+    )
     parser.add_argument("--report", type=Path)
     args = parser.parse_args()
     try:
@@ -160,7 +193,12 @@ def main() -> int:
             allowed_source_roots=args.allowed_source_root,
         )
     except Exception as exc:
-        print(json.dumps({"status": "FAIL", "error": f"{type(exc).__name__}: {exc}"}, indent=2), file=sys.stderr)
+        print(
+            json.dumps(
+                {"status": "FAIL", "error": f"{type(exc).__name__}: {exc}"}, indent=2
+            ),
+            file=sys.stderr,
+        )
         return 2
     text = json.dumps(result, ensure_ascii=False, indent=2) + "\n"
     if args.report:

@@ -55,13 +55,12 @@ def _witness_quality(detail: dict[str, Any], pattern: Pattern) -> dict[str, Any]
             )
         )
         localized += int(any((c.get("matches") or c.get("locations")) for c in claims))
-        # Minimum-sufficient witness: required claims are present, with no duplicate binding,
-        # and the claim set is not bloated by unrelated optional claims.
+
         claim_count = len(claims)
         minimal += int(
             ok_claims and claim_count <= max(len(required), len(required) + 2)
         )
-        # Prefer bounded paths and concrete matches; a large path is not high quality by itself.
+
         lengths = []
         for c in claims:
             for m in c.get("matches", []) or []:
@@ -90,7 +89,7 @@ def compute_evidence_quality(results: list[Any], pattern: Pattern) -> dict[str, 
     matched = 0
     complete = coherent = counter = provenance = localized = minimal = relevant = (
         replay_pass
-    ) = search_complete = 0
+    ) = replay_evaluated = search_complete = 0
     for r in results:
         actual = getattr(r, "actual", None)
         detail = getattr(r, "detail", {}) or {}
@@ -109,7 +108,9 @@ def compute_evidence_quality(results: list[Any], pattern: Pattern) -> dict[str, 
         replay = detail.get("witness_replay") or detail.get(
             "independent_witness_validation"
         )
-        replay_pass += int(isinstance(replay, dict) and replay.get("status") == "PASS")
+        if isinstance(replay, dict) and replay.get("status") in {"PASS", "FAIL"}:
+            replay_evaluated += 1
+            replay_pass += int(replay.get("status") == "PASS")
     denom = matched or 0
     return {
         "matched_cases": matched,
@@ -120,6 +121,9 @@ def compute_evidence_quality(results: list[Any], pattern: Pattern) -> dict[str, 
         "localization_rate": localized / denom if denom else None,
         "minimality_rate": minimal / denom if denom else None,
         "relevance_rate": relevant / denom if denom else None,
-        "independent_replay_rate": replay_pass / denom if denom else None,
+        "independent_replay_rate": (
+            replay_pass / replay_evaluated if replay_evaluated else None
+        ),
+        "independent_replay_evaluated_cases": replay_evaluated,
         "witness_search_complete_rate": search_complete / denom if denom else None,
     }

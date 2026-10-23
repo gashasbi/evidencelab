@@ -18,7 +18,9 @@ def test_file_hash_remains_sha256_of_file_bytes(tmp_path: Path) -> None:
     assert _sha256_path(source) == hashlib.sha256(source.read_bytes()).hexdigest()
 
 
-def test_directory_hash_is_stable_and_tracks_nested_file_content(tmp_path: Path) -> None:
+def test_directory_hash_is_stable_and_tracks_nested_file_content(
+    tmp_path: Path,
+) -> None:
     source = tmp_path / "source"
     (source / "nested").mkdir(parents=True)
     (source / "main.c").write_text("int main(void) { return 0; }\n", encoding="utf-8")
@@ -29,7 +31,6 @@ def test_directory_hash_is_stable_and_tracks_nested_file_content(tmp_path: Path)
     initial = _sha256_path(source)
     assert _sha256_path(source) == initial
 
-    # Moving an identical tree must not change its digest; absolute paths are excluded.
     copied = tmp_path / "copied-source"
     shutil.copytree(source, copied)
     assert _sha256_path(copied) == initial
@@ -73,7 +74,5 @@ def test_directory_walk_errors_are_not_silently_ignored(
 
     monkeypatch.setattr("evidencelab.capture.os.walk", failing_walk)
 
-    with pytest.raises(
-        EvidenceLabError, match="unable to hash source directory"
-    ):
+    with pytest.raises(EvidenceLabError, match="unable to hash source directory"):
         _sha256_path(source)

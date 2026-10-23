@@ -141,7 +141,6 @@ def replay_stored_directory(
         raw = json.loads(report_path.read_text(encoding="utf-8"))
         graph_ref = str(raw.get("graph", ""))
         if not graph_ref:
-            # Older reports can store graph path inside the benchmark matcher trace.
             graph_ref = str(
                 (raw.get("matcher") or {})
                 .get("evidence_trace", {})

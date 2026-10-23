@@ -32,9 +32,7 @@ ALIASES = {
 
 
 def _case_dimensions(case: dict[str, Any]) -> set[str]:
-    # Normalize aliases in both metadata channels. Otherwise the same semantic
-    # dimension can be counted differently depending on whether it was recorded
-    # as a tag or in the explicit dimensions list.
+
     tags = {ALIASES.get(str(x), str(x)) for x in case.get("tags", [])}
     dimensions = (
         {ALIASES.get(str(x), str(x)) for x in case.get("dimensions", [])}
@@ -50,6 +48,7 @@ def _case_dimensions(case: dict[str, Any]) -> set[str]:
     else:
         out.add("unknown")
     return out
+
 
 def _real_world_identity(case: dict[str, Any]) -> tuple[bool, list[str]]:
     dataset = case.get("dataset") or {}
@@ -75,8 +74,7 @@ def _real_world_identity(case: dict[str, Any]) -> tuple[bool, list[str]]:
         or dataset.get("vulnerability")
         or dataset.get("bug_id")
     )
-    # A label's source is provenance, not evidence that an issue/patch exists.
-    # Keep vulnerability identity and label provenance as separate requirements.
+
     has_patch = bool(
         dataset.get("patch_context")
         or dataset.get("patch_url")
@@ -96,6 +94,7 @@ def _real_world_identity(case: dict[str, Any]) -> tuple[bool, list[str]]:
         missing.append("dataset.provenance_url/source")
     return not missing, missing
 
+
 def _is_mutation(case: dict[str, Any]) -> bool:
     return bool(
         case.get("mutation_of") or case.get("mutation_parent") or case.get("mutation")
@@ -103,7 +102,7 @@ def _is_mutation(case: dict[str, Any]) -> bool:
 
 
 def _is_independent(case: dict[str, Any]) -> bool:
-    # Count paired revisions; exclude only declared mutation descendants from independence gates.
+
     return not _is_mutation(case)
 
 
@@ -144,25 +143,29 @@ def _semantic_diversity(
             try:
                 g = parse_graph(_safe_case_path(manifest_path, str(rel)))
             except Exception as exc:
-                graph_errors.append({
-                    "case_id": case_id,
-                    "graph": str(rel),
-                    "error": str(exc),
-                })
+                graph_errors.append(
+                    {
+                        "case_id": case_id,
+                        "graph": str(rel),
+                        "error": str(exc),
+                    }
+                )
                 continue
 
             health = str(g.metadata.get("parse_health", "UNKNOWN")).upper()
             if health == "INVALID" or (not g.nodes and not g.edges):
-                invalid_graphs.append({
-                    "case_id": case_id,
-                    "graph": str(rel),
-                    "parse_health": health,
-                    "reason": (
-                        "parser marked graph INVALID"
-                        if health == "INVALID"
-                        else "graph contains no nodes or edges"
-                    ),
-                })
+                invalid_graphs.append(
+                    {
+                        "case_id": case_id,
+                        "graph": str(rel),
+                        "parse_health": health,
+                        "reason": (
+                            "parser marked graph INVALID"
+                            if health == "INVALID"
+                            else "graph contains no nodes or edges"
+                        ),
+                    }
+                )
                 continue
 
             fingerprints.append(semantic_graph_fingerprint(g))
@@ -525,11 +528,7 @@ def quality_audit(
     unassigned_labels: Counter[str] = Counter()
 
     for case in independent:
-        ds = (
-            case.get("dataset")
-            if isinstance(case.get("dataset"), dict)
-            else {}
-        )
+        ds = case.get("dataset") if isinstance(case.get("dataset"), dict) else {}
         repository = (
             case.get("repository")
             or case.get("repo")
@@ -544,7 +543,6 @@ def quality_audit(
         elif project is not None and str(project).strip():
             identity = f"project:{str(project).strip()}"
         else:
-            # Case IDs are not evidence of statistical independence.
             unassigned_cluster_cases += 1
             unassigned_labels[expected] += 1
             continue
@@ -559,26 +557,19 @@ def quality_audit(
     assigned_cases = sum(clusters.values())
     label_names = ("MATCH", "NO_MATCH", "UNKNOWN")
     label_supporting_clusters = {
-        label: sum(
-            1 for counts in cluster_labels.values()
-            if counts.get(label, 0) > 0
-        )
+        label: sum(1 for counts in cluster_labels.values() if counts.get(label, 0) > 0)
         for label in label_names
     }
     identified_case_counts_by_label = {
-        label: identified_labels.get(label, 0)
-        for label in label_names
+        label: identified_labels.get(label, 0) for label in label_names
     }
     unassigned_case_counts_by_label = {
-        label: unassigned_labels.get(label, 0)
-        for label in label_names
+        label: unassigned_labels.get(label, 0) for label in label_names
     }
 
     largest_cluster_size = max(clusters.values(), default=0)
     largest_cluster_share = (
-        round(largest_cluster_size / assigned_cases, 6)
-        if assigned_cases
-        else None
+        round(largest_cluster_size / assigned_cases, 6) if assigned_cases else None
     )
     largest_clusters = [
         {

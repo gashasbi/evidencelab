@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 import pytest
 
+
 @pytest.fixture(scope="session")
 def repo_root() -> Path:
     raw = os.environ.get("EVIDENCELAB_REPO_ROOT")

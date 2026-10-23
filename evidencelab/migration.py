@@ -162,7 +162,6 @@ def migrate_pattern_to_current(
     provenance_policy.setdefault("case_identity_required", True)
     raw["provenance_policy"] = provenance_policy
 
-    # Validate the normalized payload before creating output, so failures cannot leave a partial file.
     Pattern.from_dict(raw)
     dst = Path(out).resolve()
     dst.parent.mkdir(parents=True, exist_ok=True)

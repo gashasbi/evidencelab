@@ -3,9 +3,7 @@ from evidencelab.semantics import same_object_call_binding_proof
 
 
 def make_call_graph():
-    graph = Graph(
-        metadata={"completeness": "full_export", "parse_health": "OK"}
-    )
+    graph = Graph(metadata={"completeness": "full_export", "parse_health": "OK"})
 
     nodes = [
         Node("wrapper_method", "METHOD", {}),
@@ -23,9 +21,7 @@ def make_call_graph():
                     "argument_index": 1,
                     "parent_method_node": "wrapper_method",
                 },
-                "derived_provenance": {
-                    "argument_index": "DERIVED:argument_position"
-                },
+                "derived_provenance": {"argument_index": "DERIVED:argument_position"},
             },
         ),
         Node(
@@ -86,9 +82,12 @@ def test_call_binding_rejects_different_argument_index():
     graph = make_call_graph()
     graph.nodes["actual"].properties["derived"]["argument_index"] = 2
 
-    assert same_object_call_binding_proof(
-        graph, graph.nodes["destination"], graph.nodes["target"]
-    ) is None
+    assert (
+        same_object_call_binding_proof(
+            graph, graph.nodes["destination"], graph.nodes["target"]
+        )
+        is None
+    )
 
 
 def test_call_binding_rejects_target_from_another_caller():
@@ -98,21 +97,27 @@ def test_call_binding_rejects_target_from_another_caller():
     )
     graph.add_node(Node("different_method", "METHOD", {}))
 
-    assert same_object_call_binding_proof(
-        graph, graph.nodes["destination"], graph.nodes["target"]
-    ) is None
+    assert (
+        same_object_call_binding_proof(
+            graph, graph.nodes["destination"], graph.nodes["target"]
+        )
+        is None
+    )
 
 
 def test_call_binding_rejects_unknown_argument_index():
     graph = make_call_graph()
     del graph.nodes["actual"].properties["derived"]["argument_index"]
-    graph.nodes["actual"].properties["derived_provenance"][
-        "argument_index"
-    ] = "UNKNOWN:INCOMPLETE_ARGUMENTS"
+    graph.nodes["actual"].properties["derived_provenance"]["argument_index"] = (
+        "UNKNOWN:INCOMPLETE_ARGUMENTS"
+    )
 
-    assert same_object_call_binding_proof(
-        graph, graph.nodes["destination"], graph.nodes["target"]
-    ) is None
+    assert (
+        same_object_call_binding_proof(
+            graph, graph.nodes["destination"], graph.nodes["target"]
+        )
+        is None
+    )
 
 
 def test_edge_claim_uses_call_binding_only_when_enabled():

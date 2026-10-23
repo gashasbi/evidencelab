@@ -272,7 +272,6 @@ def audit_pattern(
             )
         )
 
-    # Current Evidence contract checks are independent of profiles.
     if not pattern.family_id:
         out.append(
             AuditFinding(

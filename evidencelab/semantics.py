@@ -104,7 +104,7 @@ def _array_info(node: Node) -> dict[str, Any]:
     m = _C_ARRAY_CODE_RE.search(raw_code)
     if m:
         length = int(m.group("len"))
-        # The regex is intentionally conservative; derive byte-capacity only for char-like arrays.
+
         prefix = raw_code[: m.start("len")].strip()
         char_like = bool(
             re.search(r"\b(?:signed\s+char|unsigned\s+char|char|char8_t)\b", prefix)
@@ -213,7 +213,6 @@ def _argument_nodes(g: Graph, call_id: str) -> list[Node]:
     return vals
 
 
-
 _ORDER_SENSITIVE_NUMERIC_CALLS = {
     "<operator>.subtraction",
     "<operator>.division",
@@ -229,21 +228,16 @@ def _has_trusted_argument_order(g: Graph, call_id: str) -> bool:
     if call is None:
         return False
 
-    edges = [
-        e for e in g.outgoing(call_id, {"ARGUMENT"})
-        if e.target in g.nodes
-    ]
+    edges = [e for e in g.outgoing(call_id, {"ARGUMENT"}) if e.target in g.nodes]
     if len(edges) < 2:
         return False
 
     completeness = str(g.metadata.get("completeness", "declared")).lower()
     parse_ok = str(g.metadata.get("parse_health", "OK")).upper() == "OK"
 
-    # Preserve the existing ordinal inference policy for complete graphs.
     if completeness in {"full_export", "declared"} and parse_ok:
         return True
 
-    # Partial graphs require explicit, unique indices for every operand.
     indices = []
     for edge in edges:
         index = edge.properties.get(
@@ -259,6 +253,7 @@ def _has_trusted_argument_order(g: Graph, call_id: str) -> bool:
     return len(set(indices)) == len(edges) and set(indices) == set(
         range(1, len(edges) + 1)
     )
+
 
 def _numeric_from_node(
     g: Graph, node_id: str, seen: set[str] | None = None
@@ -287,9 +282,8 @@ def _numeric_from_node(
     fn = _NUMERIC_CALLS.get(name)
     if fn is None:
         return None, None
-    if (
-        name in _ORDER_SENSITIVE_NUMERIC_CALLS
-        and not _has_trusted_argument_order(g, n.id)
+    if name in _ORDER_SENSITIVE_NUMERIC_CALLS and not _has_trusted_argument_order(
+        g, n.id
     ):
         return None, None
     args = _argument_nodes(g, n.id)
@@ -310,7 +304,7 @@ def _numeric_from_node(
 
 
 def _parse_scanf_has_unbounded_s(code: str) -> bool:
-    # Conservative: unbounded %s/%[ conversions without a field width.
+
     code = code.replace('\\"', '"')
     for m in re.finditer(r"%(?:[0-9]+)?(?:\[[^]]*\]|s)", code):
         token = m.group(0)
@@ -330,7 +324,7 @@ def _call_info(node: Node) -> dict[str, Any]:
         "call_name": str(name or ""),
         "call_full_name": str(mf or name or ""),
     }
-    # Semantic classes are deliberately explicit and conservative.
+
     fixed = {"memcpy", "memmove", "strncpy", "wmemcpy", "wmemmove", "wcsncpy"}
     unbounded = {"strcpy", "strcat", "wcscpy", "wcscat", "gets", "sprintf", "vsprintf"}
     bounded = {
@@ -352,10 +346,14 @@ def _call_info(node: Node) -> dict[str, Any]:
     d["fixed_extent_write_like"] = str(name or "") in fixed or lname in fixed
     wide_fixed = {"wmemcpy", "wmemmove", "wcsncpy"}
     byte_fixed = {"memcpy", "memmove", "strncpy"}
-    d["wide_fixed_extent_write_like"] = str(name or "") in wide_fixed or lname in wide_fixed
+    d["wide_fixed_extent_write_like"] = (
+        str(name or "") in wide_fixed or lname in wide_fixed
+    )
     d["write_extent_unit"] = (
-        "ELEMENTS" if d["wide_fixed_extent_write_like"]
-        else "BYTES" if str(name or "") in byte_fixed or lname in byte_fixed
+        "ELEMENTS"
+        if d["wide_fixed_extent_write_like"]
+        else "BYTES"
+        if str(name or "") in byte_fixed or lname in byte_fixed
         else None
     )
     d["unbounded_write_like"] = str(name or "") in unbounded or lname in unbounded
@@ -412,7 +410,7 @@ def _call_info(node: Node) -> dict[str, Any]:
         "sscanf",
     }:
         d["unbounded_input_like"] = _parse_scanf_has_unbounded_s(code)
-        # For scanf-family, first destination argument after the format is 2/3.
+
         d["destination_argument_index"] = {"scanf": 2, "fscanf": 3, "sscanf": 3}.get(
             lname
         )
@@ -489,7 +487,7 @@ def _infer_argument_indices(g: Graph) -> dict[str, dict[str, Any]]:
             except (TypeError, ValueError):
                 idx = index
                 inferred = True
-            # Infer ordinals only on complete graphs; explicit analyzer indices remain usable on partial graphs.
+
             if inferred and not can_infer_by_ordinal:
                 role = None
                 provenance_basis = (
@@ -503,8 +501,7 @@ def _infer_argument_indices(g: Graph) -> dict[str, dict[str, Any]]:
                     if explicit is not None
                     else "DERIVED:argument_edge_order"
                 )
-            # For sprintf/vsprintf, arguments after the format carry formatted data.
-            # Mark later arguments as format sources only when a conversion specifier is present.
+
             lname = str(call.get("name", "") or "").split(".")[-1]
             if role is None and lname in {"sprintf", "vsprintf"} and idx >= 3:
                 code = str(call.get("code", "") or "")
@@ -538,8 +535,7 @@ def _range_from_node(
     n = g.nodes.get(nid)
     if n is None:
         return None
-    # Prefer normalized evidence, but also accept raw properties.range so
-    # callers can query a parsed graph before enrichment.
+
     for explicit in (
         get_property(n, "derived.range", None),
         n.properties.get("range"),
@@ -555,22 +551,20 @@ def _range_from_node(
         v = _num(n.get("code", n.get("CODE")))
         if v is not None:
             return v, v, "LITERAL"
-    # Simple assignment/identity inference: same range through REACHING_DEF to an identifier.
+
     for e in g.incoming(nid, {"REACHING_DEF"}):
         r = _range_from_node(g, e.source, seen)
         if r:
             return r[0], r[1], "REACHING_DEF:" + r[2]
     if n.type == "CALL" and str(n.get("name", "")) in _NUMERIC_CALLS:
         name = str(n.get("name", ""))
-        if (
-            name in _ORDER_SENSITIVE_NUMERIC_CALLS
-            and not _has_trusted_argument_order(g, n.id)
+        if name in _ORDER_SENSITIVE_NUMERIC_CALLS and not _has_trusted_argument_order(
+            g, n.id
         ):
             return None
         args = _argument_nodes(g, n.id)
         ranges = [_range_from_node(g, a.id, seen) for a in args]
         if ranges and all(r is not None for r in ranges):
-            # Interval arithmetic for common monotone/non-monotone integer operators.
             name = str(n.get("name", ""))
             rs = [(r[0], r[1]) for r in ranges if r]
             try:
@@ -616,11 +610,11 @@ def _infer_object_id(
     d = node.properties.get("derived") or {}
     if d.get("object_id"):
         return str(d["object_id"]), str(d.get("object_id_proof", "EXPLICIT"))
-    # Preserve explicit raw object identity supplied by an adapter/fixture.
+
     raw_oid = node.get("object_id")
     if raw_oid is not None:
         return str(raw_oid), str(node.get("object_id_proof", "EXPLICIT"))
-    # Variable names are not unique under shadowing/aliasing; retain them as candidates, never proof.
+
     name = node.get("name")
     if not name or node.type not in {
         "LOCAL",
@@ -713,7 +707,6 @@ def enrich_graph(g: Graph) -> Graph:
                 d[k] = v
                 prov.setdefault(k, f"DERIVED:storage:{v}")
 
-        # Capacity facts: arrays are exact; allocation calls are exact when their size is exact.
         if d.get("is_array") and d.get("length") is not None:
             d.setdefault("element_count", d.get("length"))
             d.setdefault("memory_capacity_elements", d.get("length"))
@@ -783,7 +776,6 @@ def enrich_graph(g: Graph) -> Graph:
                 prov.setdefault("potential_external_input", "DERIVED:known_input_api")
                 prov.setdefault("source_origin_kind", "DERIVED:known_input_api")
             if "numeric_value" not in d:
-                # Derive a numeric result only when all required operands are proven.
                 val, proof = _numeric_from_node(g, n.id)
                 if val is not None:
                     d["numeric_value"] = val
@@ -801,7 +793,6 @@ def enrich_graph(g: Graph) -> Graph:
             prov["is_external"] = "RAW:IS_EXTERNAL"
 
         if "range" not in d:
-            # Preserve an explicit interval supplied at properties.range.
             raw_range = n.properties.get("range")
             if (
                 isinstance(raw_range, dict)
@@ -814,9 +805,7 @@ def enrich_graph(g: Graph) -> Graph:
                     d["range"] = {
                         "lower": lo,
                         "upper": hi,
-                        "proof": str(
-                            raw_range.get("proof", "EXPLICIT_RANGE")
-                        ),
+                        "proof": str(raw_range.get("proof", "EXPLICIT_RANGE")),
                     }
                     prov["range"] = "RAW:range"
 
@@ -835,7 +824,6 @@ def enrich_graph(g: Graph) -> Graph:
             d.setdefault("memory_capacity_known", True)
             d.setdefault("capacity_unit", "BYTES")
 
-        # Preserve explicit storage/semantic facts supplied by a parser or synthetic fixture.
         n.properties["derived"] = d
         n.properties["derived_provenance"] = prov
 
@@ -887,6 +875,7 @@ def relation_for_edge(edge_type: str) -> list[str]:
         [name for name, aliases in SEMANTIC_EDGE_ALIASES.items() if et in aliases]
     )
 
+
 def same_object_call_binding_proof(
     graph: Graph, source: Node, target: Node
 ) -> dict[str, Any] | None:
@@ -928,9 +917,7 @@ def same_object_call_binding_proof(
     if parameter_index is None:
         return None
 
-    parameter_owner = get_property(
-        parameter, "derived.parent_method_node", None
-    )
+    parameter_owner = get_property(parameter, "derived.parent_method_node", None)
     source_owner = get_property(source, "derived.parent_method_node", None)
     target_owner = get_property(target, "derived.parent_method_node", None)
 
@@ -946,9 +933,7 @@ def same_object_call_binding_proof(
     if caller is None or caller.type.upper() != "METHOD":
         return None
 
-    parameter_refs = graph.matching_edges(
-        source.id, parameter.id, {"REF"}, True
-    )
+    parameter_refs = graph.matching_edges(source.id, parameter.id, {"REF"}, True)
     if not parameter_refs:
         return None
 
@@ -956,15 +941,11 @@ def same_object_call_binding_proof(
         if call.type.upper() != "CALL":
             continue
 
-        call_owner = get_property(
-            call, "derived.parent_method_node", None
-        )
+        call_owner = get_property(call, "derived.parent_method_node", None)
         if call_owner is None or str(call_owner) != str(target_owner):
             continue
 
-        call_edges = graph.matching_edges(
-            call.id, str(parameter_owner), {"CALL"}
-        )
+        call_edges = graph.matching_edges(call.id, str(parameter_owner), {"CALL"})
         if not call_edges:
             continue
 
@@ -973,31 +954,23 @@ def same_object_call_binding_proof(
             if actual is None:
                 continue
 
-            raw_argument_index = get_property(
-                actual, "derived.argument_index", None
-            )
+            raw_argument_index = get_property(actual, "derived.argument_index", None)
             argument_index = positive_index(raw_argument_index)
             if argument_index is None:
                 continue
 
-            provenance = get_property(
-                actual, "derived_provenance.argument_index", None
-            )
+            provenance = get_property(actual, "derived_provenance.argument_index", None)
             if provenance is not None and str(provenance).startswith("UNKNOWN:"):
                 continue
 
             if argument_index != parameter_index:
                 continue
 
-            actual_owner = get_property(
-                actual, "derived.parent_method_node", None
-            )
+            actual_owner = get_property(actual, "derived.parent_method_node", None)
             if actual_owner is None or str(actual_owner) != str(target_owner):
                 continue
 
-            object_refs = graph.matching_edges(
-                actual.id, target.id, {"REF"}, True
-            )
+            object_refs = graph.matching_edges(actual.id, target.id, {"REF"}, True)
             if not object_refs:
                 continue
 

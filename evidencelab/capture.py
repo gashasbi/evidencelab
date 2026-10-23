@@ -60,9 +60,7 @@ def _sha256_path(path: str | Path) -> str:
     entries: list[Path] = []
 
     def _raise_walk_error(error: OSError) -> None:
-        raise EvidenceLabError(
-            f"unable to hash source directory: {error}"
-        ) from error
+        raise EvidenceLabError(f"unable to hash source directory: {error}") from error
 
     for current, dirnames, filenames in os.walk(
         target, followlinks=False, onerror=_raise_walk_error
@@ -70,14 +68,16 @@ def _sha256_path(path: str | Path) -> str:
         dirnames.sort()
         filenames.sort()
         base = Path(current)
-        # Include directories too, so empty directories contribute to the digest.
+
         entries.extend(base / name for name in dirnames)
         entries.extend(base / name for name in filenames)
     entries.sort(key=lambda item: item.relative_to(target).as_posix())
 
     for entry in entries:
-        relative = entry.relative_to(target).as_posix().encode(
-            "utf-8", errors="surrogateescape"
+        relative = (
+            entry.relative_to(target)
+            .as_posix()
+            .encode("utf-8", errors="surrogateescape")
         )
         h.update(len(relative).to_bytes(8, "big"))
         h.update(relative)
@@ -143,9 +143,7 @@ def _validate_graphml(path: Path) -> None:
                     )
                 tail = scan[-16:]
     except OSError as exc:
-        raise EvidenceLabError(
-            f"unable to read GraphML output: {path}"
-        ) from exc
+        raise EvidenceLabError(f"unable to read GraphML output: {path}") from exc
 
     root_tag = None
     graph_found = False
@@ -201,8 +199,7 @@ def _validate_graphml(path: Path) -> None:
         ) from exc
 
     dangling_edge = any(
-        source not in node_ids or target not in node_ids
-        for source, target in edge_refs
+        source not in node_ids or target not in node_ids for source, target in edge_refs
     )
     if (
         root_tag != "graphml"
@@ -246,16 +243,12 @@ def _validate_graphson(path: Path) -> None:
         or not isinstance(payload.get("vertices"), list)
         or not isinstance(payload.get("edges"), list)
     ):
-        raise EvidenceLabError(
-            f"joern-export produced invalid GraphSON output: {path}"
-        )
+        raise EvidenceLabError(f"joern-export produced invalid GraphSON output: {path}")
 
     vertices = payload["vertices"]
     edges = payload["edges"]
     if not vertices:
-        raise EvidenceLabError(
-            f"joern-export produced an empty GraphSON graph: {path}"
-        )
+        raise EvidenceLabError(f"joern-export produced an empty GraphSON graph: {path}")
 
     vertex_ids = set()
     for vertex in vertices:
@@ -319,8 +312,7 @@ def capture_joern(
     gm = root / "graphml"
     gs = root / "graphson"
     dfbase = root / "dataflow"
-    # Joern expects its --out directory not to exist. Capture must therefore
-    # remove stale artifacts before every invocation so reruns are idempotent.
+
     if cpg.exists():
         cpg.unlink()
     for export_dir in (gm, gs):
@@ -366,6 +358,7 @@ def capture_joern(
     dataflow_file = None
     dataflow_status = "NOT_REQUESTED"
     if dataflow:
+
         def discard_dataflow_output() -> None:
             candidate = Path(str(dfbase) + ".json")
             try:
@@ -390,9 +383,7 @@ def capture_joern(
             out4, err4 = _run(slice_cmd, timeout=dataflow_timeout)
             cand = Path(str(dfbase) + ".json")
             if not cand.is_file():
-                raise EvidenceLabError(
-                    "joern-slice data-flow produced no JSON output"
-                )
+                raise EvidenceLabError("joern-slice data-flow produced no JSON output")
             try:
                 with cand.open("r", encoding="utf-8") as stream:
                     payload = json.load(stream)
@@ -511,6 +502,7 @@ def capture_joern(
     )
     return manifest
 
+
 def validate_capture_manifest_for_merge(
     manifest_path: str | Path,
     graph_paths: list[str | Path],
@@ -542,14 +534,14 @@ def validate_capture_manifest_for_merge(
         or str(attestation.get("capture_status", "")).upper() != "PASS"
         or not str(attestation.get("analyzer", "")).strip()
     ):
-        raise EvidenceLabError("capture manifest does not contain a successful analyzer attestation")
+        raise EvidenceLabError(
+            "capture manifest does not contain a successful analyzer attestation"
+        )
 
     analysis = manifest.get("analysis")
     dataflow = analysis.get("dataflow") if isinstance(analysis, dict) else None
     dataflow_status = (
-        str(dataflow.get("status", "")).upper()
-        if isinstance(dataflow, dict)
-        else ""
+        str(dataflow.get("status", "")).upper() if isinstance(dataflow, dict) else ""
     )
 
     if dataflow_status not in {"OK", "NOT_REQUESTED"}:

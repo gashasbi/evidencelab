@@ -95,7 +95,7 @@ def _materialize_graphs(
         try:
             rel_text = str(rel)
             candidate = Path(rel_text)
-            # Absolute manifest paths are security violations, not missing-artifact warnings.
+
             if candidate.is_absolute():
                 raise PermissionError(f"absolute graph paths are forbidden: {rel_text}")
             gp = _safe_case_path(source_manifest, rel_text)
@@ -103,13 +103,13 @@ def _materialize_graphs(
             raise
         except ValueError as exc:
             message = str(exc)
-            # Reject graph_base path escapes.
+
             if (
                 "graph_base escapes benchmark root" in message
                 or "absolute graph_base is forbidden" in message
             ):
                 raise PermissionError(message) from exc
-            # Missing pre-capture graphs are recoverable; paths outside trusted roots must fail closed.
+
             try:
                 base = source_manifest.resolve().parent
                 trusted = __import__(
@@ -134,7 +134,7 @@ def _materialize_graphs(
                 Path(rel_text).parts and (".." in Path(rel_text).parts)
             ):
                 raise PermissionError(message) from exc
-            # Preserve uncaptured graph references so later audit reports missing artifacts honestly.
+
             item.setdefault("split_warnings", []).append(message)
             prepared.append(item)
             continue
@@ -202,7 +202,6 @@ def split_benchmark(
     groups: dict[str, list[dict[str, Any]]] = {}
     case_map = {str(c.get("id")): c for c in cases}
 
-    # Union mutation ancestry with grouping keys so descendants cannot cross partitions.
     base_group: dict[str, str] = {}
     for case in cases:
         cid = str(case.get("id"))
@@ -244,17 +243,14 @@ def split_benchmark(
     for case in cases:
         gid = find(base_group[str(case.get("id"))])
         groups.setdefault(gid, []).append(case)
-    # Allocate whole groups according to case-count targets rather than
-    # assigning equal numbers of groups to each partition. Large repositories
-    # otherwise make the requested train/validation/test ratios misleading.
+
     requested_ratios = {
         "train": train,
         "validation": validation,
         "test": test,
     }
     target_case_counts = {
-        name: len(cases) * ratio
-        for name, ratio in requested_ratios.items()
+        name: len(cases) * ratio for name, ratio in requested_ratios.items()
     }
     buckets = {"train": [], "validation": [], "test": []}
     bucket_group_ids = {"train": [], "validation": [], "test": []}
@@ -267,10 +263,6 @@ def split_benchmark(
         ),
     )
 
-    # On equal case-count deficits, prefer validation over test. This reserves
-    # smaller independent repository groups for final testing instead of
-    # placing a single large repository in test merely to inflate its case count.
-    # Case-ratio deviations are reported below; no repository is split.
     tie_priority = {"train": 0, "test": 1, "validation": 2}
     eligible_partitions = [
         name for name, ratio in requested_ratios.items() if ratio > 0
@@ -302,10 +294,7 @@ def split_benchmark(
 
     quality_warnings = []
     for name in ("train", "validation", "test"):
-        if (
-            requested_ratios[name] > 0
-            and partition_group_counts[name] < 2
-        ):
+        if requested_ratios[name] > 0 and partition_group_counts[name] < 2:
             quality_warnings.append(
                 f"{name} partition has fewer than two indivisible groups "
                 f"under {strategy} strategy; cluster-aware uncertainty "
@@ -367,8 +356,7 @@ def split_benchmark(
         "partition_group_counts": partition_group_counts,
         "partition_case_ratios": partition_case_ratios,
         "target_case_ratios": {
-            name: round(value, 6)
-            for name, value in requested_ratios.items()
+            name: round(value, 6) for name, value in requested_ratios.items()
         },
         "case_ratio_deviation": case_ratio_deviation,
         "quality_warnings": quality_warnings,
@@ -394,7 +382,6 @@ def chronological_split(
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
 
-    # Keep each mutation lineage in one chronological partition, ordered by its earliest member.
     case_map = {str(c.get("id")): c for c in cases}
     parent: dict[str, str] = {}
 
@@ -420,7 +407,6 @@ def chronological_split(
             union(cid, str(counterpart))
         pair_id = case.get("pair_id") or (case.get("dataset") or {}).get("pair_id")
         if pair_id:
-            # All cases sharing a patch/pair identity are grouped later below.
             pass
     pair_groups = {}
     for cid, case in case_map.items():
@@ -668,8 +654,6 @@ def audit_split_directory(
             if a in ranges and b in ranges and ranges[a][1] > ranges[b][0]:
                 errors.append(f"chronological overlap/order violation: {a} and {b}")
 
-    # Integrity status and statistical adequacy are separate concerns:
-    # a leakage-free split can still have too few independent holdout groups.
     valid_group_strategies = {"repository", "project", "cve"}
     group_strategy = strategy if strategy in valid_group_strategies else None
 
@@ -688,10 +672,7 @@ def audit_split_directory(
     quality_warnings = []
 
     for part, raw in manifests.items():
-        part_cases = [
-            c for c in raw.get("cases", [])
-            if isinstance(c, dict)
-        ]
+        part_cases = [c for c in raw.get("cases", []) if isinstance(c, dict)]
         label_counts = {}
         identified_groups = set()
         cases_without_group_identity = 0
@@ -715,9 +696,8 @@ def audit_split_directory(
             if not isinstance(source_metadata, dict):
                 source_metadata = {}
 
-            source_hash = (
-                case.get("normalized_source_hash")
-                or source_metadata.get("normalized_source_hash")
+            source_hash = case.get("normalized_source_hash") or source_metadata.get(
+                "normalized_source_hash"
             )
             if source_hash:
                 source_hash_coverage += 1
@@ -729,9 +709,7 @@ def audit_split_directory(
         partition_summary[part] = {
             "case_count": len(part_cases),
             "label_counts": dict(sorted(label_counts.items())),
-            "identified_groups": (
-                len(identified_groups) if group_strategy else None
-            ),
+            "identified_groups": (len(identified_groups) if group_strategy else None),
             "cases_without_group_identity": (
                 cases_without_group_identity if group_strategy else None
             ),
@@ -742,8 +720,6 @@ def audit_split_directory(
             ),
         }
 
-        # Holdout uncertainty needs more than one identified group. This is
-        # reported separately and does not turn a leakage-free audit into FAIL.
         if (
             group_strategy
             and part in {"validation", "test"}

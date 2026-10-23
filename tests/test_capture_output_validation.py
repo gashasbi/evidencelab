@@ -111,9 +111,7 @@ def test_best_effort_invalid_json_removes_output(monkeypatch, tmp_path):
         '{"$type": "DataFlowSlice", "nodes": [], "edges": [{"src": 1}]}',
     ],
 )
-def test_best_effort_rejects_invalid_dataflow_schema(
-    monkeypatch, tmp_path, payload
-):
+def test_best_effort_rejects_invalid_dataflow_schema(monkeypatch, tmp_path, payload):
     def write_payload(output_file: Path):
         output_file.write_text(payload, encoding="utf-8")
 

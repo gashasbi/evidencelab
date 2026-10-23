@@ -82,7 +82,9 @@ def test_argument_nodes_deduplicates_edges_to_same_node():
 def test_wide_fixed_write_functions_use_element_count():
     for name in ("wmemcpy", "wmemmove", "wcsncpy"):
         graph = Graph()
-        graph.add_node(Node("call", "CALL", {"name": name, "code": f"{name}(dst, src, 12)"}))
+        graph.add_node(
+            Node("call", "CALL", {"name": name, "code": f"{name}(dst, src, 12)"})
+        )
 
         enrich_graph(graph)
 
@@ -113,9 +115,7 @@ def test_incomplete_graph_preserves_explicit_argument_index():
     graph = Graph(metadata={"completeness": "partial", "parse_health": "OK"})
     graph.add_node(Node("call", "CALL", {"name": "wmemcpy"}))
     graph.add_node(Node("dst", "IDENTIFIER", {}))
-    graph.add_edge(
-        Edge("call", "dst", "ARGUMENT", {"argumentIndex": 1})
-    )
+    graph.add_edge(Edge("call", "dst", "ARGUMENT", {"argumentIndex": 1}))
 
     enrich_graph(graph)
 
@@ -127,12 +127,8 @@ def test_incomplete_graph_preserves_explicit_argument_index():
 def test_incomplete_graph_does_not_infer_subtraction_from_node_id_order():
     from evidencelab.semantics import node_value_range
 
-    graph = Graph(
-        metadata={"completeness": "partial", "parse_health": "OK"}
-    )
-    graph.add_node(
-        Node("sub", "CALL", {"name": "<operator>.subtraction"})
-    )
+    graph = Graph(metadata={"completeness": "partial", "parse_health": "OK"})
+    graph.add_node(Node("sub", "CALL", {"name": "<operator>.subtraction"}))
     graph.add_node(Node("z_left", "LITERAL", {"code": "10"}))
     graph.add_node(Node("a_right", "LITERAL", {"code": "3"}))
 
@@ -141,6 +137,5 @@ def test_incomplete_graph_does_not_infer_subtraction_from_node_id_order():
 
     enrich_graph(graph)
 
-    # The graph does not establish which operand is first.
     assert "numeric_value" not in graph.nodes["sub"].properties.get("derived", {})
     assert node_value_range(graph, "sub") is None

@@ -54,7 +54,7 @@ def test_witness_coherence():
     g.add_edge(Edge("s2", "k2", "DATA_FLOW"))
     g.add_edge(Edge("k1", "t1", "ARGUMENT"))
     g.add_edge(Edge("k2", "t2", "ARGUMENT"))
-    # Pattern is intentionally small for a coherence check; no cross-pair should be constructed.
+
     p = _current_pattern(
         {
             "schema_version": "1.0",

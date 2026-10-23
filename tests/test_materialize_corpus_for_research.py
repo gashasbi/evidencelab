@@ -79,9 +79,7 @@ def test_materializer_preserves_case_identity_labels_and_provenance(tmp_path):
     )
 
     family_dir = out_root / "families" / "test-family"
-    result = json.loads(
-        (family_dir / "benchmark.json").read_text(encoding="utf-8")
-    )
+    result = json.loads((family_dir / "benchmark.json").read_text(encoding="utf-8"))
     case = result["cases"][0]
 
     assert report["status"] == "PASS"
@@ -104,14 +102,10 @@ def test_materializer_preserves_case_identity_labels_and_provenance(tmp_path):
 
     assert copied_graph.is_file()
     assert copied_source.is_file()
-    assert copied_graph.read_bytes() == (
-        corpus / "graphs" / "input.json"
-    ).read_bytes()
+    assert copied_graph.read_bytes() == (corpus / "graphs" / "input.json").read_bytes()
     assert copied_source.read_bytes() == source.read_bytes()
 
-    assert "does not make them independently validated ground truth" in (
-        report["note"]
-    )
+    assert "does not make them independently validated ground truth" in (report["note"])
 
 
 def test_materializer_reports_missing_source_without_inventing_one(tmp_path):
@@ -128,11 +122,7 @@ def test_materializer_reports_missing_source_without_inventing_one(tmp_path):
 
     family = report["families"][0]
     result_path = (
-        tmp_path
-        / "evaluation"
-        / "families"
-        / "test-family"
-        / "benchmark.json"
+        tmp_path / "evaluation" / "families" / "test-family" / "benchmark.json"
     )
     case = json.loads(result_path.read_text(encoding="utf-8"))["cases"][0]
 

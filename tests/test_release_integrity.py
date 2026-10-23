@@ -62,7 +62,7 @@ def test_versions_are_consistent():
 
 
 def test_release_metadata_has_no_cache_directories():
-    # pytest may create caches while tests execute; clean archive validation happens at packaging time.
+
     assert not (ROOT / "dist").exists() or not any(
         part in {".pytest_cache", "__pycache__"}
         for path in (ROOT / "dist").rglob("*")
@@ -74,16 +74,13 @@ def test_scripts_are_executable():
     for p in (ROOT / "scripts").glob("*.sh"):
         assert p.stat().st_mode & stat.S_IXUSR, p
 
+
 def test_release_maturity_metadata_is_consistent():
     import json
     import tomllib
 
-    pyproject = tomllib.loads(
-        (ROOT / "pyproject.toml").read_text(encoding="utf-8")
-    )
-    build_info = json.loads(
-        (ROOT / "BUILD-INFO.json").read_text(encoding="utf-8")
-    )
+    pyproject = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+    build_info = json.loads((ROOT / "BUILD-INFO.json").read_text(encoding="utf-8"))
 
     maturity = [
         item

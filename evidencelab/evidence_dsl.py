@@ -102,7 +102,7 @@ def _parse_value(text: str) -> Any:
         return int(text)
     if re.fullmatch(r"-?(?:\d+\.\d*|\d*\.\d+)", text):
         return float(text)
-    # Compact key=value dictionaries are accepted for operands/selectors.
+
     if text.startswith("{") and text.endswith("}"):
         inner = text[1:-1].strip()
         out: dict[str, Any] = {}
@@ -132,13 +132,13 @@ def parse_els(text: str) -> Block:
         line = _strip_comment(raw).strip()
         if not line:
             continue
-        # Support `}` alone and `} else` is intentionally unsupported.
+
         if line == "}":
             if len(stack) == 1:
                 raise ELSParseError(f"line {lineno}: unexpected }}")
             stack.pop()
             continue
-        # Inline structured value: `properties {"k":"v"}` / `coverage {"x":1}`.
+
         inline = re.match(r"^(\S+)\s+(\{.*\}|\[.*\])$", line)
         if inline:
             stack[-1].attrs[inline.group(1)] = _parse_value(inline.group(2))
@@ -244,7 +244,6 @@ def compile_els(text: str, source: str | None = None) -> dict[str, Any]:
     attrs = dict(ev.attrs)
     for k in attrs:
         if k not in _TOP_KEYS:
-            # Permit harmless researcher metadata namespace entries beginning with `meta_`.
             if not k.startswith("meta_"):
                 raise ELSParseError(f"line {ev.line}: unsupported top-level key `{k}`")
 
@@ -378,7 +377,7 @@ def compile_els(text: str, source: str | None = None) -> dict[str, Any]:
         if isinstance(attrs.get("provenance_policy"), dict)
         else {},
     }
-    # minimum current-contract guarantees. Researcher can be explicit, but these defaults prevent accidental weakening.
+
     pattern["evidence_contract"] = {
         "unknown_policy": pattern["unknown_policy"],
         "counter_unknown_policy": pattern["counter_unknown_policy"],
@@ -404,7 +403,6 @@ def compile_els(text: str, source: str | None = None) -> dict[str, Any]:
         **pattern["path_budget"],
     }
 
-    # Validate through the production Pattern parser. This catches cross-reference errors.
     Pattern.from_dict(pattern)
     return pattern
 

@@ -89,7 +89,6 @@ def compose_benchmarks(
                 continue
             graph_rel = original.get("graph")
             if not graph_rel:
-                # Source-only manifests need graph capture before benchmark evaluation.
                 clone = dict(original)
                 cid = str(
                     clone.get("id")

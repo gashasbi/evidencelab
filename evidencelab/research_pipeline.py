@@ -30,11 +30,7 @@ def _cwe_tokens(value: Any) -> set[str]:
         return result
 
     text = str(value).upper()
-    return {
-        part.strip()
-        for part in text.replace(";", ",").split(",")
-        if part.strip()
-    }
+    return {part.strip() for part in text.replace(";", ",").split(",") if part.strip()}
 
 
 def build_external_research_corpus(
@@ -80,9 +76,7 @@ def build_external_research_corpus(
             clone["cases"] = filtered
             fp = out / "staged" / f"{idx:03d}-{src.stem}.json"
             fp.parent.mkdir(parents=True, exist_ok=True)
-            # The staged manifest lives under out/staged, not beside the input
-            # manifest. Resolve each source against its original manifest first;
-            # otherwise relative source paths silently point at the wrong tree.
+
             for staged_case in clone["cases"]:
                 if not isinstance(staged_case, dict):
                     continue
@@ -130,13 +124,8 @@ def build_external_research_corpus(
                     f"Joern capture failed for {src}: {r.get('failures')}"
                 )
             captured_manifest = Path(r["benchmark"]).resolve()
-            captured_raw = json.loads(
-                captured_manifest.read_text(encoding="utf-8")
-            )
+            captured_raw = json.loads(captured_manifest.read_text(encoding="utf-8"))
 
-            # capture_dataset writes graph and capture-manifest references
-            # relative to the staged input manifest. The returned benchmark
-            # lives at the corpus root, so normalize those paths before compose.
             staged_root = src_for_capture.parent.resolve()
             corpus_root = out.resolve()
             manifest_root = captured_manifest.parent.resolve()
@@ -173,13 +162,10 @@ def build_external_research_corpus(
 
                     if not graph_path.is_file():
                         raise FileNotFoundError(
-                            f"captured graph missing for case {case_id}: "
-                            f"{graph_path}"
+                            f"captured graph missing for case {case_id}: {graph_path}"
                         )
 
-                    captured_case["graph"] = os.path.relpath(
-                        graph_path, manifest_root
-                    )
+                    captured_case["graph"] = os.path.relpath(graph_path, manifest_root)
 
                 capture_info = captured_case.get("capture")
                 if isinstance(capture_info, dict):

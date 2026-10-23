@@ -50,8 +50,16 @@ def fetch(
             else:
                 start = 0
             content_length = resp.headers.get("Content-Length")
-            expected_total = start + int(content_length) if append and content_length is not None else (int(content_length) if content_length is not None else None)
-            if max_bytes is not None and expected_total is not None and expected_total > int(max_bytes):
+            expected_total = (
+                start + int(content_length)
+                if append and content_length is not None
+                else (int(content_length) if content_length is not None else None)
+            )
+            if (
+                max_bytes is not None
+                and expected_total is not None
+                and expected_total > int(max_bytes)
+            ):
                 return {
                     "status": "FAIL",
                     "error": "DOWNLOAD_EXCEEDS_MAX_BYTES",
@@ -173,8 +181,7 @@ def fetch_registry_dataset(
         or selected.get("download_url")
         or selected.get("url")
     )
-    # For artifact entries, registry uses `url`; for single-file legacy entries,
-    # `download_url` is accepted. Landing pages are intentionally rejected.
+
     if artifact_id is not None and selected.get("kind"):
         url = selected.get("url") or selected.get("download_url")
     if not url or not str(url).startswith(("http://", "https://")):
@@ -193,8 +200,7 @@ def fetch_registry_dataset(
             "dataset_id": dataset_id,
             "artifact_id": artifact_id,
         }
-    # Keep the historical five-argument fetch call for the default cap so existing
-    # integrations/mocks remain source-compatible; explicit caps use the hardened path.
+
     if max_bytes == 8 * 1024**3:
         result = fetch(str(url), out, str(expected_sha), timeout, resume)
     else:

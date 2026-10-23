@@ -119,7 +119,9 @@ def build_parser() -> argparse.ArgumentParser:
     m.add_argument("--graph", action="append", required=True)
     m.add_argument("--out", required=True)
     m.add_argument("--pretty", action="store_true")
-    m.add_argument("--manifest", help="capture manifest used to verify analyzer attestation")
+    m.add_argument(
+        "--manifest", help="capture manifest used to verify analyzer attestation"
+    )
     v = s.add_parser("validate")
     v.add_argument("--graph")
     v.add_argument("--pattern", required=True)
@@ -556,8 +558,6 @@ def build_parser() -> argparse.ArgumentParser:
     sh.add_argument("--catalog", required=True)
     sh.add_argument("--cwe", required=True)
 
-    # Researcher-facing Evidence Specification Language. The language is intentionally
-    # scoped to evidence semantics; it never becomes a dataset or analyzer language.
     ev = s.add_parser("evidence", help="researcher-authored Evidence DSL operations")
     ecs = ev.add_subparsers(dest="evidence_cmd", required=True)
     evv = ecs.add_parser("validate")
@@ -574,7 +574,6 @@ def build_parser() -> argparse.ArgumentParser:
     evr.add_argument("--out")
     evr.add_argument("--audit", action="store_true")
 
-    # Compatibility aliases retained for scripts that prefer single-command names.
     eva = s.add_parser("evidence-validate", help="alias for evidence validate")
     eva.add_argument("--input", "--spec", dest="spec", required=True)
     evac = s.add_parser("evidence-compile", help="alias for evidence compile")
@@ -1542,12 +1541,8 @@ def main(argv=None):
                 merged.metadata["analysis_attestation"] = (
                     validate_capture_manifest_for_merge(args.manifest, args.graph)
                 )
-                merged.metadata["capture_manifest"] = str(
-                    Path(args.manifest).resolve()
-                )
+                merged.metadata["capture_manifest"] = str(Path(args.manifest).resolve())
             else:
-                # Merging inputs without a matching capture manifest cannot
-                # preserve an attestation from only one of the input graphs.
                 merged.metadata.pop("analysis_attestation", None)
                 merged.metadata.pop("capture_manifest", None)
 

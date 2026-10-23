@@ -191,7 +191,7 @@ def test_witness_validation_fails_on_expected_match_without_match(tmp_path):
 
     p = ROOT / "examples/cwe-120/families/fixed-extent-overflow"
     raw = json.loads((p / "benchmark.json").read_text())
-    # Reuse a graph but force pattern expectation to MATCH while pattern should not match that graph by choosing safe graph.
+
     safe = next(c for c in raw["cases"] if c["expected"] == "NO_MATCH")
     (tmp_path / "graphs").mkdir()
     source_graph = p / safe["graph"]

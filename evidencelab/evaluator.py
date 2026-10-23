@@ -101,7 +101,6 @@ def classify(actual: str, expected: str):
     definitive outcome.
     """
     if expected == "UNKNOWN":
-        # NO_MATCH is not proof of safety; MATCH only conflicts with explicitly unknown truth.
         uncertainty_preserved = actual in {"UNKNOWN", "PARTIAL"}
         overclaim = int(actual == "MATCH")
         return (
@@ -259,7 +258,7 @@ def audit_benchmark_manifest(
         partitions[part] = partitions.get(part, 0) + 1
         for tag in tags:
             tag_counts[tag] = tag_counts.get(tag, 0) + 1
-        # Count each canonical case dimension once, whether supplied as a tag or dimension.
+
         canonical_case_dims = set(dimensions) | set(tags)
         for dim in canonical_case_dims:
             dimension_counts[dim] = dimension_counts.get(dim, 0) + 1
@@ -306,7 +305,6 @@ def audit_benchmark_manifest(
             ):
                 errors.append(f"{cid}: mutation case requires changed_dimension")
 
-    # Every referenced mutation parent must exist, and mutation edges must not cycle.
     for cid, item in case_map.items():
         parent = item.get("mutation_of")
         if parent and str(parent) not in case_map:
@@ -321,7 +319,6 @@ def audit_benchmark_manifest(
             seen_chain.add(cur)
             cur = str(case_map[cur]["mutation_of"])
 
-    # Validate optional mutation expectations against the declared parent/child labels.
     for cid, item in case_map.items():
         parent = item.get("mutation_of")
         relation = item.get("expected_relation")
@@ -339,15 +336,12 @@ def audit_benchmark_manifest(
                 f"{cid}: expected_relation={relation} disagrees with parent/child labels ({observed_relation})"
             )
 
-    # A benchmark must not contain the same graph digest under different labels.
     for digest, labels in digest_labels.items():
         if len(labels) > 1:
             errors.append(
                 f"graph digest has conflicting expected labels: {sorted(labels)}"
             )
 
-    # Research/publication dimensions are profile policy. Development/reference
-    # evaluation must not inherit publication-only coverage obligations.
     required = (
         set(map(str, required_dimensions))
         if required_dimensions is not None
@@ -627,7 +621,6 @@ def run_manifest(
             match = None
             warnings.append(f"{cid}: {exc}")
         except Exception as exc:
-            # Case-local graph/analyzer failures are infrastructure errors, not TP/TN/FP/FN.
             infra_errors += 1
             actual = "INFRA_ERROR"
             d = ""

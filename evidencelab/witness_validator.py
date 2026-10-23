@@ -29,8 +29,6 @@ def _validate_match_structure(
     ):
         errors.append("graph_digest mismatch")
     if evidence_trace.get("pattern_digest"):
-        # The matcher records a canonical pattern digest; independent validation does not
-        # trust the trace alone, but it can still require its presence.
         pass
     if evidence_trace.get("candidate_truncated") or evidence_trace.get(
         "analysis_truncated"
@@ -78,8 +76,6 @@ def _validate_match_structure(
                         f"{wid}: unknown counter-evidence blocks a definitive MATCH"
                     )
         if status == "MATCH" and witness.get("search_complete") is False:
-            # A proof-of-existence witness does not require exhaustive candidate enumeration.
-            # Search completeness is recorded as a separate quality/performance dimension.
             warnings.append(
                 f"{wid}: candidate search stopped after a valid witness; witness validity is checked by fixed-binding replay"
             )

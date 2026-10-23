@@ -196,8 +196,12 @@ def audit_research_ledgers(
     if require_nonempty and (obs_count == 0 or der_count == 0):
         errors.append("research ledger requires non-empty observations and derivations")
 
-    observation_id_values = [str(x.get("observation_id")) for x in observations if x.get("observation_id")]
-    derivation_id_values = [str(x.get("derivation_id")) for x in derivations if x.get("derivation_id")]
+    observation_id_values = [
+        str(x.get("observation_id")) for x in observations if x.get("observation_id")
+    ]
+    derivation_id_values = [
+        str(x.get("derivation_id")) for x in derivations if x.get("derivation_id")
+    ]
     observation_ids = set(observation_id_values)
     derivation_ids = set(derivation_id_values)
     observation_counts = Counter(observation_id_values)
@@ -209,7 +213,9 @@ def audit_research_ledgers(
     for item in observations:
         state = str(item.get("state", "UNKNOWN")).upper()
         if state not in OBSERVATION_STATES:
-            obs_errors.append(f"observations.jsonl:{item.get('observation_id')}: invalid observation state {state}")
+            obs_errors.append(
+                f"observations.jsonl:{item.get('observation_id')}: invalid observation state {state}"
+            )
     errors.extend(obs_errors + der_errors)
     known_artifacts = {
         str(x.get("artifact")) for x in observations if x.get("artifact")
