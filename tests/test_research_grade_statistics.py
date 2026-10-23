@@ -439,11 +439,9 @@ def test_profile_gate_rejects_unavailable_cluster_statistics():
     )
 
     assert any(
-        "cluster-aware statistics require at least two identified clusters"
-        in error
+        "cluster-aware statistics require at least two identified clusters" in error
         for error in errors
     )
-
 
 
 def test_repository_split_balances_unequal_group_sizes_and_reports_quality(tmp_path):
@@ -463,19 +461,23 @@ def test_repository_split_balances_unequal_group_sizes_and_reports_quality(tmp_p
 
     for repository, size in group_sizes.items():
         for index in range(size):
-            cases.append({
-                "id": f"{repository}-{index}",
-                "expected": "MATCH" if index % 2 == 0 else "NO_MATCH",
-                "dataset": {"repository": repository},
-            })
+            cases.append(
+                {
+                    "id": f"{repository}-{index}",
+                    "expected": "MATCH" if index % 2 == 0 else "NO_MATCH",
+                    "dataset": {"repository": repository},
+                }
+            )
 
     manifest.write_text(
-        json.dumps({
-            "schema_version": "1.0",
-            "format": "evidencelab-benchmark",
-            "manifest_id": "unequal-repository-split-regression",
-            "cases": cases,
-        }),
+        json.dumps(
+            {
+                "schema_version": "1.0",
+                "format": "evidencelab-benchmark",
+                "manifest_id": "unequal-repository-split-regression",
+                "cases": cases,
+            }
+        ),
         encoding="utf-8",
     )
 

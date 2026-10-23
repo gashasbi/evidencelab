@@ -65,8 +65,7 @@ def _target_label(value: Any) -> str:
 
 
 def _read_rows(path: Path) -> list[dict[str, Any]]:
-    # Parquet is binary: dispatch before any text decoding to avoid reading the
-    # entire file into a temporary Unicode string and potentially failing decode.
+
     if path.suffix.lower() == ".parquet":
         try:
             import pyarrow.parquet as pq
@@ -90,6 +89,7 @@ def _read_rows(path: Path) -> list[dict[str, Any]]:
     else:
         rows = list(csv.DictReader(text.splitlines()))
     return [r for r in rows if isinstance(r, dict)]
+
 
 def _write_manifest(
     out_manifest: str | Path, dataset: dict[str, Any], cases: list[dict[str, Any]]
@@ -293,7 +293,7 @@ def import_sard_table(
                 rec["dataset"]["source_path_warning"] = (
                     "source escaped declared source_root"
                 )
-        # Preserve original fields instead of dropping useful SARD metadata.
+
         rec["dataset"]["original_fields"] = row
         cases.append(rec)
     return _write_manifest(
@@ -358,8 +358,7 @@ def import_primevul_jsonl(
                 else ".cpp"
             )
             file = outsrc / f"{stem}{extension}"
-            # Do not append bytes to the imported function: source hashes describe
-            # the exact dataset code string and must match the saved artifact.
+
             file.write_bytes(func.encode("utf-8"))
             cve = _primevul_value(row, "CVE ID", "cve", "CVE", "cve_id")
             commit_url = _primevul_value(row, "commit_url", "commitURL", "commit_link")
@@ -515,8 +514,7 @@ def import_secvuleval_jsonl(
         language = str(_primevul_value(row, "language", "lang") or "").lower()
         extension = ".c" if language == "c" else ".cpp"
         file = outsrc / f"{stem}{extension}"
-        # Do not append bytes to the imported function: source hashes describe
-        # the exact dataset code string and must match the saved artifact.
+
         file.write_bytes(code.encode("utf-8"))
         tags = ["real_corpus", "secvuleval", "real_world"] + (
             ["positive"]

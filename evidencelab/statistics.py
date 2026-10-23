@@ -194,12 +194,8 @@ def cluster_bootstrap_binary_metrics(
 
     for result in rows:
         detail = getattr(result, "detail", {}) or {}
-        detail_dataset = (
-            detail.get("dataset") if isinstance(detail, dict) else {}
-        )
-        dataset = (
-            detail_dataset if isinstance(detail_dataset, dict) else {}
-        )
+        detail_dataset = detail.get("dataset") if isinstance(detail, dict) else {}
+        dataset = detail_dataset if isinstance(detail_dataset, dict) else {}
 
         if isinstance(result, dict):
             candidate = result.get("dataset")
@@ -315,8 +311,7 @@ def cluster_bootstrap_binary_metrics(
 
     for _ in range(max(100, rounds)):
         picked = [
-            cluster_lists[rng.randrange(len(cluster_lists))]
-            for _ in cluster_lists
+            cluster_lists[rng.randrange(len(cluster_lists))] for _ in cluster_lists
         ]
         sampled = [item for cluster in picked for item in cluster]
         metrics = _metric_from_counts(*counts(sampled))

@@ -110,8 +110,6 @@ def validate_benchmark_gate(
             f"false_positive_rate gate failed: {metrics.get('false_positive_rate')} > {want}"
         )
 
-    # Confidence intervals matter for research claims: a point estimate of 1.0 from a
-    # small corpus must not automatically satisfy a publication gate.
     ci_minima = gates.get("min_ci_lower_bounds", {}) or {}
     ci_map = {
         "precision": "precision_ci95",
@@ -126,11 +124,7 @@ def validate_benchmark_gate(
     use_cluster = bool(profile.get("require_cluster_aware_statistics"))
     for metric_name, required_lower in ci_minima.items():
         key = ci_map.get(str(metric_name), str(metric_name))
-        ci = (
-            cluster_ci.get(str(metric_name))
-            if use_cluster
-            else metrics.get(key)
-        )
+        ci = cluster_ci.get(str(metric_name)) if use_cluster else metrics.get(key)
         label = f"cluster-aware {metric_name}" if use_cluster else str(metric_name)
         valid_ci = (
             isinstance(ci, list)

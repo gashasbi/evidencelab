@@ -147,9 +147,7 @@ def test_parser_preserves_verified_analyzer_attestation(tmp_path):
     from evidencelab.parsers import parse_graph
 
     manifest_path, _, graphml, dataflow = make_capture_manifest(tmp_path)
-    payload = _make_verified_canonical_payload(
-        manifest_path, graphml, dataflow
-    )
+    payload = _make_verified_canonical_payload(manifest_path, graphml, dataflow)
 
     graph_path = tmp_path / "graph.json"
     graph_path.write_text(json.dumps(payload), encoding="utf-8")
@@ -157,12 +155,14 @@ def test_parser_preserves_verified_analyzer_attestation(tmp_path):
     parsed = parse_graph(graph_path)
     canonical = canonicalize_graph(parsed)
 
-    assert parsed.metadata["analysis_attestation"] == (
-        payload["metadata"]["analysis_attestation"]
+    assert (
+        parsed.metadata["analysis_attestation"]
+        == (payload["metadata"]["analysis_attestation"])
     )
     assert parsed.metadata["capture_manifest"] == str(manifest_path.resolve())
-    assert canonical.metadata["analysis_attestation"] == (
-        payload["metadata"]["analysis_attestation"]
+    assert (
+        canonical.metadata["analysis_attestation"]
+        == (payload["metadata"]["analysis_attestation"])
     )
 
 
@@ -170,11 +170,8 @@ def test_parser_rejects_canonical_graph_changed_without_digest_update(tmp_path):
     from evidencelab.parsers import parse_graph
 
     manifest_path, _, graphml, dataflow = make_capture_manifest(tmp_path)
-    payload = _make_verified_canonical_payload(
-        manifest_path, graphml, dataflow
-    )
+    payload = _make_verified_canonical_payload(manifest_path, graphml, dataflow)
 
-    # The original digest is deliberately left unchanged.
     payload["nodes"].append(
         {
             "id": "injected-node",
@@ -190,8 +187,9 @@ def test_parser_rejects_canonical_graph_changed_without_digest_update(tmp_path):
 
     assert "analysis_attestation" not in parsed.metadata
     assert parsed.metadata["parse_health"] == "DEGRADED"
-    assert "canonical graph digest mismatch" in (
-        parsed.metadata["attestation_integrity_error"]
+    assert (
+        "canonical graph digest mismatch"
+        in (parsed.metadata["attestation_integrity_error"])
     )
 
 
@@ -199,9 +197,7 @@ def test_parser_rejects_canonical_graph_changed_with_recomputed_digest(tmp_path)
     from evidencelab.parsers import parse_graph
 
     manifest_path, _, graphml, dataflow = make_capture_manifest(tmp_path)
-    payload = _make_verified_canonical_payload(
-        manifest_path, graphml, dataflow
-    )
+    payload = _make_verified_canonical_payload(manifest_path, graphml, dataflow)
 
     payload["nodes"].append(
         {
@@ -214,8 +210,6 @@ def test_parser_rejects_canonical_graph_changed_with_recomputed_digest(tmp_path)
     graph_path = tmp_path / "tampered-recomputed-digest.json"
     graph_path.write_text(json.dumps(payload), encoding="utf-8")
 
-    # Recalculate the digest of the modified graph to simulate a self-consistent
-    # edit. The modified graph must still fail comparison with the verified inputs.
     modified_graph = parse_graph(graph_path)
     payload["digest"] = modified_graph.digest()
     graph_path.write_text(json.dumps(payload), encoding="utf-8")
@@ -224,15 +218,15 @@ def test_parser_rejects_canonical_graph_changed_with_recomputed_digest(tmp_path)
 
     assert "analysis_attestation" not in parsed.metadata
     assert parsed.metadata["parse_health"] == "DEGRADED"
-    assert "canonical graph does not match verified merge inputs" in (
-        parsed.metadata["attestation_integrity_error"]
+    assert (
+        "canonical graph does not match verified merge inputs"
+        in (parsed.metadata["attestation_integrity_error"])
     )
 
 
 def test_parser_does_not_promote_forged_analyzer_attestation(tmp_path):
     from evidencelab.parsers import parse_graph
 
-    # These fields look structurally valid, but no capture manifest can verify them.
     attestation = {
         "level": "ANALYZER_ATTESTED",
         "analyzer": "Joern",
@@ -275,10 +269,7 @@ def test_parser_does_not_promote_forged_analyzer_attestation(tmp_path):
     parsed = parse_graph(graph_path)
 
     assert "analysis_attestation" not in parsed.metadata
-    assert (
-        parsed.metadata["declared_metadata"]["analysis_attestation"]
-        == attestation
-    )
+    assert parsed.metadata["declared_metadata"]["analysis_attestation"] == attestation
 
 
 def test_analyzer_attestation_requires_verified_input_hashes():

@@ -16,7 +16,7 @@ def _rss_bytes_current() -> int | None:
         import resource
 
         value = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
-        # Linux reports KiB; macOS reports bytes.
+
         import platform
 
         return int(value if platform.system() == "Darwin" else value * 1024)
@@ -36,7 +36,6 @@ def _set_child_limits(
         if hasattr(resource, "RLIMIT_AS"):
             resource.setrlimit(resource.RLIMIT_AS, (limit, limit))
     if max_case_seconds and hasattr(resource, "RLIMIT_CPU"):
-        # CPU limits supplement the parent process wall-clock timeout.
         cpu = max(1, int(math.ceil(float(max_case_seconds))))
         resource.setrlimit(resource.RLIMIT_CPU, (cpu, cpu + 1))
 
@@ -168,7 +167,7 @@ def _run_isolated_case(
     peak = result.get("peak_rss_bytes")
     if result.get("status") == "MEMORY_LIMIT":
         result["memory_limit_exceeded"] = True
-    # Record unavailable peak RSS as missing; an address-space cap does not supply that metric.
+
     memory_exceeded = result.get("status") == "MEMORY_LIMIT"
     time_exceeded = result.get("status") == "TIMEOUT" or (
         max_case_seconds is not None

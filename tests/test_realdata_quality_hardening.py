@@ -89,9 +89,7 @@ def test_parquet_reader_does_not_decode_binary_file_as_text(
 
 def test_jsonl_reader_still_handles_blank_lines_and_records(tmp_path: Path) -> None:
     source = tmp_path / "records.jsonl"
-    source.write_text(
-        '\ufeff{"target": 1}\n\n{"target": 0}\n', encoding="utf-8"
-    )
+    source.write_text('\ufeff{"target": 1}\n\n{"target": 0}\n', encoding="utf-8")
     assert _read_rows(source) == [{"target": 1}, {"target": 0}]
 
 
@@ -154,12 +152,8 @@ def test_research_pipeline_cwe_staging_keeps_source_paths_resolvable(
         graph.write_text("{}", encoding="utf-8")
 
         capture_manifest = case_dir / "capture-manifest.json"
-        capture_manifest.write_text(
-            json.dumps({"status": "PASS"}), encoding="utf-8"
-        )
+        capture_manifest.write_text(json.dumps({"status": "PASS"}), encoding="utf-8")
 
-        # Emulate corpus_runner: these paths are relative to the staged input,
-        # while benchmark_out is located at the corpus root.
         case["graph"] = os.path.relpath(graph, staged.parent)
         case["capture"] = {
             "status": "PASS",
@@ -186,9 +180,7 @@ def test_research_pipeline_cwe_staging_keeps_source_paths_resolvable(
                 assert source_path == good.resolve()
                 assert source_path.is_file()
 
-                capture_path = (
-                    captured.parent / case["capture"]["manifest"]
-                ).resolve()
+                capture_path = (captured.parent / case["capture"]["manifest"]).resolve()
                 assert capture_path.is_file()
                 capture_path.relative_to(captured.parent.resolve())
 
@@ -218,10 +210,19 @@ def test_primevul_import_preserves_exact_source_bytes_and_hash(tmp_path: Path) -
     import hashlib
     from evidencelab.datasets import import_primevul_jsonl
 
-    code = "int vulnerable(void) { return 7; }"  # Deliberately no final newline.
+    code = "int vulnerable(void) { return 7; }"
     source_file = tmp_path / "primevul.jsonl"
     source_file.write_text(
-        json.dumps({"func": code, "target": 1, "project": "org/repo", "commit_id": "abc", "cwe": [120]}) + "\n",
+        json.dumps(
+            {
+                "func": code,
+                "target": 1,
+                "project": "org/repo",
+                "commit_id": "abc",
+                "cwe": [120],
+            }
+        )
+        + "\n",
         encoding="utf-8",
     )
     output_root = tmp_path / "primevul-sources"
@@ -231,14 +232,19 @@ def test_primevul_import_preserves_exact_source_bytes_and_hash(tmp_path: Path) -
     row = json.loads(manifest.read_text(encoding="utf-8"))["cases"][0]
     saved_source = manifest.parent / row["source"]
     assert saved_source.read_text(encoding="utf-8") == code
-    assert hashlib.sha256(saved_source.read_bytes()).hexdigest() == row["source_content_sha256"]
+    assert (
+        hashlib.sha256(saved_source.read_bytes()).hexdigest()
+        == row["source_content_sha256"]
+    )
 
 
-def test_secvuleval_import_preserves_exact_source_bytes_and_hash(tmp_path: Path) -> None:
+def test_secvuleval_import_preserves_exact_source_bytes_and_hash(
+    tmp_path: Path,
+) -> None:
     import hashlib
     from evidencelab.datasets import import_secvuleval_jsonl
 
-    code = "int fixed_record(void) { return 9; }"  # Deliberately no final newline.
+    code = "int fixed_record(void) { return 9; }"
     source_file = tmp_path / "secvuleval.jsonl"
     source_file.write_text(
         json.dumps(
@@ -258,11 +264,12 @@ def test_secvuleval_import_preserves_exact_source_bytes_and_hash(tmp_path: Path)
     )
     output_root = tmp_path / "secvuleval-sources"
     manifest = tmp_path / "secvuleval.manifest.json"
-    result = import_secvuleval_jsonl(
-        source_file, manifest, output_root, cwe="CWE-120"
-    )
+    result = import_secvuleval_jsonl(source_file, manifest, output_root, cwe="CWE-120")
     assert result["case_count"] == 1
     row = json.loads(manifest.read_text(encoding="utf-8"))["cases"][0]
     saved_source = manifest.parent / row["source"]
     assert saved_source.read_text(encoding="utf-8") == code
-    assert hashlib.sha256(saved_source.read_bytes()).hexdigest() == row["source_content_sha256"]
+    assert (
+        hashlib.sha256(saved_source.read_bytes()).hexdigest()
+        == row["source_content_sha256"]
+    )

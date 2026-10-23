@@ -250,9 +250,9 @@ def test_semantic_diversity_reports_unreadable_graphs(tmp_path):
         "Unreadable graph files must be reported, not silently skipped"
     )
     assert any(
-        error.get("case_id") == "missing-graph"
-        for error in diversity["graph_errors"]
+        error.get("case_id") == "missing-graph" for error in diversity["graph_errors"]
     )
+
 
 def test_semantic_diversity_excludes_invalid_graphs(tmp_path):
     import json
@@ -297,13 +297,15 @@ def test_semantic_diversity_retains_degraded_nonempty_graphs(tmp_path):
     graphs = tmp_path / "graphs"
     graphs.mkdir()
     (graphs / "partial.json").write_text(
-        json.dumps({
-            "nodes": [
-                {"id": "n1", "type": "CALL", "properties": {"name": "unknown_call"}}
-            ],
-            "edges": [],
-            "metadata": {"parse_health": "DEGRADED", "completeness": "partial"},
-        }),
+        json.dumps(
+            {
+                "nodes": [
+                    {"id": "n1", "type": "CALL", "properties": {"name": "unknown_call"}}
+                ],
+                "edges": [],
+                "metadata": {"parse_health": "DEGRADED", "completeness": "partial"},
+            }
+        ),
         encoding="utf-8",
     )
     path = tmp_path / "benchmark.json"
@@ -314,7 +316,6 @@ def test_semantic_diversity_retains_degraded_nonempty_graphs(tmp_path):
     assert result["graph_count"] == 1
     assert result["effective_semantic_sample_size"] == 1
     assert result["invalid_graphs"] == []
-
 
 
 def test_quality_audit_fails_when_graph_is_invalid(tmp_path):
@@ -352,7 +353,6 @@ def test_quality_audit_fails_when_graph_is_invalid(tmp_path):
     )
 
 
-
 def _load_semantic_fingerprint_fixture(relative_path):
     from pathlib import Path
     from evidencelab.parsers import parse_graph
@@ -368,15 +368,11 @@ def test_semantic_fingerprint_distinguishes_numeric_literal_values():
         "examples/cwe-121/graphs/vulnerable.json"
     )
     literal = next(n for n in graph.nodes.values() if n.type == "LITERAL")
-    original_code = literal.properties.get(
-        "code", literal.properties.get("CODE")
-    )
+    original_code = literal.properties.get("code", literal.properties.get("CODE"))
     assert original_code is not None
 
     changed = deepcopy(graph)
-    changed_literal = next(
-        n for n in changed.nodes.values() if n.type == "LITERAL"
-    )
+    changed_literal = next(n for n in changed.nodes.values() if n.type == "LITERAL")
     if "code" in changed_literal.properties or "CODE" not in changed_literal.properties:
         changed_literal.properties["code"] = "31"
     else:
@@ -436,11 +432,11 @@ def test_semantic_fingerprint_distinguishes_argument_roles():
     from evidencelab.canonical import semantic_graph_fingerprint
 
     graph = _load_semantic_fingerprint_fixture(
-        "examples/cwe-120/families/"
-        "unbounded-format-output/graphs/adv_01.json"
+        "examples/cwe-120/families/unbounded-format-output/graphs/adv_01.json"
     )
     source_node = next(
-        n for n in graph.nodes.values()
+        n
+        for n in graph.nodes.values()
         if (n.properties.get("derived") or {}).get("argument_role") == "source"
     )
 
@@ -456,15 +452,13 @@ def test_semantic_fingerprint_ignores_node_ids_and_method_names():
     from evidencelab.canonical import semantic_graph_fingerprint
 
     graph = _load_semantic_fingerprint_fixture(
-        "examples/cwe-120/families/"
-        "unbounded-format-output/graphs/adv_01.json"
+        "examples/cwe-120/families/unbounded-format-output/graphs/adv_01.json"
     )
     changed = deepcopy(graph)
 
     old_items = list(changed.nodes.items())
     mapping = {
-        old_id: f"renamed_node_{index}"
-        for index, (old_id, _) in enumerate(old_items)
+        old_id: f"renamed_node_{index}" for index, (old_id, _) in enumerate(old_items)
     }
 
     for old_id, node in old_items:
@@ -473,10 +467,7 @@ def test_semantic_fingerprint_ignores_node_ids_and_method_names():
             node.properties["name"] = "renamed_sample_method"
             node.properties["code"] = "renamed_sample_method"
 
-    changed.nodes = {
-        mapping[old_id]: node
-        for old_id, node in old_items
-    }
+    changed.nodes = {mapping[old_id]: node for old_id, node in old_items}
 
     for edge in changed.edges:
         edge.source = mapping[edge.source]
@@ -550,12 +541,14 @@ def test_quality_audit_reports_label_cluster_coverage_and_concentration(tmp_path
     ]
     path = tmp_path / "cluster-coverage.json"
     path.write_text(
-        json.dumps({
-            "schema_version": "1.0",
-            "format": "evidencelab-benchmark",
-            "manifest_id": "cluster-coverage-regression",
-            "cases": cases,
-        }),
+        json.dumps(
+            {
+                "schema_version": "1.0",
+                "format": "evidencelab-benchmark",
+                "manifest_id": "cluster-coverage-regression",
+                "cases": cases,
+            }
+        ),
         encoding="utf-8",
     )
 
@@ -590,17 +583,14 @@ def test_quality_audit_reports_label_cluster_coverage_and_concentration(tmp_path
     }
 
 
-
 def test_semantic_fingerprint_distinguishes_analysis_completeness():
     from evidencelab.canonical import semantic_graph_fingerprint
 
     partial = _load_semantic_fingerprint_fixture(
-        "examples/cwe-120/families/"
-        "unbounded-format-output/graphs/adv_09.json"
+        "examples/cwe-120/families/unbounded-format-output/graphs/adv_09.json"
     )
     complete = _load_semantic_fingerprint_fixture(
-        "examples/cwe-120/families/"
-        "unbounded-format-output/graphs/pos_16.json"
+        "examples/cwe-120/families/unbounded-format-output/graphs/pos_16.json"
     )
 
     assert len(partial.nodes) == len(complete.nodes)
@@ -612,9 +602,7 @@ def test_semantic_fingerprint_includes_completeness_without_topology_changes():
     from copy import deepcopy
     from evidencelab.canonical import semantic_graph_fingerprint
 
-    base = _load_semantic_fingerprint_fixture(
-        "examples/cwe-121/graphs/vulnerable.json"
-    )
+    base = _load_semantic_fingerprint_fixture("examples/cwe-121/graphs/vulnerable.json")
     complete = deepcopy(base)
     partial = deepcopy(base)
 
@@ -629,8 +617,6 @@ def test_semantic_fingerprint_includes_completeness_without_topology_changes():
     }
 
     for graph in (complete, partial):
-        # Treat both graphs as already canonical so this test isolates
-        # the effect of the normalized completeness metadata.
         graph.metadata["canonical"] = True
         graph.metadata["parse_health"] = "OK"
 
@@ -645,6 +631,7 @@ def test_semantic_fingerprint_includes_completeness_without_topology_changes():
 
     assert semantic_graph_fingerprint(complete) != semantic_graph_fingerprint(partial)
 
+
 def test_semantic_fingerprint_preserves_explicit_top_level_range():
     from copy import deepcopy
 
@@ -655,12 +642,10 @@ def test_semantic_fingerprint_preserves_explicit_top_level_range():
     from evidencelab.semantics import node_value_range
 
     fixed = _load_semantic_fingerprint_fixture(
-        "examples/cwe-120/families/fixed-extent-overflow/"
-        "graphs/unknown_03.json"
+        "examples/cwe-120/families/fixed-extent-overflow/graphs/unknown_03.json"
     )
     symbolic = _load_semantic_fingerprint_fixture(
-        "examples/cwe-120/families/symbolic-range-overflow/"
-        "graphs/unknown_03.json"
+        "examples/cwe-120/families/symbolic-range-overflow/graphs/unknown_03.json"
     )
 
     expected_range = {
@@ -676,24 +661,44 @@ def test_semantic_fingerprint_preserves_explicit_top_level_range():
     canonical_node = canonical_symbolic.nodes["e"]
 
     assert canonical_node.properties["derived"]["range"] == expected_range
-    assert (
-        canonical_node.properties["derived_provenance"]["range"]
-        == "RAW:range"
-    )
+    assert canonical_node.properties["derived_provenance"]["range"] == "RAW:range"
 
-    assert (
-        semantic_graph_fingerprint(fixed)
-        != semantic_graph_fingerprint(symbolic)
-    )
+    assert semantic_graph_fingerprint(fixed) != semantic_graph_fingerprint(symbolic)
 
-    # The representation location must not change the semantic fingerprint.
     normalized_form = deepcopy(symbolic)
     raw_range = normalized_form.nodes["e"].properties.pop("range")
-    normalized_form.nodes["e"].properties.setdefault("derived", {})[
-        "range"
-    ] = raw_range
+    normalized_form.nodes["e"].properties.setdefault("derived", {})["range"] = raw_range
 
-    assert (
-        semantic_graph_fingerprint(symbolic)
-        == semantic_graph_fingerprint(normalized_form)
+    assert semantic_graph_fingerprint(symbolic) == semantic_graph_fingerprint(
+        normalized_form
     )
+
+
+def test_independent_replay_rate_is_unknown_when_no_replay_was_run():
+    from types import SimpleNamespace
+    from evidencelab.evidence_quality import compute_evidence_quality
+    from evidencelab.spec import Pattern
+
+    family = ROOT / "examples/cwe-120/families/fixed-extent-overflow"
+    pattern = Pattern.load(family / "pattern.json")
+    result = SimpleNamespace(actual="MATCH", detail={})
+    quality = compute_evidence_quality([result], pattern)
+    assert quality["independent_replay_rate"] is None
+    assert quality["independent_replay_evaluated_cases"] == 0
+
+
+def test_independent_replay_rate_counts_only_explicit_replay_results():
+    from types import SimpleNamespace
+    from evidencelab.evidence_quality import compute_evidence_quality
+    from evidencelab.spec import Pattern
+
+    family = ROOT / "examples/cwe-120/families/fixed-extent-overflow"
+    pattern = Pattern.load(family / "pattern.json")
+    results = [
+        SimpleNamespace(actual="MATCH", detail={"witness_replay": {"status": "PASS"}}),
+        SimpleNamespace(actual="MATCH", detail={"witness_replay": {"status": "FAIL"}}),
+        SimpleNamespace(actual="MATCH", detail={}),
+    ]
+    quality = compute_evidence_quality(results, pattern)
+    assert quality["independent_replay_rate"] == 0.5
+    assert quality["independent_replay_evaluated_cases"] == 2

@@ -85,7 +85,6 @@ def scan_source(
             merge_inputs,
         )
     else:
-        # Best-effort captures may continue, but degraded claims are not trusted.
         attestation = capture.get("analysis_attestation", {})
 
     merged.metadata["analysis_attestation"] = attestation

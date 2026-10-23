@@ -207,7 +207,7 @@ def parse_graphml(path: Path) -> Graph:
         k.id.startswith("node__") or k.id.startswith("edge__") for k in defs.values()
     ):
         g.metadata["joern_style"] = True
-    # GraphML exporter used by Joern/Flatgraph is intentionally lossy for list-valued properties.
+
     g.metadata["loss_risk"] = {
         "graphml_lists": True,
         "reason": "GraphML export may discard list-valued properties",
@@ -299,7 +299,7 @@ def parse_graphson(path: Path) -> Graph:
         raw = json.loads(_read_bytes(path).decode("utf-8"))
     except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
         raise InputFormatError(f"Cannot parse GraphSON: {exc}") from exc
-    # Unwrap only the GraphSON envelope; preserve typed property values until _prop_unwrap.
+
     if (
         isinstance(raw, dict)
         and "@value" in raw
@@ -445,7 +445,7 @@ def parse_generic_json(path: Path) -> Graph:
                 "completeness": "declared",
             }
         )
-        # Preserve proof-relevant operational metadata without treating arbitrary fields as parser metadata.
+
         g.metadata["declared_metadata"] = dict(declared)
         for key in (
             "completeness",
@@ -497,9 +497,7 @@ def parse_generic_json(path: Path) -> Graph:
 
                     source_paths.append(source_path)
                     source_hashes.append(record.get("sha256"))
-                    normalized_sources.append(
-                        {**record, "path": str(source_path)}
-                    )
+                    normalized_sources.append({**record, "path": str(source_path)})
 
                 from .capture import validate_capture_manifest_for_merge
 
@@ -513,19 +511,16 @@ def parse_generic_json(path: Path) -> Graph:
                 if "dataflow" in verified_hashes:
                     expected_hashes.append(verified_hashes["dataflow"])
 
-                if (
-                    source_hashes == expected_hashes
-                    and is_trusted_attestation(verified)
+                if source_hashes == expected_hashes and is_trusted_attestation(
+                    verified
                 ):
-                    # Use the validator's result, not serialized attestation fields.
                     g.metadata["analysis_attestation"] = verified
                     g.metadata["capture_manifest"] = str(manifest_file)
                     g.metadata["merge_sources"] = normalized_sources
 
             except Exception:
-                # Invalid or unavailable capture evidence must not be promoted.
                 pass
-        # Preserve any explicitly authored integrity/provenance records as data.
+
         if "merge_sources" in declared:
             g.metadata["merge_sources"] = declared["merge_sources"]
         if "merge_conflicts" in declared:
@@ -585,8 +580,6 @@ def parse_generic_json(path: Path) -> Graph:
                 if not source_paths:
                     raise ValueError("no verified merge inputs are available")
 
-                # Rebuild using the same merge implementation as the producers.
-                # This also catches edits where someone recalculates the JSON digest.
                 from .scanner import _merge
 
                 rebuilt = _merge(source_paths)
@@ -596,8 +589,6 @@ def parse_generic_json(path: Path) -> Graph:
                     )
 
             except Exception as exc:
-                # Fail closed: preserve the declared metadata for diagnostics,
-                # but do not allow the graph to claim a trusted attestation.
                 g.metadata.pop("analysis_attestation", None)
                 g.metadata.pop("capture_manifest", None)
                 g.metadata["parse_health"] = "DEGRADED"
@@ -678,14 +669,8 @@ def finalize(g: Graph) -> None:
         else ("DEGRADED" if unknown_n or unknown_e or missing or issues else "OK")
     )
 
-    # Preserve declared health conservatively: successfully parsing a graph must
-    # not erase an upstream DEGRADED/INVALID assessment. Structural problems
-    # found here must likewise not be hidden by a declared OK value.
     declared_metadata = g.metadata.get("declared_metadata")
-    if (
-        isinstance(declared_metadata, dict)
-        and "parse_health" in declared_metadata
-    ):
+    if isinstance(declared_metadata, dict) and "parse_health" in declared_metadata:
         declared_health = declared_metadata.get("parse_health")
     else:
         declared_health = g.metadata.get("parse_health")
@@ -699,12 +684,10 @@ def finalize(g: Graph) -> None:
 
     declared_health = (
         str(declared_health).strip().upper()
-        if declared_health is not None
-        and str(declared_health).strip()
+        if declared_health is not None and str(declared_health).strip()
         else None
     )
 
-    # An unrecognized non-empty health value is not safe to promote to OK.
     if declared_health is not None and declared_health not in health_rank:
         declared_health = "DEGRADED"
 
@@ -712,9 +695,7 @@ def finalize(g: Graph) -> None:
     if declared_health is not None:
         candidates.append(declared_health)
 
-    g.metadata["parse_health"] = max(
-        candidates, key=lambda health: health_rank[health]
-    )
+    g.metadata["parse_health"] = max(candidates, key=lambda health: health_rank[health])
 
 
 def parse_graph(path: str | Path) -> Graph:

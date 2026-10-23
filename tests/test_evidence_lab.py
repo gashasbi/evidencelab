@@ -49,7 +49,6 @@ def test_els_runs_against_canonical_graph_and_emits_trace():
     assert result["ledger"]["schema_version"] == "1.0"
 
 
-
 def test_els_does_not_match_safe_canonical_graph():
     raw = compile_els_file(ELS)
     pattern = Pattern.from_dict(raw)
@@ -58,10 +57,9 @@ def test_els_does_not_match_safe_canonical_graph():
 
     assert result["status"] == "NO_MATCH", result
     assert result["witnesses"], result
-    assert all(
-        witness["status"] == "NO_MATCH"
-        for witness in result["witnesses"]
-    ), result
+    assert all(witness["status"] == "NO_MATCH" for witness in result["witnesses"]), (
+        result
+    )
 
     trace = result["evidence_trace"]
     assert trace["analysis_incomplete"] is False
@@ -95,8 +93,7 @@ def test_dataset_mapping_digest_ignores_formatting_but_file_sha_does_not(
     model_data = json.loads(MODEL.read_text(encoding="utf-8"))
     reformatted = tmp_path / "reformatted-model.json"
     reformatted.write_text(
-        json.dumps(model_data, ensure_ascii=False, indent=4, sort_keys=True)
-        + "\n",
+        json.dumps(model_data, ensure_ascii=False, indent=4, sort_keys=True) + "\n",
         encoding="utf-8",
     )
 
@@ -106,10 +103,7 @@ def test_dataset_mapping_digest_ignores_formatting_but_file_sha_does_not(
     assert original_result["status"] == "PASS", original_result
     assert reformatted_result["status"] == "PASS", reformatted_result
 
-    assert (
-        original_result["mapping_digest"]
-        == reformatted_result["mapping_digest"]
-    )
+    assert original_result["mapping_digest"] == reformatted_result["mapping_digest"]
     assert sha256_file(MODEL) != sha256_file(reformatted)
 
 
@@ -150,7 +144,7 @@ def test_trace_lists_witness_claims_as_proved(tmp_path: Path):
     assert result["status"] == "MATCH"
     proved = set(result["evidence_trace"]["proved_claims"])
     assert {f"C{i}" for i in range(1, 13)} <= proved
-    # Compare provenance records operand values, not graph node IDs.
+
     compare_items = [x for x in result["ledger"]["items"] if x["id"] == "CLAIM:C11"]
     assert compare_items
     assert not any(

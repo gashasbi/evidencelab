@@ -10,7 +10,7 @@ from evidencelab.errors import EvidenceLabError
 GRAPHML = (
     '<graphml xmlns="http://graphml.graphdrawing.org/xmlns">'
     '<graph id="G" edgedefault="directed"><node id="1"/></graph>'
-    '</graphml>'
+    "</graphml>"
 )
 
 

@@ -77,8 +77,6 @@ def main() -> int:
                 p.wait(timeout=5)
             return 124
         finally:
-            # The pytest parent may have exited while a child helper is still alive.
-            # Kill the whole process group to prevent state leaking into the next file.
             kill_group(p, signal.SIGTERM)
             try:
                 p.wait(timeout=2)

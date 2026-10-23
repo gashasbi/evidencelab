@@ -162,57 +162,91 @@ class Graph:
         allow_cycles: bool = False,
         max_states: int | None = 50_000,
     ) -> tuple[list[list[str]], bool]:
-        """Bound simple-path enumeration and report truncation explicitly.
+        paths, truncated, _ = self.find_paths_bounded_detailed(
+            starts,
+            ends,
+            edge_types,
+            max_hops=max_hops,
+            direction=direction,
+            limit=limit,
+            allow_cycles=allow_cycles,
+            max_states=max_states,
+        )
+        return paths, truncated
 
-        ``find_paths`` historically returned only paths; this companion API preserves
-        that compatibility while allowing callers such as the matcher/replay layer to
-        distinguish "no path exists" from "search was cut short". That distinction is
-        essential under the tri-state evidence contract.
-        """
-        starts = [str(x) for x in starts]
+    def find_paths_bounded_detailed(
+        self,
+        starts: Iterable[str],
+        ends: set[str],
+        edge_types: set[str] | None,
+        max_hops: int = 12,
+        direction: str = "out",
+        limit: int = 100,
+        allow_cycles: bool = False,
+        max_states: int | None = 50_000,
+        should_cancel: Any = None,
+    ) -> tuple[list[list[str]], bool, int]:
+        starts = sorted({str(x) for x in starts})
         ends = {str(x) for x in ends}
-        result = []
+        result: list[list[str]] = []
         from collections import deque
 
         states = 0
         truncated = False
         if max_hops < 0 or limit <= 0:
-            return result, False
+            return result, False, states
         for start in starts:
             q = deque([(start, [start])])
             while q and len(result) < limit:
+                if should_cancel is not None and should_cancel():
+                    return result, True, states
                 cur, path = q.popleft()
                 states += 1
                 if max_states is not None and states > int(max_states):
-                    truncated = True
-                    return result, truncated
+                    return result, True, states - 1
                 depth = len(path) - 1
                 if depth > 0 and cur in ends:
                     result.append(path)
                     continue
                 if depth >= max_hops:
                     continue
-                edges = (
-                    self.outgoing(cur, edge_types)
-                    if direction == "out"
-                    else self.incoming(cur, edge_types)
-                )
-                if direction == "either":
+                if direction == "out":
+                    edges = self.outgoing(cur, edge_types)
+                elif direction == "in":
+                    edges = self.incoming(cur, edge_types)
+                elif direction == "either":
                     edges = self.outgoing(cur, edge_types) + self.incoming(
                         cur, edge_types
                     )
-                for e in edges:
+                else:
+                    return result, True, states
+                edges = sorted(
+                    edges,
+                    key=lambda e: (
+                        str(e.source),
+                        str(e.target),
+                        str(e.type),
+                        str(e.id or ""),
+                    ),
+                )
+                seen_next: set[str] = set()
+                for edge in edges:
                     nxt = (
-                        e.target
-                        if direction in {"out", "either"} and e.source == cur
-                        else e.source
+                        edge.target
+                        if direction in {"out", "either"} and edge.source == cur
+                        else edge.source
                     )
+                    if nxt in seen_next:
+                        continue
+                    seen_next.add(nxt)
                     if not allow_cycles and nxt in path:
                         continue
                     q.append((nxt, path + [nxt]))
-            if truncated or len(result) >= limit:
+            if len(result) >= limit:
+                if q or start != starts[-1]:
+                    truncated = True
                 break
-        return result, truncated
+        return result, truncated, states
 
     def summary(self) -> dict[str, Any]:
         nt, et = {}, {}

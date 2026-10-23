@@ -19,8 +19,6 @@ class EvaluationOutcome(str, Enum):
     UNKNOWN = "UNKNOWN"
 
 
-# Order is about information strength, not truth/falsity.
-# PROVEN and DISPROVEN are definitive; PARTIAL and UNKNOWN carry uncertainty.
 _RANK = {
     ProofState.NOT_APPLICABLE.value: 0,
     ProofState.PROVEN.value: 3,

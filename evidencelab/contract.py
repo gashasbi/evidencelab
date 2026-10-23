@@ -337,17 +337,17 @@ def bundle_research_package(
         for item in inventory["artifacts"]:
             src = _safe_rel(rootp, str(item["path"]))
             rel = Path(str(item["path"]))
-            # Keep source release deterministic and do not include evaluator-only data unless requested.
+
             dst = stage / rel
             dst.parent.mkdir(parents=True, exist_ok=True)
             dst.write_bytes(src.read_bytes())
-        # Inventory the staged release so the bundle is self-contained and replayable.
+
         staged_inventory = research_tree_inventory(
             stage,
             include_hidden=include_hidden,
             include_external_data=include_external_data,
         )
-        # The inventory uses a portable path relative to the package root.
+
         staged_inventory["root"] = ".."
         inv = stage / "provenance" / "research-inventory.json"
         inv.parent.mkdir(parents=True, exist_ok=True)

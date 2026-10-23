@@ -194,7 +194,7 @@ def audit_case_lineage_and_similarity(
             warnings.append(
                 f"paired case {cid} has no explicit counterpart; do not assume fixed revision semantics"
             )
-    # Detect normalized-source collisions when hashes are available.
+
     by_hash: dict[str, list[str]] = {}
     for case in cases:
         h = case.get("normalized_source_hash") or (
