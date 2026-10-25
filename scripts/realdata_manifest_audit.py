@@ -25,7 +25,7 @@ def sha256(path: Path) -> str:
             digest.update(chunk)
     return digest.hexdigest(
 
-        
+
     )
 
 
