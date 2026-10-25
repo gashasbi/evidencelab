@@ -11,11 +11,9 @@ VALID_GRAPHML = (
     '<graph id="G" edgedefault="directed">'
     '<node id="1"/><node id="2"/>'
     '<edge id="e1" source="1" target="2"/>'
-    '</graph></graphml>'
+    "</graph></graphml>"
 )
-VALID_GRAPHSON = (
-    '{"vertices":[{"id":1,"label":"METHOD","properties":{}}],"edges":[]}'
-)
+VALID_GRAPHSON = '{"vertices":[{"id":1,"label":"METHOD","properties":{}}],"edges":[]}'
 
 
 def _capture(
@@ -54,9 +52,7 @@ def _capture(
         return "", ""
 
     monkeypatch.setattr(cap, "_run", fake_run)
-    manifest = cap.capture_joern(
-        source, output, graphson=graphson, dataflow=False
-    )
+    manifest = cap.capture_joern(source, output, graphson=graphson, dataflow=False)
     return manifest, output
 
 
@@ -94,9 +90,7 @@ def test_missing_graphml_export_fails_capture(monkeypatch, tmp_path):
         "not xml",
     ],
 )
-def test_invalid_or_empty_graphml_export_fails_capture(
-    monkeypatch, tmp_path, payload
-):
+def test_invalid_or_empty_graphml_export_fails_capture(monkeypatch, tmp_path, payload):
     with pytest.raises(EvidenceLabError, match="GraphML"):
         _capture(
             monkeypatch,
@@ -113,7 +107,7 @@ def test_graphml_rejects_declarations_after_long_preamble(monkeypatch, tmp_path)
         + '<!DOCTYPE graphml [<!ENTITY sample "value">]>'
         + '<graphml xmlns="http://graphml.graphdrawing.org/xmlns">'
         + '<graph id="G" edgedefault="directed"><node id="1"/></graph>'
-        + '</graphml>'
+        + "</graphml>"
     )
 
     with pytest.raises(EvidenceLabError, match="DTD/entity declarations"):
@@ -151,9 +145,7 @@ def test_graphson_is_required_when_requested(monkeypatch, tmp_path):
         '{"vertices":[{"id":1,"label":"METHOD","properties":{}}],"edges":[{"outV":1}]}',
     ],
 )
-def test_invalid_or_empty_graphson_export_fails_capture(
-    monkeypatch, tmp_path, payload
-):
+def test_invalid_or_empty_graphson_export_fails_capture(monkeypatch, tmp_path, payload):
     with pytest.raises(EvidenceLabError, match="GraphSON"):
         _capture(monkeypatch, tmp_path, graphson_payload=payload)
 

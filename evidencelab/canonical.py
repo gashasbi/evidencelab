@@ -8,10 +8,12 @@ from typing import Any
 
 from . import SCHEMA_VERSION
 from .models import Edge, Graph, Node, norm, stable_json
-from .semantics import enrich_graph, semantic_edge_types
+from .semantics import _num, enrich_graph, semantic_edge_types
 
 CANONICAL_GRAPH_FORMAT = "evidencelab-canonical-graph"
 CANONICAL_GRAPH_VERSION = "1.0"
+
+SEMANTIC_FINGERPRINT_ALGORITHM = "canonical-node/edge semantic aggregate sha256 v4"
 
 CANONICAL_NODE_ALIASES = {
     "METHOD_PARAMETER_IN": "PARAMETER",
@@ -54,7 +56,7 @@ def canonical_node_type(raw_type: str) -> str:
     value = norm(raw_type).upper()
     if value in CANONICAL_NODE_ALIASES:
         return CANONICAL_NODE_ALIASES[value]
-    # Common analyzer-neutral spellings. Unknown types are retained rather than guessed.
+
     if value.endswith("_PARAMETER"):
         return "PARAMETER"
     if value in {"FUNCTION", "FUNCTION_DECL", "METHOD_DECLARATION"}:
@@ -88,12 +90,16 @@ def canonicalize_graph(
         e.properties = dict(e.properties)
         e.properties.setdefault("canonical_edge_types", canonical_edge_types(e.type))
         e.properties.setdefault("canonical_edge_type", canonical_edge_types(e.type)[0])
-    completeness = dict(
-        g.metadata.get("analysis_completeness")
-        or g.metadata.get("completeness_manifest")
-        or {}
+    manifest_supplied = (
+        "analysis_completeness" in g.metadata
+        or "completeness_manifest" in g.metadata
     )
-    if not completeness:
+    raw_completeness = g.metadata.get("analysis_completeness")
+    if not raw_completeness:
+        raw_completeness = g.metadata.get("completeness_manifest")
+    if isinstance(raw_completeness, dict):
+        completeness = dict(raw_completeness)
+    elif not manifest_supplied:
         completeness = {
             "graph": "COMPLETE"
             if g.metadata.get("completeness", "declared") in {"full_export", "declared"}
@@ -106,6 +112,9 @@ def canonicalize_graph(
             "numeric_range": "UNKNOWN",
             "interprocedural": "UNKNOWN",
         }
+    else:
+        completeness = {}
+        g.metadata["analysis_completeness_invalid"] = True
     g.metadata["canonical"] = True
     g.metadata["canonical_version"] = CANONICAL_GRAPH_VERSION
     g.metadata["canonical_schema_version"] = SCHEMA_VERSION
@@ -178,13 +187,16 @@ def semantic_graph_fingerprint(graph: Graph) -> str:
 
     A Weisfeiler-Lehman style refinement is used so two graphs with identical node/edge
     counts but different data-flow/control topology are not treated as the same scenario.
+    Normalized analysis-completeness states and parser health are also part of the
+    fingerprint because incomplete evidence can change a security result to UNKNOWN.
     """
     g = graph if graph.metadata.get("canonical") else canonicalize_graph(graph)
     colors: dict[str, str] = {}
     for n in g.nodes.values():
         d = n.properties.get("derived") or {}
+        node_type = canonical_node_type(n.type)
         payload = {
-            "type": canonical_node_type(n.type),
+            "type": node_type,
             "external": bool(d.get("potential_external_input")),
             "allocation": bool(d.get("allocation_like")),
             "copy": bool(d.get("copy_like") or d.get("memory_write_like")),
@@ -193,6 +205,90 @@ def semantic_graph_fingerprint(graph: Graph) -> str:
             "region": str(d.get("memory_region", "UNKNOWN")),
             "role": str(d.get("argument_role", "UNKNOWN")),
         }
+
+        if node_type == "LITERAL":
+            numeric_value = d.get("numeric_value")
+            if not (
+                isinstance(numeric_value, (int, float))
+                and not isinstance(numeric_value, bool)
+            ):
+                numeric_value = _num(n.get("code", n.get("CODE")))
+
+            if isinstance(numeric_value, (int, float)) and not isinstance(
+                numeric_value, bool
+            ):
+                payload["literal_numeric_value"] = numeric_value
+
+            string_length = d.get("string_length")
+            if isinstance(string_length, int) and not isinstance(string_length, bool):
+                payload["literal_string_length"] = string_length
+
+        if node_type == "CALL":
+            call_target = (
+                d.get("call_name")
+                or d.get("name")
+                or n.get("name")
+                or d.get("method_full_name")
+            )
+            if call_target:
+                payload["call_target"] = norm(str(call_target))
+
+        argument_index = d.get("argument_index")
+        if argument_index is not None:
+            try:
+                payload["argument_index"] = int(argument_index)
+            except (TypeError, ValueError, OverflowError):
+                payload["argument_index"] = str(argument_index)
+
+        for key in (
+            "memory_capacity",
+            "memory_capacity_elements",
+            "element_count",
+            "length",
+        ):
+            value = d.get(key)
+            if isinstance(value, (int, float)) and not isinstance(value, bool):
+                payload[key] = value
+
+        if d.get("capacity_unit") is not None:
+            payload["capacity_unit"] = norm(str(d["capacity_unit"])).upper()
+
+        range_value = d.get("range")
+        range_lower = (
+            _num(range_value.get("lower")) if isinstance(range_value, dict) else None
+        )
+        range_upper = (
+            _num(range_value.get("upper")) if isinstance(range_value, dict) else None
+        )
+
+        if range_lower is None or range_upper is None or range_lower > range_upper:
+            range_value = n.properties.get("range")
+            range_lower = (
+                _num(range_value.get("lower"))
+                if isinstance(range_value, dict)
+                else None
+            )
+            range_upper = (
+                _num(range_value.get("upper"))
+                if isinstance(range_value, dict)
+                else None
+            )
+
+        if (
+            isinstance(range_value, dict)
+            and range_lower is not None
+            and range_upper is not None
+            and range_lower <= range_upper
+        ):
+            range_proof = (
+                str(range_value.get("proof", "EXPLICIT_RANGE")).strip().upper()
+            )
+            payload["numeric_range"] = {
+                "lower": range_lower,
+                "upper": range_upper,
+                "proof": range_proof or "EXPLICIT_RANGE",
+            }
+
         colors[n.id] = hashlib.sha256(stable_json(payload).encode()).hexdigest()
     adjacency: dict[str, list[tuple[str, str, str]]] = defaultdict(list)
     for e in g.edges:
@@ -210,7 +306,7 @@ def semantic_graph_fingerprint(graph: Graph) -> str:
             payload = {"self": color, "neighbors": neigh}
             nxt[nid] = hashlib.sha256(stable_json(payload).encode()).hexdigest()
         colors = nxt
-    # Refined colors and edge-role counts preserve structure without depending on parser IDs.
+
     edge_sig = Counter(
         (
             str(e.source in colors),
@@ -224,9 +320,51 @@ def semantic_graph_fingerprint(graph: Graph) -> str:
         for e in g.edges
     )
     node_sig = Counter(colors.values())
+    completeness = (
+        g.metadata.get("analysis_completeness")
+        or g.metadata.get("completeness_manifest")
+        or {}
+    )
+    manifest_supplied = (
+        "analysis_completeness" in g.metadata
+        or "completeness_manifest" in g.metadata
+    )
+    if g.metadata.get("analysis_completeness_invalid"):
+        completeness = {"manifest": "INVALID"}
+    elif not isinstance(completeness, dict):
+        completeness = {"manifest": "INVALID"}
+    elif not completeness and manifest_supplied:
+        completeness = {"manifest": "UNKNOWN"}
+    elif not completeness:
+        declared = str(g.metadata.get("completeness", "declared")).strip().lower()
+        graph_state = (
+            "COMPLETE" if declared in {"full_export", "declared"} else "PARTIAL"
+        )
+        completeness = {
+            "graph": graph_state,
+            "nodes": "COMPLETE",
+            "edges": "COMPLETE",
+            "dataflow": "UNKNOWN",
+            "control_flow": "UNKNOWN",
+            "object_identity": "UNKNOWN",
+            "numeric_range": "UNKNOWN",
+            "interprocedural": "UNKNOWN",
+        }
+
+    completeness_signature = sorted(
+        (
+            str(key).strip().lower(),
+            str(value).strip().upper(),
+        )
+        for key, value in completeness.items()
+    )
+    parse_health = str(g.metadata.get("parse_health", "UNKNOWN")).strip().upper()
+
     payload = {
         "nodes": sorted(node_sig.items()),
         "edges": sorted((stable_json(k), v) for k, v in edge_sig.items()),
+        "analysis_completeness": completeness_signature,
+        "parse_health": parse_health,
     }
     return hashlib.sha256(stable_json(payload).encode("utf-8")).hexdigest()
 
@@ -240,7 +378,7 @@ def semantic_diversity(graphs: list[Graph]) -> dict[str, Any]:
         "graphs": n,
         "unique_semantic_graphs": unique,
         "semantic_duplicate_rate": round(duplicate_rate, 6),
-        "semantic_fingerprint_algorithm": "canonical-node/edge semantic aggregate sha256 v1",
+        "semantic_fingerprint_algorithm": SEMANTIC_FINGERPRINT_ALGORITHM,
         "effective_semantic_independence_ratio": round(unique / n, 6) if n else 0.0,
     }
 
@@ -256,8 +394,12 @@ def canonical_validation(graph: Graph) -> dict[str, Any]:
     if not graph.metadata.get("semantic_layer"):
         errors.append("semantic_layer is missing")
     completeness = graph.metadata.get("analysis_completeness")
-    if not isinstance(completeness, dict):
-        errors.append("analysis_completeness manifest is missing")
+    if (
+        not isinstance(completeness, dict)
+        or not completeness
+        or graph.metadata.get("analysis_completeness_invalid")
+    ):
+        errors.append("analysis_completeness manifest is missing or invalid")
     return {
         "status": "PASS" if not errors else "FAIL",
         "errors": errors,

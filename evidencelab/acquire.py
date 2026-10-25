@@ -34,40 +34,43 @@ def fetch(
             **({"Range": f"bytes={start}-"} if start else {}),
         },
     )
-    mode = "ab" if start else "wb"
     started = time.time()
     try:
-        with urlopen(req, timeout=timeout) as resp, tmp.open(mode) as f:
+        with urlopen(req, timeout=timeout) as resp:
+            response_status = getattr(resp, "status", 200)
+            append = bool(start and response_status == 206)
+            if append:
+                content_range = resp.headers.get("Content-Range", "")
+                if not content_range.lower().startswith(f"bytes {start}-"):
+                    tmp.unlink(missing_ok=True)
+                    raise ValueError("INVALID_CONTENT_RANGE_FOR_RESUME")
+            elif response_status == 206:
+                tmp.unlink(missing_ok=True)
+                raise ValueError("UNEXPECTED_PARTIAL_RESPONSE")
+            else:
+                start = 0
             content_length = resp.headers.get("Content-Length")
+            expected_total = (
+                start + int(content_length)
+                if append and content_length is not None
+                else (int(content_length) if content_length is not None else None)
+            )
             if (
                 max_bytes is not None
-                and content_length is not None
-                and start + int(content_length) > int(max_bytes)
+                and expected_total is not None
+                and expected_total > int(max_bytes)
             ):
                 return {
                     "status": "FAIL",
                     "error": "DOWNLOAD_EXCEEDS_MAX_BYTES",
                     "max_bytes": int(max_bytes),
-                    "declared_bytes": start + int(content_length),
+                    "declared_bytes": expected_total,
                     "url": url,
                     "out": str(dst),
                 }
+            mode = "ab" if append else "wb"
             downloaded = start
-            if start and getattr(resp, "status", 206) != 206:
-                f.close()
-                tmp.unlink(missing_ok=True)
-                start = 0
-                req = Request(url, headers={"User-Agent": USER_AGENT})
-                with urlopen(req, timeout=timeout) as resp2, tmp.open("wb") as f2:
-                    while True:
-                        chunk = resp2.read(1024 * 1024)
-                        if not chunk:
-                            break
-                        downloaded += len(chunk)
-                        if max_bytes is not None and downloaded > int(max_bytes):
-                            raise ValueError("DOWNLOAD_EXCEEDS_MAX_BYTES")
-                        f2.write(chunk)
-            else:
+            with tmp.open(mode) as f:
                 while True:
                     chunk = resp.read(1024 * 1024)
                     if not chunk:
@@ -101,6 +104,7 @@ def fetch(
         "out": str(dst),
         "bytes": dst.stat().st_size,
         "sha256": digest,
+        "resumed": bool(resume and start),
         "elapsed_seconds": round(time.time() - started, 3),
     }
 
@@ -177,8 +181,7 @@ def fetch_registry_dataset(
         or selected.get("download_url")
         or selected.get("url")
     )
-    # For artifact entries, registry uses `url`; for single-file legacy entries,
-    # `download_url` is accepted. Landing pages are intentionally rejected.
+
     if artifact_id is not None and selected.get("kind"):
         url = selected.get("url") or selected.get("download_url")
     if not url or not str(url).startswith(("http://", "https://")):
@@ -197,8 +200,7 @@ def fetch_registry_dataset(
             "dataset_id": dataset_id,
             "artifact_id": artifact_id,
         }
-    # Keep the historical five-argument fetch call for the default cap so existing
-    # integrations/mocks remain source-compatible; explicit caps use the hardened path.
+
     if max_bytes == 8 * 1024**3:
         result = fetch(str(url), out, str(expected_sha), timeout, resume)
     else:

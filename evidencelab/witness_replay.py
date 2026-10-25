@@ -25,7 +25,7 @@ class WitnessReplay:
     """
 
     def __init__(self, graph: Graph, pattern: Pattern):
-        # Preserve artifact identity while deriving the canonical properties used by matching.
+
         self.raw_graph_digest = graph.digest()
         self.graph = canonicalize_graph(graph)
         self.pattern = pattern
@@ -130,7 +130,7 @@ class WitnessReplay:
                     "upper": hi,
                     "proof": value.get("proof", "EXPLICIT"),
                 }
-        # Keep replay independent of candidate enumeration and support top-level or nested derived values.
+
         direct = None
         if isinstance(node.properties, dict):
             direct = node.properties.get(prop)
@@ -152,7 +152,7 @@ class WitnessReplay:
                 }
         if isinstance(direct, (int, float)) and not isinstance(direct, bool):
             return {"lower": direct, "upper": direct, "proof": "EXACT_PROPERTY"}
-        # Use canonical semantic derivation as the fallback for numeric and range values.
+
         r = node_value_range(self.graph, node.id)
         if r:
             return r
@@ -385,9 +385,7 @@ class WitnessReplay:
                 and not c.edge_equals
                 and not c.edge_any_of
             ):
-                call_proof = same_object_call_binding_proof(
-                    self.graph, src, dst
-                )
+                call_proof = same_object_call_binding_proof(self.graph, src, dst)
                 if call_proof is not None:
                     return {
                         "status": "PROVEN",

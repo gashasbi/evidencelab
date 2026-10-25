@@ -78,7 +78,6 @@ def validation_to_sarif(report: dict[str, Any]) -> dict[str, Any]:
             },
         }
         if locs:
-            # Keep at most a few representative locations per SARIF result.
             item["locations"] = locs[:5]
         results.append(item)
 

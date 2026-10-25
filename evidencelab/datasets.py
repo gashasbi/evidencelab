@@ -65,7 +65,7 @@ def _target_label(value: Any) -> str:
 
 
 def _read_rows(path: Path) -> list[dict[str, Any]]:
-    text = path.read_text(encoding="utf-8-sig", errors="replace")
+
     if path.suffix.lower() == ".parquet":
         try:
             import pyarrow.parquet as pq
@@ -75,6 +75,8 @@ def _read_rows(path: Path) -> list[dict[str, Any]]:
             ) from exc
         table = pq.read_table(path)
         return [dict(x) for x in table.to_pylist()]
+
+    text = path.read_text(encoding="utf-8-sig", errors="replace")
     if path.suffix.lower() == ".json":
         raw = json.loads(text)
         rows = (
@@ -291,7 +293,7 @@ def import_sard_table(
                 rec["dataset"]["source_path_warning"] = (
                     "source escaped declared source_root"
                 )
-        # Preserve original fields instead of dropping useful SARD metadata.
+
         rec["dataset"]["original_fields"] = row
         cases.append(rec)
     return _write_manifest(
@@ -356,9 +358,8 @@ def import_primevul_jsonl(
                 else ".cpp"
             )
             file = outsrc / f"{stem}{extension}"
-            file.write_text(
-                func + ("\n" if not func.endswith("\n") else ""), encoding="utf-8"
-            )
+
+            file.write_bytes(func.encode("utf-8"))
             cve = _primevul_value(row, "CVE ID", "cve", "CVE", "cve_id")
             commit_url = _primevul_value(row, "commit_url", "commitURL", "commit_link")
             repo_url = _primevul_value(row, "project_url", "repo_url", "repository_url")
@@ -513,9 +514,8 @@ def import_secvuleval_jsonl(
         language = str(_primevul_value(row, "language", "lang") or "").lower()
         extension = ".c" if language == "c" else ".cpp"
         file = outsrc / f"{stem}{extension}"
-        file.write_text(
-            code + ("\n" if not code.endswith("\n") else ""), encoding="utf-8"
-        )
+
+        file.write_bytes(code.encode("utf-8"))
         tags = ["real_corpus", "secvuleval", "real_world"] + (
             ["positive"]
             if expected == "MATCH"

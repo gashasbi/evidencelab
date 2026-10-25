@@ -1,0 +1,70 @@
+id,cwe,family,title,label,file,intent
+CWE-121-stack-buffer-overflow-V01_unbounded_copy,CWE-121,stack-buffer-overflow,Stack-based Buffer Overflow,VULN,samples/stack-buffer-overflow/vuln/V01_unbounded_copy.c,Unbounded copy into a fixed-size stack buffer.
+CWE-121-stack-buffer-overflow-S01_bounded_copy,CWE-121,stack-buffer-overflow,Stack-based Buffer Overflow,SAFE,samples/stack-buffer-overflow/safe/S01_bounded_copy.c,"Rejects input that cannot fit, including the terminator."
+CWE-121-stack-buffer-overflow-U01_external_capacity,CWE-121,stack-buffer-overflow,Stack-based Buffer Overflow,UNKNOWN,samples/stack-buffer-overflow/unknown/U01_external_capacity.c,Safety depends on external capacity and function contracts.
+CWE-122-heap-buffer-overflow-V01_heap_copy,CWE-122,heap-buffer-overflow,Heap-based Buffer Overflow,VULN,samples/heap-buffer-overflow/vuln/V01_heap_copy.c,Unbounded copy into a small heap allocation.
+CWE-122-heap-buffer-overflow-S01_sized_allocation,CWE-122,heap-buffer-overflow,Heap-based Buffer Overflow,SAFE,samples/heap-buffer-overflow/safe/S01_sized_allocation.c,Allocates enough space for the input and terminator.
+CWE-122-heap-buffer-overflow-U01_hidden_extent,CWE-122,heap-buffer-overflow,Heap-based Buffer Overflow,UNKNOWN,samples/heap-buffer-overflow/unknown/U01_hidden_extent.c,Pointer-only API hides destination capacity.
+CWE-120-classic-buffer-overflow-V01_unbounded_read,CWE-120,classic-buffer-overflow,Classic Buffer Overflow,VULN,samples/classic-buffer-overflow/vuln/V01_unbounded_read.c,Read length can exceed the destination buffer.
+CWE-120-classic-buffer-overflow-S01_bounded_read,CWE-120,classic-buffer-overflow,Classic Buffer Overflow,SAFE,samples/classic-buffer-overflow/safe/S01_bounded_read.c,Read is capped at the destination size.
+CWE-120-classic-buffer-overflow-U01_contract_read,CWE-120,classic-buffer-overflow,Classic Buffer Overflow,UNKNOWN,samples/classic-buffer-overflow/unknown/U01_contract_read.c,Actual storage size is not visible.
+CWE-125-out-of-bounds-read-V01_unchecked_index,CWE-125,out-of-bounds-read,Out-of-bounds Read,VULN,samples/out-of-bounds-read/vuln/V01_unchecked_index.c,Array index is not validated.
+CWE-125-out-of-bounds-read-S01_checked_index,CWE-125,out-of-bounds-read,Out-of-bounds Read,SAFE,samples/out-of-bounds-read/safe/S01_checked_index.c,Pointer and index are checked before reading.
+CWE-125-out-of-bounds-read-U01_external_count,CWE-125,out-of-bounds-read,Out-of-bounds Read,UNKNOWN,samples/out-of-bounds-read/unknown/U01_external_count.c,The buffer extent and index contract are missing.
+CWE-787-out-of-bounds-write-V01_unchecked_write,CWE-787,out-of-bounds-write,Out-of-bounds Write,VULN,samples/out-of-bounds-write/vuln/V01_unchecked_write.c,Input-controlled index is written without bounds checks.
+CWE-787-out-of-bounds-write-S01_checked_write,CWE-787,out-of-bounds-write,Out-of-bounds Write,SAFE,samples/out-of-bounds-write/safe/S01_checked_write.c,Validates pointer and index before writing.
+CWE-787-out-of-bounds-write-U01_hidden_extent,CWE-787,out-of-bounds-write,Out-of-bounds Write,UNKNOWN,samples/out-of-bounds-write/unknown/U01_hidden_extent.c,Destination capacity is hidden behind an external API.
+CWE-190-integer-overflow-V01_allocation_multiply,CWE-190,integer-overflow,Integer Overflow,VULN,samples/integer-overflow/vuln/V01_allocation_multiply.c,Allocation-size multiplication may overflow.
+CWE-190-integer-overflow-S01_checked_multiply,CWE-190,integer-overflow,Integer Overflow,SAFE,samples/integer-overflow/safe/S01_checked_multiply.c,Checks multiplication bounds before allocating.
+CWE-190-integer-overflow-U01_range_contract,CWE-190,integer-overflow,Integer Overflow,UNKNOWN,samples/integer-overflow/unknown/U01_range_contract.c,Safety depends on an absent range contract.
+CWE-191-integer-underflow-V01_unsigned_subtraction,CWE-191,integer-underflow,Integer Underflow,VULN,samples/integer-underflow/vuln/V01_unsigned_subtraction.c,Unsigned subtraction may wrap.
+CWE-191-integer-underflow-S01_guarded_subtraction,CWE-191,integer-underflow,Integer Underflow,SAFE,samples/integer-underflow/safe/S01_guarded_subtraction.c,Checks the subtraction precondition.
+CWE-191-integer-underflow-U01_external_capacity,CWE-191,integer-underflow,Integer Underflow,UNKNOWN,samples/integer-underflow/unknown/U01_external_capacity.c,The relation between capacity and used length is unknown.
+CWE-369-divide-by-zero-V01_unchecked_divisor,CWE-369,divide-by-zero,Divide by Zero,VULN,samples/divide-by-zero/vuln/V01_unchecked_divisor.c,Divisor is not checked.
+CWE-369-divide-by-zero-S01_checked_divisor,CWE-369,divide-by-zero,Divide by Zero,SAFE,samples/divide-by-zero/safe/S01_checked_divisor.c,Rejects a zero divisor.
+CWE-369-divide-by-zero-U01_divisor_contract,CWE-369,divide-by-zero,Divide by Zero,UNKNOWN,samples/divide-by-zero/unknown/U01_divisor_contract.c,Safety depends on the external function contract.
+CWE-476-null-pointer-dereference-V01_unchecked_malloc,CWE-476,null-pointer-dereference,NULL Pointer Dereference,VULN,samples/null-pointer-dereference/vuln/V01_unchecked_malloc.c,Dereferences a possibly NULL allocation result.
+CWE-476-null-pointer-dereference-S01_checked_malloc,CWE-476,null-pointer-dereference,NULL Pointer Dereference,SAFE,samples/null-pointer-dereference/safe/S01_checked_malloc.c,Checks allocation before dereference.
+CWE-476-null-pointer-dereference-U01_nonnull_contract,CWE-476,null-pointer-dereference,NULL Pointer Dereference,UNKNOWN,samples/null-pointer-dereference/unknown/U01_nonnull_contract.c,Pointer validity depends on an external contract.
+CWE-415-double-free-V01_double_free,CWE-415,double-free,Double Free,VULN,samples/double-free/vuln/V01_double_free.c,Frees the same allocation twice.
+CWE-415-double-free-S01_single_release,CWE-415,double-free,Double Free,SAFE,samples/double-free/safe/S01_single_release.c,Clears the pointer after release.
+CWE-415-double-free-U01_alias_ownership,CWE-415,double-free,Double Free,UNKNOWN,samples/double-free/unknown/U01_alias_ownership.c,Ownership and pointer aliasing are unknown.
+CWE-416-use-after-free-V01_dereference_after_free,CWE-416,use-after-free,Use After Free,VULN,samples/use-after-free/vuln/V01_dereference_after_free.c,Reads an object after freeing it.
+CWE-416-use-after-free-S01_use_before_free,CWE-416,use-after-free,Use After Free,SAFE,samples/use-after-free/safe/S01_use_before_free.c,Uses the object before releasing it.
+CWE-416-use-after-free-U01_borrowed_pointer,CWE-416,use-after-free,Use After Free,UNKNOWN,samples/use-after-free/unknown/U01_borrowed_pointer.c,Lifetime of an externally borrowed pointer is unspecified.
+CWE-401-memory-leak-V01_error_path_leak,CWE-401,memory-leak,Memory Leak,VULN,samples/memory-leak/vuln/V01_error_path_leak.c,Early return leaks an allocation.
+CWE-401-memory-leak-S01_cleanup_paths,CWE-401,memory-leak,Memory Leak,SAFE,samples/memory-leak/safe/S01_cleanup_paths.c,Releases memory on both paths.
+CWE-401-memory-leak-U01_transferred_ownership,CWE-401,memory-leak,Memory Leak,UNKNOWN,samples/memory-leak/unknown/U01_transferred_ownership.c,Ownership transfer depends on an external contract.
+CWE-134-format-string-V01_user_format,CWE-134,format-string,Uncontrolled Format String,VULN,samples/format-string/vuln/V01_user_format.c,Untrusted input is used as a format string.
+CWE-134-format-string-S01_constant_format,CWE-134,format-string,Uncontrolled Format String,SAFE,samples/format-string/safe/S01_constant_format.c,Uses a constant format string.
+CWE-134-format-string-U01_logging_wrapper,CWE-134,format-string,Uncontrolled Format String,UNKNOWN,samples/format-string/unknown/U01_logging_wrapper.c,Logging wrapper behavior is unknown.
+CWE-78-command-injection-V01_shell_command,CWE-78,command-injection,OS Command Injection,VULN,samples/command-injection/vuln/V01_shell_command.c,Untrusted input is concatenated into a shell command.
+CWE-78-command-injection-S01_no_shell,CWE-78,command-injection,OS Command Injection,SAFE,samples/command-injection/safe/S01_no_shell.c,Uses an argument vector rather than a shell command string.
+CWE-78-command-injection-U01_command_wrapper,CWE-78,command-injection,OS Command Injection,UNKNOWN,samples/command-injection/unknown/U01_command_wrapper.c,Command wrapper implementation is unavailable.
+CWE-22-path-traversal-V01_unchecked_path,CWE-22,path-traversal,Path Traversal,VULN,samples/path-traversal/vuln/V01_unchecked_path.c,Untrusted path is joined without containment validation.
+CWE-22-path-traversal-S01_reject_traversal,CWE-22,path-traversal,Path Traversal,SAFE,samples/path-traversal/safe/S01_reject_traversal.c,Rejects obvious traversal forms; not a complete filesystem proof.
+CWE-22-path-traversal-U01_filesystem_contract,CWE-22,path-traversal,Path Traversal,UNKNOWN,samples/path-traversal/unknown/U01_filesystem_contract.c,Containment depends on an external filesystem API.
+CWE-362-race-condition-V01_check_then_open,CWE-362,race-condition,Race Condition / TOCTOU,VULN,samples/race-condition/vuln/V01_check_then_open.c,Checks a pathname before a separate open operation.
+CWE-362-race-condition-S01_mutex_protected,CWE-362,race-condition,Race Condition / TOCTOU,SAFE,samples/race-condition/safe/S01_mutex_protected.c,Protects a shared counter with a mutex.
+CWE-362-race-condition-U01_external_synchronization,CWE-362,race-condition,Race Condition / TOCTOU,UNKNOWN,samples/race-condition/unknown/U01_external_synchronization.c,Synchronization may exist outside the snippet.
+CWE-252-unchecked-return-value-V01_ignored_read_result,CWE-252,unchecked-return-value,Unchecked Return Value,VULN,samples/unchecked-return-value/vuln/V01_ignored_read_result.c,Uses a buffer without validating how many bytes were read.
+CWE-252-unchecked-return-value-S01_checked_read_result,CWE-252,unchecked-return-value,Unchecked Return Value,SAFE,samples/unchecked-return-value/safe/S01_checked_read_result.c,Processes only the bytes reported by the read operation.
+CWE-252-unchecked-return-value-U01_external_result,CWE-252,unchecked-return-value,Unchecked Return Value,UNKNOWN,samples/unchecked-return-value/unknown/U01_external_result.c,The return-value contract is missing.
+CWE-327-weak-cryptography-V01_fast_password_hash,CWE-327,weak-cryptography,Weak Cryptography,VULN,samples/weak-cryptography/vuln/V01_fast_password_hash.c,Uses a fast general-purpose hash for a password-storage scenario.
+CWE-327-weak-cryptography-S01_password_hash_api,CWE-327,weak-cryptography,Weak Cryptography,SAFE,samples/weak-cryptography/safe/S01_password_hash_api.c,Delegates to a dedicated password-hashing API; implementation must be reviewed.
+CWE-327-weak-cryptography-U01_crypto_provider,CWE-327,weak-cryptography,Weak Cryptography,UNKNOWN,samples/weak-cryptography/unknown/U01_crypto_provider.c,Security depends on the external cryptographic provider.
+CWE-330-insufficient-randomness-V01_predictable_token,CWE-330,insufficient-randomness,Insufficient Randomness,VULN,samples/insufficient-randomness/vuln/V01_predictable_token.c,Uses a predictable pseudo-random generator for token material.
+CWE-330-insufficient-randomness-S01_os_random,CWE-330,insufficient-randomness,Insufficient Randomness,SAFE,samples/insufficient-randomness/safe/S01_os_random.c,Uses an operating-system randomness API; error handling is explicit.
+CWE-330-insufficient-randomness-U01_random_wrapper,CWE-330,insufficient-randomness,Insufficient Randomness,UNKNOWN,samples/insufficient-randomness/unknown/U01_random_wrapper.c,Randomness quality depends on an external wrapper.
+CWE-798-hardcoded-credentials-V01_embedded_password,CWE-798,hardcoded-credentials,Hard-coded Credentials,VULN,samples/hardcoded-credentials/vuln/V01_embedded_password.c,Contains a hard-coded credential used for authentication.
+CWE-798-hardcoded-credentials-S01_external_secret,CWE-798,hardcoded-credentials,Hard-coded Credentials,SAFE,samples/hardcoded-credentials/safe/S01_external_secret.c,Loads a secret from configuration instead of embedding it.
+CWE-798-hardcoded-credentials-U01_secret_provider,CWE-798,hardcoded-credentials,Hard-coded Credentials,UNKNOWN,samples/hardcoded-credentials/unknown/U01_secret_provider.c,Secret storage and verification depend on an external provider.
+CWE-117-log-injection-V01_untrusted_log,CWE-117,log-injection,Log Injection,VULN,samples/log-injection/vuln/V01_untrusted_log.c,Untrusted line breaks may forge log entries.
+CWE-117-log-injection-S01_structured_log,CWE-117,log-injection,Log Injection,SAFE,samples/log-injection/safe/S01_structured_log.c,"Uses a structured logging interface, subject to its contract."
+CWE-117-log-injection-U01_log_sink,CWE-117,log-injection,Log Injection,UNKNOWN,samples/log-injection/unknown/U01_log_sink.c,Logging sink behavior is unavailable.
+CWE-667-improper-locking-V01_missing_unlock,CWE-667,improper-locking,Improper Locking,VULN,samples/improper-locking/vuln/V01_missing_unlock.c,An error path returns while holding a mutex.
+CWE-667-improper-locking-S01_unlock_all_paths,CWE-667,improper-locking,Improper Locking,SAFE,samples/improper-locking/safe/S01_unlock_all_paths.c,Unlocks on both paths.
+CWE-667-improper-locking-U01_caller_lock,CWE-667,improper-locking,Improper Locking,UNKNOWN,samples/improper-locking/unknown/U01_caller_lock.c,Lock preconditions depend on the external function.
+CWE-704-incorrect-type-conversion-V01_signed_to_unsigned,CWE-704,incorrect-type-conversion,Incorrect Type Conversion,VULN,samples/incorrect-type-conversion/vuln/V01_signed_to_unsigned.c,Negative signed value is converted to an unsigned size.
+CWE-704-incorrect-type-conversion-S01_check_before_cast,CWE-704,incorrect-type-conversion,Incorrect Type Conversion,SAFE,samples/incorrect-type-conversion/safe/S01_check_before_cast.c,Rejects negative values before conversion.
+CWE-704-incorrect-type-conversion-U01_platform_width,CWE-704,incorrect-type-conversion,Incorrect Type Conversion,UNKNOWN,samples/incorrect-type-conversion/unknown/U01_platform_width.c,Safety depends on source range and target type width.

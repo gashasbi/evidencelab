@@ -114,8 +114,6 @@ def audit_research_package(
         if not bench.is_file():
             errors.append(f"{family.name}: benchmark.json missing")
         else:
-            # Package audit is structural; publication dimension requirements belong to the
-            # caller/profile evaluation and must not leak into development/package discovery.
             ba = audit_benchmark_manifest(
                 bench, pattern, strict=False, required_dimensions=set()
             )

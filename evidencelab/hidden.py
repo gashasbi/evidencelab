@@ -8,6 +8,58 @@ from . import SCHEMA_VERSION
 
 SUPPORTED_HIDDEN_SCHEMA_VERSIONS = {SCHEMA_VERSION}
 
+_SENSITIVE_HIDDEN_KEYS = {
+    "source",
+    "sourcemetadata",
+    "sourcetext",
+    "sourcecode",
+    "rawsource",
+    "rawrecord",
+    "rawrecords",
+    "record",
+    "records",
+    "sourcefile",
+    "sourceroot",
+    "localpath",
+    "filepath",
+    "absolutepath",
+    "checkoutpath",
+    "root",
+    "sourcepath",
+    "localdirectory",
+    "workspacepath",
+    "repositorypath",
+}
+
+
+def _redact_hidden_value(value: Any) -> Any:
+    if isinstance(value, dict):
+        return {
+            key: _redact_hidden_value(item)
+            for key, item in value.items()
+            if "".join(ch for ch in str(key).lower() if ch.isalnum())
+            not in _SENSITIVE_HIDDEN_KEYS
+        }
+    if isinstance(value, list):
+        return [_redact_hidden_value(item) for item in value]
+    return value
+
+
+def _hidden_sensitive_paths(value: Any, path: str = "") -> list[str]:
+    found: list[str] = []
+    if isinstance(value, dict):
+        for key, item in value.items():
+            child = f"{path}.{key}" if path else str(key)
+            normalized = "".join(ch for ch in str(key).lower() if ch.isalnum())
+            if normalized in _SENSITIVE_HIDDEN_KEYS:
+                found.append(child)
+            else:
+                found.extend(_hidden_sensitive_paths(item, child))
+    elif isinstance(value, list):
+        for index, item in enumerate(value):
+            found.extend(_hidden_sensitive_paths(item, f"{path}[{index}]"))
+    return found
+
 
 def _safe(base: Path, rel: str) -> Path:
     p = (base / rel).resolve()
@@ -64,11 +116,11 @@ def seal_hidden_benchmark(
         name = hashlib.sha256((cid + "|" + digest).encode()).hexdigest()[:28] + ".json"
         out_graph = graph_dir / name
         shutil.copy2(gp, out_graph)
-        clone = json.loads(json.dumps(case))
+        clone = _redact_hidden_value(json.loads(json.dumps(case)))
         clone["partition"] = "hidden"
         clone["graph"] = str(out_graph.relative_to(dst))
         clone["graph_sha256"] = sha256_file(out_graph)
-        # Do not leak source text, local source paths or raw dataset records through the hidden bundle.
+
         clone.pop("source_metadata", None)
         clone.pop("source", None)
         ds = clone.get("dataset")
@@ -78,7 +130,7 @@ def seal_hidden_benchmark(
         cases.append(clone)
     if not cases:
         raise ValueError("hidden benchmark must contain at least one case")
-    manifest = dict(raw)
+    manifest = _redact_hidden_value(dict(raw))
     manifest.update(
         {
             "schema_version": SCHEMA_VERSION,
@@ -167,18 +219,36 @@ def verify_hidden_bundle(
             "errors": [f"invalid hidden JSON: {exc}"],
             "hmac_present": False,
         }
+    if not isinstance(seal, dict) or not isinstance(manifest, dict):
+        return {
+            "status": "FAIL",
+            "errors": ["hidden seal and benchmark manifest must be JSON objects"],
+            "hmac_present": False,
+        }
+    raw_cases = manifest.get("cases", [])
+    if not isinstance(raw_cases, list):
+        errors.append("hidden benchmark cases must be a list")
+        raw_cases = []
     if str(manifest.get("schema_version")) not in SUPPORTED_HIDDEN_SCHEMA_VERSIONS:
         errors.append("unsupported hidden benchmark schema_version")
     if manifest.get("partition") != "hidden":
         errors.append("hidden benchmark partition must be hidden")
     if seal.get("format") != "evidencelab-hidden-seal":
         errors.append("invalid hidden seal format")
-    if int(seal.get("case_count", -1)) != len(manifest.get("cases", [])):
+    try:
+        declared_case_count = int(seal.get("case_count", -1))
+    except (TypeError, ValueError):
+        declared_case_count = -1
+        errors.append("hidden seal case_count is invalid")
+    if declared_case_count != len(raw_cases):
         errors.append("hidden seal case_count mismatch")
     if require_external_origin and seal.get("origin") != "external-evaluator":
         errors.append("hidden bundle origin is not external-evaluator")
-    if require_hmac and not seal.get("hmac_sha256"):
-        errors.append("HMAC seal required but bundle has no hmac_sha256")
+    effective_hmac_required = bool(require_hmac or seal.get("hmac_required"))
+    if effective_hmac_required and not seal.get("hmac_sha256"):
+        errors.append(
+            "HMAC seal required by caller or seal policy but bundle has no hmac_sha256"
+        )
     actual = sha256_file(mp)
     if actual != seal.get("benchmark_sha256"):
         errors.append("benchmark sha256 mismatch")
@@ -187,19 +257,30 @@ def verify_hidden_bundle(
     ids = set()
     referenced_graphs = set()
     seen_graph_digests: dict[str, str] = {}
-    for case in manifest.get("cases", []):
+    for case in raw_cases:
+        if not isinstance(case, dict):
+            errors.append("hidden benchmark case entry must be an object")
+            continue
         cid = str(case.get("id", ""))
         if not cid or cid in ids:
             errors.append(f"duplicate/empty hidden case id: {cid or '<empty>'}")
         ids.add(cid)
         if case.get("partition") != "hidden":
             errors.append(f"hidden case not marked hidden: {cid}")
-        if "source_metadata" in case or "source" in case:
-            errors.append(f"hidden source metadata leakage: {cid}")
-        gp = _safe(root, str(case.get("graph", "")))
+        leaked_fields = _hidden_sensitive_paths(case)
+        if leaked_fields:
+            errors.append(
+                f"hidden source metadata leakage: {cid}: {', '.join(leaked_fields[:10])}"
+            )
+        graph_ref = str(case.get("graph", ""))
+        try:
+            gp = _safe(root, graph_ref)
+        except (OSError, RuntimeError, ValueError) as exc:
+            errors.append(f"invalid hidden graph path for {cid}: {exc}")
+            continue
         referenced_graphs.add(gp.resolve())
         if not gp.is_file():
-            errors.append(f"missing hidden graph: {case.get('graph')}")
+            errors.append(f"missing hidden graph: {graph_ref}")
             continue
         actual_graph_digest = sha256_file(gp)
         if case.get("graph_sha256") and actual_graph_digest != case["graph_sha256"]:
@@ -213,7 +294,12 @@ def verify_hidden_bundle(
     actual_graph_files = (
         {x.resolve() for x in graphs.glob("*.json")} if graphs.is_dir() else set()
     )
-    if int(seal.get("graph_count", -1)) != len(actual_graph_files):
+    try:
+        declared_graph_count = int(seal.get("graph_count", -1))
+    except (TypeError, ValueError):
+        declared_graph_count = -1
+        errors.append("hidden seal graph_count is invalid")
+    if declared_graph_count != len(actual_graph_files):
         errors.append("hidden seal graph_count mismatch")
     if actual_graph_files != referenced_graphs:
         extras = sorted(
@@ -237,6 +323,12 @@ def verify_hidden_bundle(
     )
     if expected_bundle and expected_bundle != actual_bundle:
         errors.append("hidden bundle sha256 mismatch")
+    manifest_leaks = _hidden_sensitive_paths(manifest)
+    if manifest_leaks:
+        errors.append(
+            "hidden manifest contains sensitive metadata fields: "
+            + ", ".join(manifest_leaks[:10])
+        )
     kb = _key_bytes(key)
     hmac_present = bool(seal.get("hmac_sha256"))
     if hmac_present:
@@ -253,9 +345,9 @@ def verify_hidden_bundle(
     return {
         "status": "PASS" if not errors else "FAIL",
         "errors": errors,
-        "case_count": len(manifest.get("cases", [])),
+        "case_count": len(raw_cases),
         "bundle_sha256": actual_bundle,
         "hmac_present": hmac_present,
         "origin": seal.get("origin"),
-        "hmac_required": bool(seal.get("hmac_required") or require_hmac),
+        "hmac_required": effective_hmac_required,
     }

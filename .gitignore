@@ -43,3 +43,5 @@ Thumbs.db
 # Secrets/local configuration
 .env
 .env.*
+
+workspace/

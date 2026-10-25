@@ -217,3 +217,488 @@ def test_symbolic_range_witness_replays_independently():
     )
     assert r["status"] == "PASS", r
     assert r["passed_cases"] == 2
+
+
+def test_semantic_diversity_reports_unreadable_graphs(tmp_path):
+    import json
+
+    manifest = {
+        "schema_version": "1.0",
+        "format": "evidencelab-benchmark",
+        "manifest_id": "semantic-diversity-regression",
+        "cases": [
+            {
+                "id": "missing-graph",
+                "expected": "UNKNOWN",
+                "graph": "graphs/missing.json",
+            },
+            {
+                "id": "no-graph",
+                "expected": "UNKNOWN",
+            },
+        ],
+    }
+    path = tmp_path / "benchmark.json"
+    path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    result = quality_audit(path)
+    diversity = result["semantic_diversity"]
+
+    assert diversity["graph_count"] == 0
+    assert diversity["effective_semantic_sample_size"] == 0
+    assert diversity.get("graph_errors"), (
+        "Unreadable graph files must be reported, not silently skipped"
+    )
+    assert any(
+        error.get("case_id") == "missing-graph" for error in diversity["graph_errors"]
+    )
+
+
+def test_semantic_diversity_excludes_invalid_graphs(tmp_path):
+    import json
+    from evidencelab.benchmark_quality import _semantic_diversity
+
+    manifest = {
+        "schema_version": "1.0",
+        "format": "evidencelab-benchmark",
+        "manifest_id": "invalid-semantic-graph",
+        "cases": [
+            {"id": "empty", "expected": "UNKNOWN", "graph": "graphs/empty.json"},
+        ],
+    }
+    graphs = tmp_path / "graphs"
+    graphs.mkdir()
+    (graphs / "empty.json").write_text(
+        json.dumps({"nodes": [], "edges": []}), encoding="utf-8"
+    )
+    path = tmp_path / "benchmark.json"
+    path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    result = _semantic_diversity(path, manifest["cases"])
+
+    assert result["graph_count"] == 0
+    assert result["effective_semantic_sample_size"] == 0
+    assert len(result["invalid_graphs"]) == 1
+    assert result["invalid_graphs"][0]["case_id"] == "empty"
+
+
+def test_semantic_diversity_retains_degraded_nonempty_graphs(tmp_path):
+    import json
+    from evidencelab.benchmark_quality import _semantic_diversity
+
+    manifest = {
+        "schema_version": "1.0",
+        "format": "evidencelab-benchmark",
+        "manifest_id": "degraded-semantic-graph",
+        "cases": [
+            {"id": "degraded", "expected": "UNKNOWN", "graph": "graphs/partial.json"},
+        ],
+    }
+    graphs = tmp_path / "graphs"
+    graphs.mkdir()
+    (graphs / "partial.json").write_text(
+        json.dumps(
+            {
+                "nodes": [
+                    {"id": "n1", "type": "CALL", "properties": {"name": "unknown_call"}}
+                ],
+                "edges": [],
+                "metadata": {"parse_health": "DEGRADED", "completeness": "partial"},
+            }
+        ),
+        encoding="utf-8",
+    )
+    path = tmp_path / "benchmark.json"
+    path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    result = _semantic_diversity(path, manifest["cases"])
+
+    assert result["graph_count"] == 1
+    assert result["effective_semantic_sample_size"] == 1
+    assert result["invalid_graphs"] == []
+
+
+def test_quality_audit_fails_when_graph_is_invalid(tmp_path):
+    import json
+
+    graphs = tmp_path / "graphs"
+    graphs.mkdir()
+    (graphs / "empty.json").write_text(
+        json.dumps({"nodes": [], "edges": []}),
+        encoding="utf-8",
+    )
+
+    manifest = {
+        "schema_version": "1.0",
+        "format": "evidencelab-benchmark",
+        "manifest_id": "invalid-graph-audit-regression",
+        "cases": [
+            {
+                "id": "invalid-empty-graph",
+                "expected": "UNKNOWN",
+                "graph": "graphs/empty.json",
+            }
+        ],
+    }
+
+    path = tmp_path / "benchmark.json"
+    path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    result = quality_audit(path)
+
+    assert result["status"] == "FAIL"
+    assert any(
+        "semantic graph invalid for case 'invalid-empty-graph'" in error
+        for error in result["errors"]
+    )
+
+
+def _load_semantic_fingerprint_fixture(relative_path):
+    from pathlib import Path
+    from evidencelab.parsers import parse_graph
+
+    return parse_graph(Path(__file__).resolve().parents[1] / relative_path)
+
+
+def test_semantic_fingerprint_distinguishes_numeric_literal_values():
+    from copy import deepcopy
+    from evidencelab.canonical import semantic_graph_fingerprint
+
+    graph = _load_semantic_fingerprint_fixture(
+        "examples/cwe-121/graphs/vulnerable.json"
+    )
+    literal = next(n for n in graph.nodes.values() if n.type == "LITERAL")
+    original_code = literal.properties.get("code", literal.properties.get("CODE"))
+    assert original_code is not None
+
+    changed = deepcopy(graph)
+    changed_literal = next(n for n in changed.nodes.values() if n.type == "LITERAL")
+    if "code" in changed_literal.properties or "CODE" not in changed_literal.properties:
+        changed_literal.properties["code"] = "31"
+    else:
+        changed_literal.properties["CODE"] = "31"
+
+    assert semantic_graph_fingerprint(graph) != semantic_graph_fingerprint(changed)
+
+
+def test_semantic_fingerprint_distinguishes_call_targets():
+    from copy import deepcopy
+    from evidencelab.canonical import semantic_graph_fingerprint
+
+    graph = _load_semantic_fingerprint_fixture(
+        "examples/cwe-121/graphs/vulnerable.json"
+    )
+    changed = deepcopy(graph)
+    call = next(n for n in changed.nodes.values() if n.type == "CALL")
+    call.properties["name"] = "strcpy"
+    call.properties["methodFullName"] = "strcpy"
+    derived = call.properties.setdefault("derived", {})
+    derived["name"] = "strcpy"
+    derived["call_name"] = "strcpy"
+
+    assert semantic_graph_fingerprint(graph) != semantic_graph_fingerprint(changed)
+
+
+def test_semantic_fingerprint_distinguishes_memory_capacity_values():
+    from copy import deepcopy
+    from evidencelab.canonical import semantic_graph_fingerprint
+
+    graph = _load_semantic_fingerprint_fixture(
+        "examples/cwe-121/graphs/vulnerable.json"
+    )
+    capacity_32 = deepcopy(graph)
+    capacity_64 = deepcopy(graph)
+
+    local_32 = next(n for n in capacity_32.nodes.values() if n.type == "LOCAL")
+    local_64 = next(n for n in capacity_64.nodes.values() if n.type == "LOCAL")
+
+    derived_32 = local_32.properties.setdefault("derived", {})
+    derived_64 = local_64.properties.setdefault("derived", {})
+
+    derived_32["memory_capacity"] = 32
+    derived_64["memory_capacity"] = 64
+    derived_32["memory_capacity_known"] = True
+    derived_64["memory_capacity_known"] = True
+    derived_32["capacity_unit"] = "BYTES"
+    derived_64["capacity_unit"] = "BYTES"
+
+    assert semantic_graph_fingerprint(capacity_32) != semantic_graph_fingerprint(
+        capacity_64
+    )
+
+
+def test_semantic_fingerprint_distinguishes_argument_roles():
+    from copy import deepcopy
+    from evidencelab.canonical import semantic_graph_fingerprint
+
+    graph = _load_semantic_fingerprint_fixture(
+        "examples/cwe-120/families/unbounded-format-output/graphs/adv_01.json"
+    )
+    source_node = next(
+        n
+        for n in graph.nodes.values()
+        if (n.properties.get("derived") or {}).get("argument_role") == "source"
+    )
+
+    changed = deepcopy(graph)
+    changed_node = changed.nodes[source_node.id]
+    changed_node.properties.setdefault("derived", {})["argument_role"] = "destination"
+
+    assert semantic_graph_fingerprint(graph) != semantic_graph_fingerprint(changed)
+
+
+def test_semantic_fingerprint_ignores_node_ids_and_method_names():
+    from copy import deepcopy
+    from evidencelab.canonical import semantic_graph_fingerprint
+
+    graph = _load_semantic_fingerprint_fixture(
+        "examples/cwe-120/families/unbounded-format-output/graphs/adv_01.json"
+    )
+    changed = deepcopy(graph)
+
+    old_items = list(changed.nodes.items())
+    mapping = {
+        old_id: f"renamed_node_{index}" for index, (old_id, _) in enumerate(old_items)
+    }
+
+    for old_id, node in old_items:
+        node.id = mapping[old_id]
+        if node.type == "METHOD":
+            node.properties["name"] = "renamed_sample_method"
+            node.properties["code"] = "renamed_sample_method"
+
+    changed.nodes = {mapping[old_id]: node for old_id, node in old_items}
+
+    for edge in changed.edges:
+        edge.source = mapping[edge.source]
+        edge.target = mapping[edge.target]
+
+    assert semantic_graph_fingerprint(graph) == semantic_graph_fingerprint(changed)
+
+
+def test_quality_audit_does_not_invent_independence_clusters(tmp_path):
+    import json
+    from evidencelab.benchmark_quality import quality_audit
+
+    manifest = {
+        "schema_version": "1.0",
+        "format": "evidencelab-benchmark",
+        "manifest_id": "missing-cluster-provenance",
+        "cases": [
+            {"id": "unique-a", "expected": "MATCH"},
+            {"id": "unique-b", "expected": "NO_MATCH"},
+            {
+                "id": "repo-a-1",
+                "expected": "MATCH",
+                "dataset": {"repository": "repo-a"},
+            },
+            {
+                "id": "repo-a-2",
+                "expected": "NO_MATCH",
+                "dataset": {"repository": "repo-a"},
+            },
+        ],
+    }
+    path = tmp_path / "benchmark.json"
+    path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    report = quality_audit(path)
+    clusters = report["independence_clusters"]
+
+    assert clusters["count"] == 1
+    assert clusters["sizes"] == [2]
+    assert clusters["assigned_cases"] == 2
+    assert clusters["unassigned_cases"] == 2
+
+
+def test_quality_audit_reports_label_cluster_coverage_and_concentration(tmp_path):
+    import json
+    from evidencelab.benchmark_quality import quality_audit
+
+    cases = [
+        {"id": "unassigned-positive", "expected": "MATCH"},
+        {"id": "unassigned-negative", "expected": "NO_MATCH"},
+        {
+            "id": "repo-a-positive",
+            "expected": "MATCH",
+            "dataset": {"repository": "repo-a"},
+        },
+        {
+            "id": "repo-a-negative",
+            "expected": "NO_MATCH",
+            "dataset": {"repository": "repo-a"},
+        },
+        {
+            "id": "repo-b-negative",
+            "expected": "NO_MATCH",
+            "dataset": {"repository": "repo-b"},
+        },
+        {
+            "id": "project-c-unknown",
+            "expected": "UNKNOWN",
+            "dataset": {"project": "project-c"},
+        },
+    ]
+    path = tmp_path / "cluster-coverage.json"
+    path.write_text(
+        json.dumps(
+            {
+                "schema_version": "1.0",
+                "format": "evidencelab-benchmark",
+                "manifest_id": "cluster-coverage-regression",
+                "cases": cases,
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    report = quality_audit(path)
+    clusters = report["independence_clusters"]
+
+    assert clusters["count"] == 3
+    assert clusters["assigned_cases"] == 4
+    assert clusters["unassigned_cases"] == 2
+
+    assert clusters["label_supporting_clusters"] == {
+        "MATCH": 1,
+        "NO_MATCH": 2,
+        "UNKNOWN": 1,
+    }
+    assert clusters["identified_case_counts_by_label"] == {
+        "MATCH": 1,
+        "NO_MATCH": 2,
+        "UNKNOWN": 1,
+    }
+    assert clusters["unassigned_case_counts_by_label"] == {
+        "MATCH": 1,
+        "NO_MATCH": 1,
+        "UNKNOWN": 0,
+    }
+    assert clusters["largest_cluster_size"] == 2
+    assert clusters["largest_cluster_share"] == 0.5
+    assert clusters["largest_clusters"][0]["identity"] == "repository:repo-a"
+    assert clusters["largest_clusters"][0]["label_counts"] == {
+        "MATCH": 1,
+        "NO_MATCH": 1,
+    }
+
+
+def test_semantic_fingerprint_distinguishes_analysis_completeness():
+    from evidencelab.canonical import semantic_graph_fingerprint
+
+    partial = _load_semantic_fingerprint_fixture(
+        "examples/cwe-120/families/unbounded-format-output/graphs/adv_09.json"
+    )
+    complete = _load_semantic_fingerprint_fixture(
+        "examples/cwe-120/families/unbounded-format-output/graphs/pos_16.json"
+    )
+
+    assert len(partial.nodes) == len(complete.nodes)
+    assert len(partial.edges) == len(complete.edges)
+    assert semantic_graph_fingerprint(partial) != semantic_graph_fingerprint(complete)
+
+
+def test_semantic_fingerprint_includes_completeness_without_topology_changes():
+    from copy import deepcopy
+    from evidencelab.canonical import semantic_graph_fingerprint
+
+    base = _load_semantic_fingerprint_fixture("examples/cwe-121/graphs/vulnerable.json")
+    complete = deepcopy(base)
+    partial = deepcopy(base)
+
+    common = {
+        "nodes": "COMPLETE",
+        "edges": "COMPLETE",
+        "dataflow": "UNKNOWN",
+        "control_flow": "UNKNOWN",
+        "object_identity": "UNKNOWN",
+        "numeric_range": "UNKNOWN",
+        "interprocedural": "UNKNOWN",
+    }
+
+    for graph in (complete, partial):
+        graph.metadata["canonical"] = True
+        graph.metadata["parse_health"] = "OK"
+
+    complete.metadata["analysis_completeness"] = {
+        **common,
+        "graph": "COMPLETE",
+    }
+    partial.metadata["analysis_completeness"] = {
+        **common,
+        "graph": "PARTIAL",
+    }
+
+    assert semantic_graph_fingerprint(complete) != semantic_graph_fingerprint(partial)
+
+
+def test_semantic_fingerprint_preserves_explicit_top_level_range():
+    from copy import deepcopy
+
+    from evidencelab.canonical import (
+        canonicalize_graph,
+        semantic_graph_fingerprint,
+    )
+    from evidencelab.semantics import node_value_range
+
+    fixed = _load_semantic_fingerprint_fixture(
+        "examples/cwe-120/families/fixed-extent-overflow/graphs/unknown_03.json"
+    )
+    symbolic = _load_semantic_fingerprint_fixture(
+        "examples/cwe-120/families/symbolic-range-overflow/graphs/unknown_03.json"
+    )
+
+    expected_range = {
+        "lower": 16,
+        "upper": 48,
+        "proof": "EXPLICIT_RANGE",
+    }
+
+    assert symbolic.nodes["e"].properties["range"] == expected_range
+    assert node_value_range(symbolic, "e") == expected_range
+
+    canonical_symbolic = canonicalize_graph(symbolic)
+    canonical_node = canonical_symbolic.nodes["e"]
+
+    assert canonical_node.properties["derived"]["range"] == expected_range
+    assert canonical_node.properties["derived_provenance"]["range"] == "RAW:range"
+
+    assert semantic_graph_fingerprint(fixed) != semantic_graph_fingerprint(symbolic)
+
+    normalized_form = deepcopy(symbolic)
+    raw_range = normalized_form.nodes["e"].properties.pop("range")
+    normalized_form.nodes["e"].properties.setdefault("derived", {})["range"] = raw_range
+
+    assert semantic_graph_fingerprint(symbolic) == semantic_graph_fingerprint(
+        normalized_form
+    )
+
+
+def test_independent_replay_rate_is_unknown_when_no_replay_was_run():
+    from types import SimpleNamespace
+    from evidencelab.evidence_quality import compute_evidence_quality
+    from evidencelab.spec import Pattern
+
+    family = ROOT / "examples/cwe-120/families/fixed-extent-overflow"
+    pattern = Pattern.load(family / "pattern.json")
+    result = SimpleNamespace(actual="MATCH", detail={})
+    quality = compute_evidence_quality([result], pattern)
+    assert quality["independent_replay_rate"] is None
+    assert quality["independent_replay_evaluated_cases"] == 0
+
+
+def test_independent_replay_rate_counts_only_explicit_replay_results():
+    from types import SimpleNamespace
+    from evidencelab.evidence_quality import compute_evidence_quality
+    from evidencelab.spec import Pattern
+
+    family = ROOT / "examples/cwe-120/families/fixed-extent-overflow"
+    pattern = Pattern.load(family / "pattern.json")
+    results = [
+        SimpleNamespace(actual="MATCH", detail={"witness_replay": {"status": "PASS"}}),
+        SimpleNamespace(actual="MATCH", detail={"witness_replay": {"status": "FAIL"}}),
+        SimpleNamespace(actual="MATCH", detail={}),
+    ]
+    quality = compute_evidence_quality(results, pattern)
+    assert quality["independent_replay_rate"] == 0.5
+    assert quality["independent_replay_evaluated_cases"] == 2

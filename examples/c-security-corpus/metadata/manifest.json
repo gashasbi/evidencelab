@@ -1,0 +1,634 @@
+{
+  "name": "EvidenceLab C Security Test Corpus",
+  "version": "1.0.0",
+  "sample_count": 69,
+  "family_count": 23,
+  "labels": {
+    "VULN": "intentionally vulnerable illustrative pattern",
+    "SAFE": "local mitigation control, not a whole-program proof",
+    "UNKNOWN": "context or external contract is missing"
+  },
+  "samples": [
+    {
+      "id": "CWE-121-stack-buffer-overflow-V01_unbounded_copy",
+      "cwe": "CWE-121",
+      "family": "stack-buffer-overflow",
+      "title": "Stack-based Buffer Overflow",
+      "label": "VULN",
+      "file": "samples/stack-buffer-overflow/vuln/V01_unbounded_copy.c",
+      "intent": "Unbounded copy into a fixed-size stack buffer."
+    },
+    {
+      "id": "CWE-121-stack-buffer-overflow-S01_bounded_copy",
+      "cwe": "CWE-121",
+      "family": "stack-buffer-overflow",
+      "title": "Stack-based Buffer Overflow",
+      "label": "SAFE",
+      "file": "samples/stack-buffer-overflow/safe/S01_bounded_copy.c",
+      "intent": "Rejects input that cannot fit, including the terminator."
+    },
+    {
+      "id": "CWE-121-stack-buffer-overflow-U01_external_capacity",
+      "cwe": "CWE-121",
+      "family": "stack-buffer-overflow",
+      "title": "Stack-based Buffer Overflow",
+      "label": "UNKNOWN",
+      "file": "samples/stack-buffer-overflow/unknown/U01_external_capacity.c",
+      "intent": "Safety depends on external capacity and function contracts."
+    },
+    {
+      "id": "CWE-122-heap-buffer-overflow-V01_heap_copy",
+      "cwe": "CWE-122",
+      "family": "heap-buffer-overflow",
+      "title": "Heap-based Buffer Overflow",
+      "label": "VULN",
+      "file": "samples/heap-buffer-overflow/vuln/V01_heap_copy.c",
+      "intent": "Unbounded copy into a small heap allocation."
+    },
+    {
+      "id": "CWE-122-heap-buffer-overflow-S01_sized_allocation",
+      "cwe": "CWE-122",
+      "family": "heap-buffer-overflow",
+      "title": "Heap-based Buffer Overflow",
+      "label": "SAFE",
+      "file": "samples/heap-buffer-overflow/safe/S01_sized_allocation.c",
+      "intent": "Allocates enough space for the input and terminator."
+    },
+    {
+      "id": "CWE-122-heap-buffer-overflow-U01_hidden_extent",
+      "cwe": "CWE-122",
+      "family": "heap-buffer-overflow",
+      "title": "Heap-based Buffer Overflow",
+      "label": "UNKNOWN",
+      "file": "samples/heap-buffer-overflow/unknown/U01_hidden_extent.c",
+      "intent": "Pointer-only API hides destination capacity."
+    },
+    {
+      "id": "CWE-120-classic-buffer-overflow-V01_unbounded_read",
+      "cwe": "CWE-120",
+      "family": "classic-buffer-overflow",
+      "title": "Classic Buffer Overflow",
+      "label": "VULN",
+      "file": "samples/classic-buffer-overflow/vuln/V01_unbounded_read.c",
+      "intent": "Read length can exceed the destination buffer."
+    },
+    {
+      "id": "CWE-120-classic-buffer-overflow-S01_bounded_read",
+      "cwe": "CWE-120",
+      "family": "classic-buffer-overflow",
+      "title": "Classic Buffer Overflow",
+      "label": "SAFE",
+      "file": "samples/classic-buffer-overflow/safe/S01_bounded_read.c",
+      "intent": "Read is capped at the destination size."
+    },
+    {
+      "id": "CWE-120-classic-buffer-overflow-U01_contract_read",
+      "cwe": "CWE-120",
+      "family": "classic-buffer-overflow",
+      "title": "Classic Buffer Overflow",
+      "label": "UNKNOWN",
+      "file": "samples/classic-buffer-overflow/unknown/U01_contract_read.c",
+      "intent": "Actual storage size is not visible."
+    },
+    {
+      "id": "CWE-125-out-of-bounds-read-V01_unchecked_index",
+      "cwe": "CWE-125",
+      "family": "out-of-bounds-read",
+      "title": "Out-of-bounds Read",
+      "label": "VULN",
+      "file": "samples/out-of-bounds-read/vuln/V01_unchecked_index.c",
+      "intent": "Array index is not validated."
+    },
+    {
+      "id": "CWE-125-out-of-bounds-read-S01_checked_index",
+      "cwe": "CWE-125",
+      "family": "out-of-bounds-read",
+      "title": "Out-of-bounds Read",
+      "label": "SAFE",
+      "file": "samples/out-of-bounds-read/safe/S01_checked_index.c",
+      "intent": "Pointer and index are checked before reading."
+    },
+    {
+      "id": "CWE-125-out-of-bounds-read-U01_external_count",
+      "cwe": "CWE-125",
+      "family": "out-of-bounds-read",
+      "title": "Out-of-bounds Read",
+      "label": "UNKNOWN",
+      "file": "samples/out-of-bounds-read/unknown/U01_external_count.c",
+      "intent": "The buffer extent and index contract are missing."
+    },
+    {
+      "id": "CWE-787-out-of-bounds-write-V01_unchecked_write",
+      "cwe": "CWE-787",
+      "family": "out-of-bounds-write",
+      "title": "Out-of-bounds Write",
+      "label": "VULN",
+      "file": "samples/out-of-bounds-write/vuln/V01_unchecked_write.c",
+      "intent": "Input-controlled index is written without bounds checks."
+    },
+    {
+      "id": "CWE-787-out-of-bounds-write-S01_checked_write",
+      "cwe": "CWE-787",
+      "family": "out-of-bounds-write",
+      "title": "Out-of-bounds Write",
+      "label": "SAFE",
+      "file": "samples/out-of-bounds-write/safe/S01_checked_write.c",
+      "intent": "Validates pointer and index before writing."
+    },
+    {
+      "id": "CWE-787-out-of-bounds-write-U01_hidden_extent",
+      "cwe": "CWE-787",
+      "family": "out-of-bounds-write",
+      "title": "Out-of-bounds Write",
+      "label": "UNKNOWN",
+      "file": "samples/out-of-bounds-write/unknown/U01_hidden_extent.c",
+      "intent": "Destination capacity is hidden behind an external API."
+    },
+    {
+      "id": "CWE-190-integer-overflow-V01_allocation_multiply",
+      "cwe": "CWE-190",
+      "family": "integer-overflow",
+      "title": "Integer Overflow",
+      "label": "VULN",
+      "file": "samples/integer-overflow/vuln/V01_allocation_multiply.c",
+      "intent": "Allocation-size multiplication may overflow."
+    },
+    {
+      "id": "CWE-190-integer-overflow-S01_checked_multiply",
+      "cwe": "CWE-190",
+      "family": "integer-overflow",
+      "title": "Integer Overflow",
+      "label": "SAFE",
+      "file": "samples/integer-overflow/safe/S01_checked_multiply.c",
+      "intent": "Checks multiplication bounds before allocating."
+    },
+    {
+      "id": "CWE-190-integer-overflow-U01_range_contract",
+      "cwe": "CWE-190",
+      "family": "integer-overflow",
+      "title": "Integer Overflow",
+      "label": "UNKNOWN",
+      "file": "samples/integer-overflow/unknown/U01_range_contract.c",
+      "intent": "Safety depends on an absent range contract."
+    },
+    {
+      "id": "CWE-191-integer-underflow-V01_unsigned_subtraction",
+      "cwe": "CWE-191",
+      "family": "integer-underflow",
+      "title": "Integer Underflow",
+      "label": "VULN",
+      "file": "samples/integer-underflow/vuln/V01_unsigned_subtraction.c",
+      "intent": "Unsigned subtraction may wrap."
+    },
+    {
+      "id": "CWE-191-integer-underflow-S01_guarded_subtraction",
+      "cwe": "CWE-191",
+      "family": "integer-underflow",
+      "title": "Integer Underflow",
+      "label": "SAFE",
+      "file": "samples/integer-underflow/safe/S01_guarded_subtraction.c",
+      "intent": "Checks the subtraction precondition."
+    },
+    {
+      "id": "CWE-191-integer-underflow-U01_external_capacity",
+      "cwe": "CWE-191",
+      "family": "integer-underflow",
+      "title": "Integer Underflow",
+      "label": "UNKNOWN",
+      "file": "samples/integer-underflow/unknown/U01_external_capacity.c",
+      "intent": "The relation between capacity and used length is unknown."
+    },
+    {
+      "id": "CWE-369-divide-by-zero-V01_unchecked_divisor",
+      "cwe": "CWE-369",
+      "family": "divide-by-zero",
+      "title": "Divide by Zero",
+      "label": "VULN",
+      "file": "samples/divide-by-zero/vuln/V01_unchecked_divisor.c",
+      "intent": "Divisor is not checked."
+    },
+    {
+      "id": "CWE-369-divide-by-zero-S01_checked_divisor",
+      "cwe": "CWE-369",
+      "family": "divide-by-zero",
+      "title": "Divide by Zero",
+      "label": "SAFE",
+      "file": "samples/divide-by-zero/safe/S01_checked_divisor.c",
+      "intent": "Rejects a zero divisor."
+    },
+    {
+      "id": "CWE-369-divide-by-zero-U01_divisor_contract",
+      "cwe": "CWE-369",
+      "family": "divide-by-zero",
+      "title": "Divide by Zero",
+      "label": "UNKNOWN",
+      "file": "samples/divide-by-zero/unknown/U01_divisor_contract.c",
+      "intent": "Safety depends on the external function contract."
+    },
+    {
+      "id": "CWE-476-null-pointer-dereference-V01_unchecked_malloc",
+      "cwe": "CWE-476",
+      "family": "null-pointer-dereference",
+      "title": "NULL Pointer Dereference",
+      "label": "VULN",
+      "file": "samples/null-pointer-dereference/vuln/V01_unchecked_malloc.c",
+      "intent": "Dereferences a possibly NULL allocation result."
+    },
+    {
+      "id": "CWE-476-null-pointer-dereference-S01_checked_malloc",
+      "cwe": "CWE-476",
+      "family": "null-pointer-dereference",
+      "title": "NULL Pointer Dereference",
+      "label": "SAFE",
+      "file": "samples/null-pointer-dereference/safe/S01_checked_malloc.c",
+      "intent": "Checks allocation before dereference."
+    },
+    {
+      "id": "CWE-476-null-pointer-dereference-U01_nonnull_contract",
+      "cwe": "CWE-476",
+      "family": "null-pointer-dereference",
+      "title": "NULL Pointer Dereference",
+      "label": "UNKNOWN",
+      "file": "samples/null-pointer-dereference/unknown/U01_nonnull_contract.c",
+      "intent": "Pointer validity depends on an external contract."
+    },
+    {
+      "id": "CWE-415-double-free-V01_double_free",
+      "cwe": "CWE-415",
+      "family": "double-free",
+      "title": "Double Free",
+      "label": "VULN",
+      "file": "samples/double-free/vuln/V01_double_free.c",
+      "intent": "Frees the same allocation twice."
+    },
+    {
+      "id": "CWE-415-double-free-S01_single_release",
+      "cwe": "CWE-415",
+      "family": "double-free",
+      "title": "Double Free",
+      "label": "SAFE",
+      "file": "samples/double-free/safe/S01_single_release.c",
+      "intent": "Clears the pointer after release."
+    },
+    {
+      "id": "CWE-415-double-free-U01_alias_ownership",
+      "cwe": "CWE-415",
+      "family": "double-free",
+      "title": "Double Free",
+      "label": "UNKNOWN",
+      "file": "samples/double-free/unknown/U01_alias_ownership.c",
+      "intent": "Ownership and pointer aliasing are unknown."
+    },
+    {
+      "id": "CWE-416-use-after-free-V01_dereference_after_free",
+      "cwe": "CWE-416",
+      "family": "use-after-free",
+      "title": "Use After Free",
+      "label": "VULN",
+      "file": "samples/use-after-free/vuln/V01_dereference_after_free.c",
+      "intent": "Reads an object after freeing it."
+    },
+    {
+      "id": "CWE-416-use-after-free-S01_use_before_free",
+      "cwe": "CWE-416",
+      "family": "use-after-free",
+      "title": "Use After Free",
+      "label": "SAFE",
+      "file": "samples/use-after-free/safe/S01_use_before_free.c",
+      "intent": "Uses the object before releasing it."
+    },
+    {
+      "id": "CWE-416-use-after-free-U01_borrowed_pointer",
+      "cwe": "CWE-416",
+      "family": "use-after-free",
+      "title": "Use After Free",
+      "label": "UNKNOWN",
+      "file": "samples/use-after-free/unknown/U01_borrowed_pointer.c",
+      "intent": "Lifetime of an externally borrowed pointer is unspecified."
+    },
+    {
+      "id": "CWE-401-memory-leak-V01_error_path_leak",
+      "cwe": "CWE-401",
+      "family": "memory-leak",
+      "title": "Memory Leak",
+      "label": "VULN",
+      "file": "samples/memory-leak/vuln/V01_error_path_leak.c",
+      "intent": "Early return leaks an allocation."
+    },
+    {
+      "id": "CWE-401-memory-leak-S01_cleanup_paths",
+      "cwe": "CWE-401",
+      "family": "memory-leak",
+      "title": "Memory Leak",
+      "label": "SAFE",
+      "file": "samples/memory-leak/safe/S01_cleanup_paths.c",
+      "intent": "Releases memory on both paths."
+    },
+    {
+      "id": "CWE-401-memory-leak-U01_transferred_ownership",
+      "cwe": "CWE-401",
+      "family": "memory-leak",
+      "title": "Memory Leak",
+      "label": "UNKNOWN",
+      "file": "samples/memory-leak/unknown/U01_transferred_ownership.c",
+      "intent": "Ownership transfer depends on an external contract."
+    },
+    {
+      "id": "CWE-134-format-string-V01_user_format",
+      "cwe": "CWE-134",
+      "family": "format-string",
+      "title": "Uncontrolled Format String",
+      "label": "VULN",
+      "file": "samples/format-string/vuln/V01_user_format.c",
+      "intent": "Untrusted input is used as a format string."
+    },
+    {
+      "id": "CWE-134-format-string-S01_constant_format",
+      "cwe": "CWE-134",
+      "family": "format-string",
+      "title": "Uncontrolled Format String",
+      "label": "SAFE",
+      "file": "samples/format-string/safe/S01_constant_format.c",
+      "intent": "Uses a constant format string."
+    },
+    {
+      "id": "CWE-134-format-string-U01_logging_wrapper",
+      "cwe": "CWE-134",
+      "family": "format-string",
+      "title": "Uncontrolled Format String",
+      "label": "UNKNOWN",
+      "file": "samples/format-string/unknown/U01_logging_wrapper.c",
+      "intent": "Logging wrapper behavior is unknown."
+    },
+    {
+      "id": "CWE-78-command-injection-V01_shell_command",
+      "cwe": "CWE-78",
+      "family": "command-injection",
+      "title": "OS Command Injection",
+      "label": "VULN",
+      "file": "samples/command-injection/vuln/V01_shell_command.c",
+      "intent": "Untrusted input is concatenated into a shell command."
+    },
+    {
+      "id": "CWE-78-command-injection-S01_no_shell",
+      "cwe": "CWE-78",
+      "family": "command-injection",
+      "title": "OS Command Injection",
+      "label": "SAFE",
+      "file": "samples/command-injection/safe/S01_no_shell.c",
+      "intent": "Uses an argument vector rather than a shell command string."
+    },
+    {
+      "id": "CWE-78-command-injection-U01_command_wrapper",
+      "cwe": "CWE-78",
+      "family": "command-injection",
+      "title": "OS Command Injection",
+      "label": "UNKNOWN",
+      "file": "samples/command-injection/unknown/U01_command_wrapper.c",
+      "intent": "Command wrapper implementation is unavailable."
+    },
+    {
+      "id": "CWE-22-path-traversal-V01_unchecked_path",
+      "cwe": "CWE-22",
+      "family": "path-traversal",
+      "title": "Path Traversal",
+      "label": "VULN",
+      "file": "samples/path-traversal/vuln/V01_unchecked_path.c",
+      "intent": "Untrusted path is joined without containment validation."
+    },
+    {
+      "id": "CWE-22-path-traversal-S01_reject_traversal",
+      "cwe": "CWE-22",
+      "family": "path-traversal",
+      "title": "Path Traversal",
+      "label": "SAFE",
+      "file": "samples/path-traversal/safe/S01_reject_traversal.c",
+      "intent": "Rejects obvious traversal forms; not a complete filesystem proof."
+    },
+    {
+      "id": "CWE-22-path-traversal-U01_filesystem_contract",
+      "cwe": "CWE-22",
+      "family": "path-traversal",
+      "title": "Path Traversal",
+      "label": "UNKNOWN",
+      "file": "samples/path-traversal/unknown/U01_filesystem_contract.c",
+      "intent": "Containment depends on an external filesystem API."
+    },
+    {
+      "id": "CWE-362-race-condition-V01_check_then_open",
+      "cwe": "CWE-362",
+      "family": "race-condition",
+      "title": "Race Condition / TOCTOU",
+      "label": "VULN",
+      "file": "samples/race-condition/vuln/V01_check_then_open.c",
+      "intent": "Checks a pathname before a separate open operation."
+    },
+    {
+      "id": "CWE-362-race-condition-S01_mutex_protected",
+      "cwe": "CWE-362",
+      "family": "race-condition",
+      "title": "Race Condition / TOCTOU",
+      "label": "SAFE",
+      "file": "samples/race-condition/safe/S01_mutex_protected.c",
+      "intent": "Protects a shared counter with a mutex."
+    },
+    {
+      "id": "CWE-362-race-condition-U01_external_synchronization",
+      "cwe": "CWE-362",
+      "family": "race-condition",
+      "title": "Race Condition / TOCTOU",
+      "label": "UNKNOWN",
+      "file": "samples/race-condition/unknown/U01_external_synchronization.c",
+      "intent": "Synchronization may exist outside the snippet."
+    },
+    {
+      "id": "CWE-252-unchecked-return-value-V01_ignored_read_result",
+      "cwe": "CWE-252",
+      "family": "unchecked-return-value",
+      "title": "Unchecked Return Value",
+      "label": "VULN",
+      "file": "samples/unchecked-return-value/vuln/V01_ignored_read_result.c",
+      "intent": "Uses a buffer without validating how many bytes were read."
+    },
+    {
+      "id": "CWE-252-unchecked-return-value-S01_checked_read_result",
+      "cwe": "CWE-252",
+      "family": "unchecked-return-value",
+      "title": "Unchecked Return Value",
+      "label": "SAFE",
+      "file": "samples/unchecked-return-value/safe/S01_checked_read_result.c",
+      "intent": "Processes only the bytes reported by the read operation."
+    },
+    {
+      "id": "CWE-252-unchecked-return-value-U01_external_result",
+      "cwe": "CWE-252",
+      "family": "unchecked-return-value",
+      "title": "Unchecked Return Value",
+      "label": "UNKNOWN",
+      "file": "samples/unchecked-return-value/unknown/U01_external_result.c",
+      "intent": "The return-value contract is missing."
+    },
+    {
+      "id": "CWE-327-weak-cryptography-V01_fast_password_hash",
+      "cwe": "CWE-327",
+      "family": "weak-cryptography",
+      "title": "Weak Cryptography",
+      "label": "VULN",
+      "file": "samples/weak-cryptography/vuln/V01_fast_password_hash.c",
+      "intent": "Uses a fast general-purpose hash for a password-storage scenario."
+    },
+    {
+      "id": "CWE-327-weak-cryptography-S01_password_hash_api",
+      "cwe": "CWE-327",
+      "family": "weak-cryptography",
+      "title": "Weak Cryptography",
+      "label": "SAFE",
+      "file": "samples/weak-cryptography/safe/S01_password_hash_api.c",
+      "intent": "Delegates to a dedicated password-hashing API; implementation must be reviewed."
+    },
+    {
+      "id": "CWE-327-weak-cryptography-U01_crypto_provider",
+      "cwe": "CWE-327",
+      "family": "weak-cryptography",
+      "title": "Weak Cryptography",
+      "label": "UNKNOWN",
+      "file": "samples/weak-cryptography/unknown/U01_crypto_provider.c",
+      "intent": "Security depends on the external cryptographic provider."
+    },
+    {
+      "id": "CWE-330-insufficient-randomness-V01_predictable_token",
+      "cwe": "CWE-330",
+      "family": "insufficient-randomness",
+      "title": "Insufficient Randomness",
+      "label": "VULN",
+      "file": "samples/insufficient-randomness/vuln/V01_predictable_token.c",
+      "intent": "Uses a predictable pseudo-random generator for token material."
+    },
+    {
+      "id": "CWE-330-insufficient-randomness-S01_os_random",
+      "cwe": "CWE-330",
+      "family": "insufficient-randomness",
+      "title": "Insufficient Randomness",
+      "label": "SAFE",
+      "file": "samples/insufficient-randomness/safe/S01_os_random.c",
+      "intent": "Uses an operating-system randomness API; error handling is explicit."
+    },
+    {
+      "id": "CWE-330-insufficient-randomness-U01_random_wrapper",
+      "cwe": "CWE-330",
+      "family": "insufficient-randomness",
+      "title": "Insufficient Randomness",
+      "label": "UNKNOWN",
+      "file": "samples/insufficient-randomness/unknown/U01_random_wrapper.c",
+      "intent": "Randomness quality depends on an external wrapper."
+    },
+    {
+      "id": "CWE-798-hardcoded-credentials-V01_embedded_password",
+      "cwe": "CWE-798",
+      "family": "hardcoded-credentials",
+      "title": "Hard-coded Credentials",
+      "label": "VULN",
+      "file": "samples/hardcoded-credentials/vuln/V01_embedded_password.c",
+      "intent": "Contains a hard-coded credential used for authentication."
+    },
+    {
+      "id": "CWE-798-hardcoded-credentials-S01_external_secret",
+      "cwe": "CWE-798",
+      "family": "hardcoded-credentials",
+      "title": "Hard-coded Credentials",
+      "label": "SAFE",
+      "file": "samples/hardcoded-credentials/safe/S01_external_secret.c",
+      "intent": "Loads a secret from configuration instead of embedding it."
+    },
+    {
+      "id": "CWE-798-hardcoded-credentials-U01_secret_provider",
+      "cwe": "CWE-798",
+      "family": "hardcoded-credentials",
+      "title": "Hard-coded Credentials",
+      "label": "UNKNOWN",
+      "file": "samples/hardcoded-credentials/unknown/U01_secret_provider.c",
+      "intent": "Secret storage and verification depend on an external provider."
+    },
+    {
+      "id": "CWE-117-log-injection-V01_untrusted_log",
+      "cwe": "CWE-117",
+      "family": "log-injection",
+      "title": "Log Injection",
+      "label": "VULN",
+      "file": "samples/log-injection/vuln/V01_untrusted_log.c",
+      "intent": "Untrusted line breaks may forge log entries."
+    },
+    {
+      "id": "CWE-117-log-injection-S01_structured_log",
+      "cwe": "CWE-117",
+      "family": "log-injection",
+      "title": "Log Injection",
+      "label": "SAFE",
+      "file": "samples/log-injection/safe/S01_structured_log.c",
+      "intent": "Uses a structured logging interface, subject to its contract."
+    },
+    {
+      "id": "CWE-117-log-injection-U01_log_sink",
+      "cwe": "CWE-117",
+      "family": "log-injection",
+      "title": "Log Injection",
+      "label": "UNKNOWN",
+      "file": "samples/log-injection/unknown/U01_log_sink.c",
+      "intent": "Logging sink behavior is unavailable."
+    },
+    {
+      "id": "CWE-667-improper-locking-V01_missing_unlock",
+      "cwe": "CWE-667",
+      "family": "improper-locking",
+      "title": "Improper Locking",
+      "label": "VULN",
+      "file": "samples/improper-locking/vuln/V01_missing_unlock.c",
+      "intent": "An error path returns while holding a mutex."
+    },
+    {
+      "id": "CWE-667-improper-locking-S01_unlock_all_paths",
+      "cwe": "CWE-667",
+      "family": "improper-locking",
+      "title": "Improper Locking",
+      "label": "SAFE",
+      "file": "samples/improper-locking/safe/S01_unlock_all_paths.c",
+      "intent": "Unlocks on both paths."
+    },
+    {
+      "id": "CWE-667-improper-locking-U01_caller_lock",
+      "cwe": "CWE-667",
+      "family": "improper-locking",
+      "title": "Improper Locking",
+      "label": "UNKNOWN",
+      "file": "samples/improper-locking/unknown/U01_caller_lock.c",
+      "intent": "Lock preconditions depend on the external function."
+    },
+    {
+      "id": "CWE-704-incorrect-type-conversion-V01_signed_to_unsigned",
+      "cwe": "CWE-704",
+      "family": "incorrect-type-conversion",
+      "title": "Incorrect Type Conversion",
+      "label": "VULN",
+      "file": "samples/incorrect-type-conversion/vuln/V01_signed_to_unsigned.c",
+      "intent": "Negative signed value is converted to an unsigned size."
+    },
+    {
+      "id": "CWE-704-incorrect-type-conversion-S01_check_before_cast",
+      "cwe": "CWE-704",
+      "family": "incorrect-type-conversion",
+      "title": "Incorrect Type Conversion",
+      "label": "SAFE",
+      "file": "samples/incorrect-type-conversion/safe/S01_check_before_cast.c",
+      "intent": "Rejects negative values before conversion."
+    },
+    {
+      "id": "CWE-704-incorrect-type-conversion-U01_platform_width",
+      "cwe": "CWE-704",
+      "family": "incorrect-type-conversion",
+      "title": "Incorrect Type Conversion",
+      "label": "UNKNOWN",
+      "file": "samples/incorrect-type-conversion/unknown/U01_platform_width.c",
+      "intent": "Safety depends on source range and target type width."
+    }
+  ]
+}

@@ -58,7 +58,6 @@ def build_commit_pair(
             before = _git(r, "show", f"{parent}:{rel}")
             after = _git(r, "show", f"{fixed}:{rel}")
         except RuntimeError:
-            # Handle a newly-added/deleted C/C++ file conservatively.
             continue
         key = hashlib.sha256(f"{fixed}|{rel}".encode()).hexdigest()[:20]
         before_path = outp / "before" / f"{key}{Path(rel).suffix or '.txt'}"

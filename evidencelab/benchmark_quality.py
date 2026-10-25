@@ -1,9 +1,10 @@
 from __future__ import annotations
+from collections import Counter
 from pathlib import Path
 from typing import Any
 import json
 from .leakage import audit_benchmark_lineage
-from .canonical import semantic_graph_fingerprint
+from .canonical import SEMANTIC_FINGERPRINT_ALGORITHM, semantic_graph_fingerprint
 
 RECOMMENDED_CASE_DIMENSIONS = {
     "positive",
@@ -31,16 +32,18 @@ ALIASES = {
 
 
 def _case_dimensions(case: dict[str, Any]) -> set[str]:
-    tags = {str(x) for x in case.get("tags", [])}
+
+    tags = {ALIASES.get(str(x), str(x)) for x in case.get("tags", [])}
     dimensions = (
-        {str(x) for x in case.get("dimensions", [])}
+        {ALIASES.get(str(x), str(x)) for x in case.get("dimensions", [])}
         if isinstance(case.get("dimensions"), list)
         else set()
     )
-    out = dimensions | {ALIASES.get(t, t) for t in tags}
-    if str(case.get("expected", "UNKNOWN")).upper() == "MATCH":
+    out = dimensions | tags
+    expected = str(case.get("expected", "UNKNOWN")).upper()
+    if expected == "MATCH":
         out.add("positive")
-    elif str(case.get("expected", "UNKNOWN")).upper() == "NO_MATCH":
+    elif expected == "NO_MATCH":
         out.add("negative")
     else:
         out.add("unknown")
@@ -71,10 +74,10 @@ def _real_world_identity(case: dict[str, Any]) -> tuple[bool, list[str]]:
         or dataset.get("vulnerability")
         or dataset.get("bug_id")
     )
+
     has_patch = bool(
         dataset.get("patch_context")
         or dataset.get("patch_url")
-        or dataset.get("label_source")
         or case.get("counterpart")
         or dataset.get("vulnerable_commit")
         or dataset.get("pair_id")
@@ -99,7 +102,7 @@ def _is_mutation(case: dict[str, Any]) -> bool:
 
 
 def _is_independent(case: dict[str, Any]) -> bool:
-    # Count paired revisions; exclude only declared mutation descendants from independence gates.
+
     return not _is_mutation(case)
 
 
@@ -127,17 +130,47 @@ def _semantic_diversity(
         from .evaluator import _safe_case_path
 
         fingerprints = []
+        graph_errors = []
+        invalid_graphs = []
         graph_count = 0
+
         for case in cases:
             rel = case.get("graph")
             if not rel:
                 continue
+
+            case_id = str(case.get("id", "<unknown>"))
             try:
                 g = parse_graph(_safe_case_path(manifest_path, str(rel)))
-                fingerprints.append(semantic_graph_fingerprint(g))
-                graph_count += 1
-            except Exception:
+            except Exception as exc:
+                graph_errors.append(
+                    {
+                        "case_id": case_id,
+                        "graph": str(rel),
+                        "error": str(exc),
+                    }
+                )
                 continue
+
+            health = str(g.metadata.get("parse_health", "UNKNOWN")).upper()
+            if health == "INVALID" or (not g.nodes and not g.edges):
+                invalid_graphs.append(
+                    {
+                        "case_id": case_id,
+                        "graph": str(rel),
+                        "parse_health": health,
+                        "reason": (
+                            "parser marked graph INVALID"
+                            if health == "INVALID"
+                            else "graph contains no nodes or edges"
+                        ),
+                    }
+                )
+                continue
+
+            fingerprints.append(semantic_graph_fingerprint(g))
+            graph_count += 1
+
         unique = len(set(fingerprints))
         return {
             "graph_count": graph_count,
@@ -146,6 +179,9 @@ def _semantic_diversity(
             if graph_count
             else None,
             "effective_semantic_sample_size": unique,
+            "semantic_fingerprint_algorithm": SEMANTIC_FINGERPRINT_ALGORITHM,
+            "graph_errors": graph_errors,
+            "invalid_graphs": invalid_graphs,
         }
     except Exception as exc:
         return {
@@ -153,6 +189,9 @@ def _semantic_diversity(
             "unique_semantic_graphs": 0,
             "semantic_duplicate_rate": None,
             "effective_semantic_sample_size": 0,
+            "semantic_fingerprint_algorithm": SEMANTIC_FINGERPRINT_ALGORITHM,
+            "graph_errors": [],
+            "invalid_graphs": [],
             "error": str(exc),
         }
 
@@ -470,14 +509,84 @@ def quality_audit(
                 "source similarity audit is required but no source artifacts are available"
             )
     semantic = _semantic_diversity(p, cases)
-    clusters = {}
-    for c in independent:
-        ds = c.get("dataset") or {}
-        key = ds.get("repository") or ds.get("repo") or ds.get("project") or c.get("id")
-        clusters[str(key)] = clusters.get(str(key), 0) + 1
-    if independent and len(clusters) == 1 and len(independent) > 1:
+    for graph_error in semantic.get("graph_errors", []):
+        errors.append(
+            "semantic graph unreadable for case "
+            f"{graph_error['case_id']!r} "
+            f"({graph_error['graph']}): {graph_error['error']}"
+        )
+    for invalid_graph in semantic.get("invalid_graphs", []):
+        errors.append(
+            "semantic graph invalid for case "
+            f"{invalid_graph['case_id']!r} "
+            f"({invalid_graph['graph']}): {invalid_graph['reason']}"
+        )
+    clusters: dict[str, int] = {}
+    cluster_labels: dict[str, dict[str, int]] = {}
+    unassigned_cluster_cases = 0
+    identified_labels: Counter[str] = Counter()
+    unassigned_labels: Counter[str] = Counter()
+
+    for case in independent:
+        ds = case.get("dataset") if isinstance(case.get("dataset"), dict) else {}
+        repository = (
+            case.get("repository")
+            or case.get("repo")
+            or ds.get("repository")
+            or ds.get("repo")
+        )
+        project = case.get("project") or ds.get("project")
+        expected = str(case.get("expected", "UNKNOWN")).upper()
+
+        if repository is not None and str(repository).strip():
+            identity = f"repository:{str(repository).strip()}"
+        elif project is not None and str(project).strip():
+            identity = f"project:{str(project).strip()}"
+        else:
+            unassigned_cluster_cases += 1
+            unassigned_labels[expected] += 1
+            continue
+
+        clusters[identity] = clusters.get(identity, 0) + 1
+        cluster_labels.setdefault(identity, {})
+        cluster_labels[identity][expected] = (
+            cluster_labels[identity].get(expected, 0) + 1
+        )
+        identified_labels[expected] += 1
+
+    assigned_cases = sum(clusters.values())
+    label_names = ("MATCH", "NO_MATCH", "UNKNOWN")
+    label_supporting_clusters = {
+        label: sum(1 for counts in cluster_labels.values() if counts.get(label, 0) > 0)
+        for label in label_names
+    }
+    identified_case_counts_by_label = {
+        label: identified_labels.get(label, 0) for label in label_names
+    }
+    unassigned_case_counts_by_label = {
+        label: unassigned_labels.get(label, 0) for label in label_names
+    }
+
+    largest_cluster_size = max(clusters.values(), default=0)
+    largest_cluster_share = (
+        round(largest_cluster_size / assigned_cases, 6) if assigned_cases else None
+    )
+    largest_clusters = [
+        {
+            "identity": identity,
+            "case_count": clusters[identity],
+            "label_counts": cluster_labels[identity],
+        }
+        for identity in sorted(
+            clusters,
+            key=lambda key: (-clusters[key], key),
+        )[:5]
+    ]
+
+    if len(clusters) == 1 and assigned_cases > 1:
         warnings.append(
-            "all independent cases belong to one dependency cluster; confidence intervals should be cluster-aware"
+            "all identified independent cases belong to one dependency cluster; "
+            "confidence intervals should be cluster-aware"
         )
     return {
         "status": "FAIL" if errors else "PASS",
@@ -508,6 +617,14 @@ def quality_audit(
         "independence_clusters": {
             "count": len(clusters),
             "sizes": sorted(clusters.values(), reverse=True),
+            "assigned_cases": assigned_cases,
+            "unassigned_cases": unassigned_cluster_cases,
+            "label_supporting_clusters": label_supporting_clusters,
+            "identified_case_counts_by_label": identified_case_counts_by_label,
+            "unassigned_case_counts_by_label": unassigned_case_counts_by_label,
+            "largest_cluster_size": largest_cluster_size,
+            "largest_cluster_share": largest_cluster_share,
+            "largest_clusters": largest_clusters,
         },
         "dimension_taxonomy": DIMENSION_TAXONOMY,
     }

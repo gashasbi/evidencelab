@@ -325,9 +325,9 @@ def run_research_check(
         md = metrics.to_dict()
         item["metrics"] = md
         item["coverage"] = meta
-        # Attach the full quality-audit census so profile gates can distinguish independent samples from mutation descendants.
+
         meta["quality_audit"] = qa
-        # Use pair/repository/project clusters as sampling units to avoid overconfident intervals.
+
         values = []
         unknown_values = []
         classification_rows = []
@@ -338,15 +338,23 @@ def run_research_check(
         }
         for rr in _:
             case = case_by_id.get(rr.case_id, {})
-            ds = case.get("dataset") or {}
-            cluster = str(
-                case.get("pair_id")
-                or ds.get("pair_id")
-                or ds.get("repository")
-                or ds.get("repo")
-                or ds.get("project")
-                or rr.case_id
-            )
+            ds = case.get("dataset") if isinstance(case.get("dataset"), dict) else {}
+            cluster_key = None
+            for cluster_kind, candidate in (
+                ("pair_id", case.get("pair_id") or ds.get("pair_id")),
+                (
+                    "repository",
+                    case.get("repository")
+                    or case.get("repo")
+                    or ds.get("repository")
+                    or ds.get("repo"),
+                ),
+                ("project", case.get("project") or ds.get("project")),
+            ):
+                if candidate is not None and str(candidate).strip():
+                    cluster_key = f"{cluster_kind}:{str(candidate).strip()}"
+                    break
+            cluster = cluster_key
             values.append((cluster, 1.0 if rr.correct else 0.0))
             if rr.expected == "UNKNOWN":
                 unknown_values.append(
@@ -381,7 +389,7 @@ def run_research_check(
             meta["stored_witness_replay"] = sr
             if enforce_gates and sr.get("status") != "PASS":
                 errors += 1
-        # Independent semantic replay across all MATCH results, not just one example.
+
         independent_validation = None
         if profile.get("require_independent_witness_validation", False):
             try:
@@ -431,10 +439,17 @@ def run_research_check(
             )
             meta["performance"] = perf
             item["performance"] = perf
-        if independent_validation is not None and q.get("matched_cases"):
+        if (
+            independent_validation is not None
+            and "passed_cases" in independent_validation
+            and q.get("matched_cases")
+        ):
             q["independent_replay_rate"] = float(
                 independent_validation.get("passed_cases", 0)
             ) / float(q["matched_cases"])
+            q["independent_replay_evaluated_cases"] = int(
+                independent_validation.get("validated_cases", 0)
+            )
         item["evidence_quality"] = q
         meta["evidence_quality"] = q
         for k in aggregate:
@@ -450,7 +465,7 @@ def run_research_check(
             + list(item.get("gate_errors", []))
         )
         meta["failure_taxonomy"] = item["failure_taxonomy"]
-        # Accept a family benchmark tree or a sealed bundle containing benchmark.json.
+
         if hidden_base:
             sealed_required = bool(
                 require_hidden
@@ -525,10 +540,17 @@ def run_research_check(
                     hmmeta["performance"] = hperf
                     item["hidden_performance"] = hperf
                 qh = compute_evidence_quality(hidden_results, pattern)
-                if hidden_validation_result is not None and qh.get("matched_cases"):
+                if (
+                    hidden_validation_result is not None
+                    and "passed_cases" in hidden_validation_result
+                    and qh.get("matched_cases")
+                ):
                     qh["independent_replay_rate"] = float(
                         hidden_validation_result.get("passed_cases", 0)
                     ) / float(qh["matched_cases"])
+                    qh["independent_replay_evaluated_cases"] = int(
+                        hidden_validation_result.get("validated_cases", 0)
+                    )
                 hmmeta["evidence_quality"] = qh
                 item["hidden_evidence_quality"] = qh
                 hmmeta["hidden_integrity"] = hidden_integrity or {}
@@ -563,7 +585,7 @@ def run_research_check(
                     if sa.get("status") != "PASS":
                         errors += 1
         results.append(item)
-    # A local placeholder cannot satisfy a requirement backed by an external --hidden-root.
+
     package = audit_research_package(
         root, require_hidden=False if hidden_base else require_hidden
     )

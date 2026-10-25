@@ -6,9 +6,12 @@ from typing import Any
 import json
 import time
 import uuid
+from collections import Counter
 
 from .outcomes import normalize_proof_state
 from .provenance import sha256_json
+
+OBSERVATION_STATES = {"OBSERVED", "ABSENT", "UNKNOWN", "NOT_APPLICABLE"}
 
 
 def _append(root: Path, name: str, payload: dict[str, Any]) -> Path:
@@ -61,17 +64,34 @@ def record_observation(
             "observation analyzer, query, artifact and statement are required"
         )
     rootp = Path(root).resolve() / "experiments"
+    observation_state = str(state or "UNKNOWN").upper().replace("-", "_")
+    if observation_state not in OBSERVATION_STATES:
+        raise ValueError(
+            "observation state must be one of OBSERVED, ABSENT, UNKNOWN, NOT_APPLICABLE"
+        )
+    record_id = observation_id or f"obs-{uuid.uuid4().hex[:12]}"
+    ledger_path = rootp / "observations.jsonl"
+    if ledger_path.is_file():
+        for line in ledger_path.read_text(encoding="utf-8").splitlines():
+            if not line.strip():
+                continue
+            try:
+                existing = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if str(existing.get("observation_id", "")) == record_id:
+                raise ValueError(f"duplicate observation_id: {record_id}")
     payload = {
         "schema_version": SCHEMA_VERSION,
         "record_type": "RAW_OBSERVATION",
-        "observation_id": observation_id or f"obs-{uuid.uuid4().hex[:12]}",
+        "observation_id": record_id,
         "timestamp_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "hypothesis_id": hypothesis_id,
         "analyzer": analyzer,
         "query": query,
         "artifact": artifact,
         "statement": statement,
-        "state": normalize_proof_state(state, default="UNKNOWN"),
+        "state": observation_state,
         "locations": locations or [],
         "raw_digest": raw_digest,
         "capability_snapshot": capability_snapshot or {},
@@ -173,16 +193,30 @@ def audit_research_ledgers(
     der_errors, der_count, der_head, derivations = _audit_chain(
         rootp / "derivations.jsonl", {SCHEMA_VERSION}
     )
-    errors.extend(obs_errors + der_errors)
     if require_nonempty and (obs_count == 0 or der_count == 0):
         errors.append("research ledger requires non-empty observations and derivations")
 
-    observation_ids = {
+    observation_id_values = [
         str(x.get("observation_id")) for x in observations if x.get("observation_id")
-    }
-    derivation_ids = {
+    ]
+    derivation_id_values = [
         str(x.get("derivation_id")) for x in derivations if x.get("derivation_id")
-    }
+    ]
+    observation_ids = set(observation_id_values)
+    derivation_ids = set(derivation_id_values)
+    observation_counts = Counter(observation_id_values)
+    derivation_counts = Counter(derivation_id_values)
+    for record_id in sorted(x for x, count in observation_counts.items() if count > 1):
+        obs_errors.append(f"observations.jsonl: duplicate observation_id {record_id}")
+    for record_id in sorted(x for x, count in derivation_counts.items() if count > 1):
+        der_errors.append(f"derivations.jsonl: duplicate derivation_id {record_id}")
+    for item in observations:
+        state = str(item.get("state", "UNKNOWN")).upper()
+        if state not in OBSERVATION_STATES:
+            obs_errors.append(
+                f"observations.jsonl:{item.get('observation_id')}: invalid observation state {state}"
+            )
+    errors.extend(obs_errors + der_errors)
     known_artifacts = {
         str(x.get("artifact")) for x in observations if x.get("artifact")
     }

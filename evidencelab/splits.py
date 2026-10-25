@@ -95,7 +95,7 @@ def _materialize_graphs(
         try:
             rel_text = str(rel)
             candidate = Path(rel_text)
-            # Absolute manifest paths are security violations, not missing-artifact warnings.
+
             if candidate.is_absolute():
                 raise PermissionError(f"absolute graph paths are forbidden: {rel_text}")
             gp = _safe_case_path(source_manifest, rel_text)
@@ -103,13 +103,13 @@ def _materialize_graphs(
             raise
         except ValueError as exc:
             message = str(exc)
-            # Reject graph_base path escapes.
+
             if (
                 "graph_base escapes benchmark root" in message
                 or "absolute graph_base is forbidden" in message
             ):
                 raise PermissionError(message) from exc
-            # Missing pre-capture graphs are recoverable; paths outside trusted roots must fail closed.
+
             try:
                 base = source_manifest.resolve().parent
                 trusted = __import__(
@@ -134,7 +134,7 @@ def _materialize_graphs(
                 Path(rel_text).parts and (".." in Path(rel_text).parts)
             ):
                 raise PermissionError(message) from exc
-            # Preserve uncaptured graph references so later audit reports missing artifacts honestly.
+
             item.setdefault("split_warnings", []).append(message)
             prepared.append(item)
             continue
@@ -202,7 +202,6 @@ def split_benchmark(
     groups: dict[str, list[dict[str, Any]]] = {}
     case_map = {str(c.get("id")): c for c in cases}
 
-    # Union mutation ancestry with grouping keys so descendants cannot cross partitions.
     base_group: dict[str, str] = {}
     for case in cases:
         cid = str(case.get("id"))
@@ -244,20 +243,84 @@ def split_benchmark(
     for case in cases:
         gid = find(base_group[str(case.get("id"))])
         groups.setdefault(gid, []).append(case)
+
+    requested_ratios = {
+        "train": train,
+        "validation": validation,
+        "test": test,
+    }
+    target_case_counts = {
+        name: len(cases) * ratio for name, ratio in requested_ratios.items()
+    }
+    buckets = {"train": [], "validation": [], "test": []}
+    bucket_group_ids = {"train": [], "validation": [], "test": []}
+
     ordered = sorted(
         groups.items(),
-        key=lambda kv: hashlib.sha256(f"{seed}:{kv[0]}".encode()).hexdigest(),
+        key=lambda kv: (
+            -len(kv[1]),
+            hashlib.sha256(f"{seed}:{kv[0]}".encode()).hexdigest(),
+        ),
     )
-    cumulative = [train, train + validation]
-    buckets = {"train": [], "validation": [], "test": []}
-    for idx, (_, members) in enumerate(ordered):
-        frac = (idx + 0.5) / max(1, len(ordered))
-        target = (
-            "train"
-            if frac < cumulative[0]
-            else ("validation" if frac < cumulative[1] else "test")
+
+    tie_priority = {"train": 0, "test": 1, "validation": 2}
+    eligible_partitions = [
+        name for name, ratio in requested_ratios.items() if ratio > 0
+    ]
+
+    for group_id, members in ordered:
+        target = max(
+            eligible_partitions,
+            key=lambda name: (
+                target_case_counts[name] - len(buckets[name]),
+                tie_priority[name],
+            ),
         )
         buckets[target].extend(members)
+        bucket_group_ids[target].append(group_id)
+
+    total_cases = len(cases)
+    partition_case_ratios = {
+        name: round(len(members) / total_cases, 6) if total_cases else 0.0
+        for name, members in buckets.items()
+    }
+    partition_group_counts = {
+        name: len(group_ids) for name, group_ids in bucket_group_ids.items()
+    }
+    case_ratio_deviation = {
+        name: round(partition_case_ratios[name] - requested_ratios[name], 6)
+        for name in buckets
+    }
+
+    quality_warnings = []
+    for name in ("train", "validation", "test"):
+        if requested_ratios[name] > 0 and partition_group_counts[name] < 2:
+            quality_warnings.append(
+                f"{name} partition has fewer than two indivisible groups "
+                f"under {strategy} strategy; cluster-aware uncertainty "
+                "is not estimable for this partition"
+            )
+        relative_ratio_deviation = (
+            abs(case_ratio_deviation[name]) / requested_ratios[name]
+            if requested_ratios[name] > 0
+            else 0.0
+        )
+        if (
+            total_cases
+            and requested_ratios[name] > 0
+            and (
+                abs(case_ratio_deviation[name]) > 0.10
+                or relative_ratio_deviation > 0.25
+            )
+        ):
+            quality_warnings.append(
+                f"{name} case ratio differs materially from its target "
+                f"(absolute deviation={abs(case_ratio_deviation[name]):.3f}, "
+                f"relative deviation={relative_ratio_deviation:.1%}); "
+                "indivisible group sizes limit the requested ratio "
+                "(diagnostic warning only)"
+            )
+
     errors: list[str] = []
     owner: dict[str, str] = {}
     for name, members in buckets.items():
@@ -290,6 +353,13 @@ def split_benchmark(
         "groups": len(groups),
         "cases": len(cases),
         "counts": {k: len(v) for k, v in buckets.items()},
+        "partition_group_counts": partition_group_counts,
+        "partition_case_ratios": partition_case_ratios,
+        "target_case_ratios": {
+            name: round(value, 6) for name, value in requested_ratios.items()
+        },
+        "case_ratio_deviation": case_ratio_deviation,
+        "quality_warnings": quality_warnings,
         "errors": errors,
         "allow_missing_group": allow_missing_group,
         "mutation_aware_grouping": True,
@@ -312,7 +382,6 @@ def chronological_split(
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
 
-    # Keep each mutation lineage in one chronological partition, ordered by its earliest member.
     case_map = {str(c.get("id")): c for c in cases}
     parent: dict[str, str] = {}
 
@@ -338,7 +407,6 @@ def chronological_split(
             union(cid, str(counterpart))
         pair_id = case.get("pair_id") or (case.get("dataset") or {}).get("pair_id")
         if pair_id:
-            # All cases sharing a patch/pair identity are grouped later below.
             pass
     pair_groups = {}
     for cid, case in case_map.items():
@@ -586,10 +654,90 @@ def audit_split_directory(
             if a in ranges and b in ranges and ranges[a][1] > ranges[b][0]:
                 errors.append(f"chronological overlap/order violation: {a} and {b}")
 
+    valid_group_strategies = {"repository", "project", "cve"}
+    group_strategy = strategy if strategy in valid_group_strategies else None
+
+    if group_strategy is None:
+        declared_strategies = {
+            str((raw.get("split") or {}).get("strategy"))
+            for raw in manifests.values()
+            if (raw.get("split") or {}).get("strategy")
+        }
+        if len(declared_strategies) == 1:
+            declared = next(iter(declared_strategies))
+            if declared in valid_group_strategies:
+                group_strategy = declared
+
+    partition_summary = {}
+    quality_warnings = []
+
+    for part, raw in manifests.items():
+        part_cases = [c for c in raw.get("cases", []) if isinstance(c, dict)]
+        label_counts = {}
+        identified_groups = set()
+        cases_without_group_identity = 0
+        source_hash_counts = {}
+        source_hash_coverage = 0
+
+        for case in part_cases:
+            label = str(case.get("expected", "UNKNOWN")).upper()
+            label_counts[label] = label_counts.get(label, 0) + 1
+
+            if group_strategy:
+                try:
+                    group_id = _required_group(
+                        case, group_strategy, allow_missing=False
+                    )
+                    identified_groups.add(group_id)
+                except Exception:
+                    cases_without_group_identity += 1
+
+            source_metadata = case.get("source_metadata")
+            if not isinstance(source_metadata, dict):
+                source_metadata = {}
+
+            source_hash = case.get("normalized_source_hash") or source_metadata.get(
+                "normalized_source_hash"
+            )
+            if source_hash:
+                source_hash_coverage += 1
+                source_hash = str(source_hash)
+                source_hash_counts[source_hash] = (
+                    source_hash_counts.get(source_hash, 0) + 1
+                )
+
+        partition_summary[part] = {
+            "case_count": len(part_cases),
+            "label_counts": dict(sorted(label_counts.items())),
+            "identified_groups": (len(identified_groups) if group_strategy else None),
+            "cases_without_group_identity": (
+                cases_without_group_identity if group_strategy else None
+            ),
+            "source_hash_coverage": source_hash_coverage,
+            "unique_source_hashes": len(source_hash_counts),
+            "duplicate_source_hash_groups": sum(
+                1 for count in source_hash_counts.values() if count > 1
+            ),
+        }
+
+        if (
+            group_strategy
+            and part in {"validation", "test"}
+            and part_cases
+            and len(identified_groups) < 2
+        ):
+            quality_warnings.append(
+                f"{part} partition has fewer than two identified "
+                f"{group_strategy} groups; cluster-aware evaluation "
+                "is not estimable for this partition"
+            )
+
     return {
         "status": "PASS" if not errors else "FAIL",
         "errors": errors,
         "warnings": warnings,
+        "partition_summary": partition_summary,
+        "quality_warnings": quality_warnings,
         "partitions": {k: len(v.get("cases", [])) for k, v in manifests.items()},
         "case_count": len(all_cases),
         "unique_case_ids": len(case_owner),
