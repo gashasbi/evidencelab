@@ -532,6 +532,15 @@ class Matcher:
             warnings.append(
                 "analysis reported truncation; definitive MATCH is suppressed"
             )
+        analysis_incomplete = (
+            bool(truncated_slots)
+            or (self.graph.metadata.get("parse_health") or "OK") != "OK"
+            or (self.graph.metadata.get("completeness") or "declared")
+            not in {"full_export", "declared"}
+            or bool(self.graph.metadata.get("candidate_truncated"))
+            or bool(self.graph.metadata.get("analysis_truncated"))
+        )
+        graphml_property_loss_risk = False
         loss_risk = self.graph.metadata.get("loss_risk") or {}
         if isinstance(loss_risk, dict) and loss_risk.get("graphml_lists"):
             warnings.append(
@@ -571,7 +580,7 @@ class Matcher:
                 for claim in pattern.claims + pattern.counter_claims
             )
             if property_sensitive:
-                analysis_incomplete = True
+                graphml_property_loss_risk = True
                 warnings.append(
                     "property-sensitive claims rely on an export format that may omit list-valued properties"
                 )
@@ -580,14 +589,6 @@ class Matcher:
                 "candidate truncation occurred; definitive MATCH is suppressed"
             )
 
-        analysis_incomplete = (
-            bool(truncated_slots)
-            or (self.graph.metadata.get("parse_health") or "OK") != "OK"
-            or (self.graph.metadata.get("completeness") or "declared")
-            not in {"full_export", "declared"}
-            or bool(self.graph.metadata.get("candidate_truncated"))
-            or bool(self.graph.metadata.get("analysis_truncated"))
-        )
         attestation = self.graph.metadata.get("analysis_attestation") or {}
         if (
             isinstance(attestation, dict)
@@ -729,15 +730,22 @@ class Matcher:
                 )
             elif any(w.status == "PARTIAL" for w in required):
                 status = "PARTIAL"
-            elif analysis_incomplete:
+            elif analysis_incomplete or graphml_property_loss_risk:
                 status = self._unknown_status(pattern)
             else:
                 status = "NO_MATCH"
         else:
             required = [c for c in global_claims if c.required]
-            if any(c.status == "PROVEN" for c in global_counters):
+            if (
+                any(c.status == "PROVEN" for c in global_counters)
+                and not graphml_property_loss_risk
+            ):
                 status = "NO_MATCH"
-            elif analysis_incomplete or self._budget_exhausted:
+            elif (
+                analysis_incomplete
+                or graphml_property_loss_risk
+                or self._budget_exhausted
+            ):
                 status = self._unknown_status(pattern)
             elif any(c.status == "UNKNOWN" for c in required):
                 status = self._unknown_status(pattern)

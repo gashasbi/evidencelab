@@ -153,6 +153,70 @@ def test_degraded_analyzer_cannot_produce_definitive_no_match():
     assert any("degraded" in warning.lower() for warning in result.warnings)
 
 
+def test_graphml_list_property_risk_preserves_positive_match():
+    graph = Graph(
+        nodes={"needle": Node("needle", "CALL", {"name": "needle", "size": 16})},
+        metadata={
+            "completeness": "full_export",
+            "parse_health": "OK",
+            "loss_risk": {"graphml_lists": True},
+        },
+    )
+    pattern = _pattern(
+        [
+            {
+                "id": "node",
+                "kind": "property",
+                "required": True,
+                "slot": "target",
+                "equals": {"size": 16},
+            }
+        ],
+        slots=[{"id": "target", "concept": "needle", "required": True}],
+        witnesses=[
+            {"id": "w", "slots": ["target"], "claims": ["node"], "required": True}
+        ],
+    )
+
+    result = Matcher(graph).run(pattern)
+
+    assert result.evidence_trace["analysis_incomplete"] is False
+    assert result.status == "MATCH"
+    assert any("property-sensitive claims" in warning for warning in result.warnings)
+
+
+def test_graphml_list_property_risk_prevents_definitive_no_match():
+    graph = Graph(
+        nodes={"needle": Node("needle", "CALL", {"name": "needle", "size": 17})},
+        metadata={
+            "completeness": "full_export",
+            "parse_health": "OK",
+            "loss_risk": {"graphml_lists": True},
+        },
+    )
+    pattern = _pattern(
+        [
+            {
+                "id": "node",
+                "kind": "property",
+                "required": True,
+                "slot": "target",
+                "equals": {"size": 16},
+            }
+        ],
+        slots=[{"id": "target", "concept": "needle", "required": True}],
+        witnesses=[
+            {"id": "w", "slots": ["target"], "claims": ["node"], "required": True}
+        ],
+    )
+
+    result = Matcher(graph).run(pattern)
+
+    assert result.status == "UNKNOWN"
+    assert result.evidence_trace["analysis_incomplete"] is False
+    assert any("property-sensitive claims" in warning for warning in result.warnings)
+
+
 def test_hidden_seal_policy_requires_hmac_even_without_caller_flag(tmp_path):
     source = tmp_path / "source"
     (source / "graphs").mkdir(parents=True)
