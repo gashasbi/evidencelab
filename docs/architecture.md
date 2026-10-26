@@ -4,30 +4,15 @@ EvidenceLab separates what an analyzer observed, what a researcher asserts, and 
 
 ## Execution path
 
-```text
-Source code or dataset
-       |
-       +--> Analyzer / importer --> raw artifacts and identity/provenance
-                                      |
-ELS definition --> validate --> compile |
-                                      v
-                         graph / material contract
-                                      |
-                                      v
-                      candidate bindings and claims
-                                      |
-                                      v
-                      witness / counter-evidence
-                         / completeness state
-                                      |
-                                      v
-                          report and audit artifacts
-```
+![EvidenceLab architecture](../images/architecture.jpg)
+
+At a high level, EvidenceLab processes source code or datasets through an analyzer/importer to produce artifacts with identity and provenance. ELS definitions are validated and compiled into graph or material contracts, which support candidate bindings and claims.
 
 ## Main components
 
 - **ELS and Pattern layer:** parses and validates concepts, selectors, slots, claims, witnesses, counter-evidence, and execution policies.
 - **Analyzer boundary:** parsers accept supported graph representations, including EvidenceLab canonical graph JSON and selected GraphML, GraphSON, and Joern slice forms. The Joern adapter invokes external tools; it does not implement Joern.
+- **Source dataset capture:** `capture-source-dataset` runs Joern capture for explicitly labeled C/C++ cases and writes `safe.json`, `vulnerable.json`, and `benchmark.json` with per-case artifacts. Labels come from the manifest; they are not inferred from analyzer output.
 - **Material integration:** importers and declarative mappings convert supported external records into canonical experimental-material manifests while retaining identity and label authority.
 - **Matcher:** evaluates claims under coherent bindings. Required facts about unrelated objects must not be combined into one witness.
 - **Research tooling:** supports benchmark checks, provenance inventories, witness replay, splits, leakage audits, evaluation reports, and research-package gates.

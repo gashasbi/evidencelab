@@ -49,6 +49,7 @@ def capture_dataset(
     """
     p = Path(dataset_manifest).resolve()
     raw = json.loads(p.read_text(encoding="utf-8"))
+    dataset = raw.get("dataset", {}) or {}
     root = p.parent
     out = Path(out_dir).resolve()
     out.mkdir(parents=True, exist_ok=True)
@@ -70,10 +71,15 @@ def capture_dataset(
                 cases.append(
                     {
                         "id": cid,
+                        "label": c.get("label"),
                         "expected": str(c.get("expected", "UNKNOWN")).upper(),
                         "actual_policy": "analysis-failure-becomes-UNKNOWN",
                         "graph": os.path.relpath(gp, p.parent),
                         "source": c.get("source"),
+                        "label": c.get("label"),
+                        "label_authority": c.get("label_authority")
+                        or dataset.get("label_authority")
+                        or "USER_DECLARED",
                         "partition": c.get("partition", "public"),
                         "tags": list(
                             dict.fromkeys(
@@ -180,10 +186,15 @@ def capture_dataset(
                 cases.append(
                     {
                         "id": cid,
+                        "label": c.get("label"),
                         "expected": str(c.get("expected", "UNKNOWN")).upper(),
                         "actual_policy": "analysis-failure-becomes-UNKNOWN",
                         "graph": os.path.relpath(gp, p.parent),
                         "source": c.get("source"),
+                        "label": c.get("label"),
+                        "label_authority": c.get("label_authority")
+                        or dataset.get("label_authority")
+                        or "USER_DECLARED",
                         "partition": c.get("partition", "public"),
                         "tags": list(
                             dict.fromkeys(
@@ -232,4 +243,133 @@ def capture_dataset(
         ),
         "failures": failures,
         "benchmark": str(bo),
+    }
+
+
+def capture_source_dataset(
+    dataset_manifest: str | Path,
+    out_dir: str | Path,
+    timeout: int = 600,
+    slice_depth: int = 8,
+    best_effort: bool = False,
+    limit: int | None = None,
+) -> dict[str, Any]:
+    p = Path(dataset_manifest).resolve()
+    raw = json.loads(p.read_text(encoding="utf-8"))
+    if not isinstance(raw, dict):
+        raise ValueError("manifest root must be an object")
+    dataset = raw.get("dataset") or {}
+    if not isinstance(dataset, dict):
+        raise ValueError("manifest dataset must be an object")
+    cases = raw.get("cases")
+    if not isinstance(cases, list) or not cases:
+        raise ValueError("manifest must contain a non-empty cases array")
+    seen_ids = set()
+    source_root = p.parent.resolve()
+    for index, case in enumerate(cases):
+        if not isinstance(case, dict):
+            raise ValueError(f"case at index {index} must be an object")
+        case_id = str(case.get("id", "")).strip()
+        if not case_id or case_id in {".", ".."} or "/" in case_id or "\\" in case_id:
+            raise ValueError(f"case at index {index} has an invalid id")
+        if case_id in seen_ids:
+            raise ValueError(f"duplicate case id: {case_id}")
+        seen_ids.add(case_id)
+        label = str(case.get("label", "")).strip().lower()
+        if label not in {"safe", "vulnerable"}:
+            raise ValueError(f"case {case_id} label must be safe or vulnerable")
+        source = str(case.get("source", "")).strip()
+        if not source:
+            raise ValueError(f"case {case_id} requires a source path")
+        source_path = Path(source)
+        if source_path.is_absolute():
+            raise ValueError(f"case {case_id} source path must be relative")
+        resolved_source = (source_root / source_path).resolve()
+        try:
+            resolved_source.relative_to(source_root)
+        except ValueError as exc:
+            raise ValueError(f"case {case_id} source path escapes manifest directory") from exc
+        if resolved_source.suffix.lower() not in {
+            ".c", ".h", ".cc", ".cpp", ".cxx", ".hpp", ".hh", ".hxx"
+        }:
+            raise ValueError(f"case {case_id} source must be a C or C++ file")
+    out = Path(out_dir).resolve()
+    out.mkdir(parents=True, exist_ok=True)
+    benchmark_path = out / "benchmark.json"
+    capture_result = capture_dataset(
+        p,
+        out / "captures",
+        benchmark_path,
+        timeout,
+        slice_depth,
+        best_effort,
+        limit,
+        True,
+    )
+    benchmark = json.loads(benchmark_path.read_text(encoding="utf-8"))
+    output_paths = {
+        "safe": out / "safe.json",
+        "vulnerable": out / "vulnerable.json",
+    }
+    written = {}
+    for label, output_path in output_paths.items():
+        selected = []
+        for original in benchmark.get("cases", []):
+            if str(original.get("label", "")).lower() != label:
+                continue
+            item = dict(original)
+            graph_ref = item.get("graph")
+            if graph_ref:
+                graph_path = (p.parent / str(graph_ref)).resolve()
+                item["graph"] = os.path.relpath(graph_path, output_path.parent)
+                if graph_path.is_file():
+                    item["graph_sha256"] = sha256_file(graph_path)
+            capture = item.get("capture")
+            if isinstance(capture, dict) and capture.get("manifest"):
+                capture = dict(capture)
+                manifest_path = (p.parent / str(capture["manifest"])).resolve()
+                capture["manifest"] = os.path.relpath(manifest_path, output_path.parent)
+                item["capture"] = capture
+            source_value = item.get("source")
+            if source_value:
+                source_path = (source_root / str(source_value)).resolve()
+                if source_path.is_file():
+                    item["source_sha256"] = sha256_file(source_path)
+            item["label"] = label
+            item["label_authority"] = str(
+                item.get("label_authority")
+                or dataset.get("label_authority")
+                or "USER_DECLARED"
+            )
+            selected.append(item)
+        payload = {
+            "schema_version": SCHEMA_VERSION,
+            "format": "evidencelab-source-dataset",
+            "dataset": dict(dataset),
+            "label": label,
+            "label_authority": str(
+                dataset.get("label_authority") or "USER_DECLARED"
+            ),
+            "source_root": str(source_root),
+            "source_manifest": str(p),
+            "cases": selected,
+            "capture_policy": {
+                "failed_analysis_is_unknown": True,
+                "per_case_timeout_seconds": timeout,
+            },
+        }
+        output_path.write_text(
+            json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        written[label] = {"path": str(output_path), "cases": len(selected)}
+    return {
+        "status": capture_result["status"],
+        "requested": capture_result["requested"],
+        "captured": capture_result["captured"],
+        "failed": capture_result["failed"],
+        "unknown_from_failures": capture_result["unknown_from_failures"],
+        "datasets": written,
+        "benchmark": str(benchmark_path),
+        "failures": capture_result["failures"],
     }

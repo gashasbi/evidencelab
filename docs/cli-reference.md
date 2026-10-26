@@ -50,6 +50,7 @@ python -m evidencelab research-init --cwe CWE-121 --out research/cwe-121
 | `capture` | Invoke Joern to capture and export artifacts for a source path. |
 | `scan` | Capture source, merge graph inputs, run patterns, and preserve reports where supported. |
 | `capture-corpus` | Capture cases from a source manifest and write a benchmark manifest. |
+| `capture-source-dataset` | Capture explicitly labeled C/C++ source cases and write `safe.json` and `vulnerable.json`. |
 
 These workflows require the external Joern tools described in [Joern integration](joern-integration.md). A successful process is not proof that every relevant semantic relation was recovered.
 

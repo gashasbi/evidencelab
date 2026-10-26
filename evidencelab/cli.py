@@ -46,7 +46,7 @@ from .witness_validator import (
     validate_benchmark_matches,
     replay_stored_report,
 )
-from .corpus_runner import capture_dataset
+from .corpus_runner import capture_dataset, capture_source_dataset
 from .mutations import mutate_file
 from .benchmark_build import compose_benchmarks, benchmark_plan
 from .hidden import seal_hidden_benchmark, verify_hidden_bundle
@@ -507,6 +507,13 @@ def build_parser() -> argparse.ArgumentParser:
     cc.add_argument("--slice-depth", type=int, default=8)
     cc.add_argument("--best-effort", action="store_true")
     cc.add_argument("--limit", type=int)
+    csd = s.add_parser("capture-source-dataset")
+    csd.add_argument("--manifest", required=True)
+    csd.add_argument("--out-dir", required=True)
+    csd.add_argument("--timeout", type=int, default=600)
+    csd.add_argument("--slice-depth", type=int, default=8)
+    csd.add_argument("--best-effort", action="store_true")
+    csd.add_argument("--limit", type=int)
     mu = s.add_parser("mutate")
     mu.add_argument("--source", required=True)
     mu.add_argument("--recipes", required=True)
@@ -1369,6 +1376,17 @@ def main(argv=None):
                 )
             )
             return 0
+        if args.cmd == "capture-source-dataset":
+            result = capture_source_dataset(
+                args.manifest,
+                args.out_dir,
+                args.timeout,
+                args.slice_depth,
+                args.best_effort,
+                args.limit,
+            )
+            print(json.dumps(result, ensure_ascii=False, indent=2))
+            return 0 if result.get("status") == "PASS" else 1
         if args.cmd == "mutate":
             recipes = json.loads(Path(args.recipes).read_text(encoding="utf-8"))
             if isinstance(recipes, dict):

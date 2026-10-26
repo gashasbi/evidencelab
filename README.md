@@ -73,7 +73,7 @@ A missing edge, timeout, unresolved property, failed export, or truncated search
 
 - [Getting started: install and run the first example](docs/getting-started.md)
 - [Architecture and data flow](docs/architecture.md)
-- [Evidence and ELS reference](docs/evidence-reference.md)
+- [Evidence and ELS reference: write a definition step by step](docs/evidence-reference.md)
 - [Command-line reference](docs/cli-reference.md)
 - [Joern integration](docs/joern-integration.md)
 - [Dataset integration](docs/dataset-integration.md)
