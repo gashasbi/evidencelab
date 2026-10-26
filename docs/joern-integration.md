@@ -70,6 +70,53 @@ Use a source path that exists in your checkout. Capture writes analyzer artifact
 
 The default behavior may request GraphSON and data-flow analysis; inspect `python -m evidencelab capture --help` to see the options accepted by the installed checkout.
 
+## Build safe and vulnerable source datasets
+
+Create a JSON manifest beside the source files. Each case must explicitly declare a `safe` or `vulnerable` label; EvidenceLab does not infer ground truth from Joern output. Paths are relative to the manifest directory.
+
+```json
+{
+  "dataset": {
+    "id": "project-security-cases",
+    "name": "Project security cases",
+    "version": "1.0",
+    "label_authority": "USER_DECLARED"
+  },
+  "cases": [
+    {
+      "id": "case-safe-001",
+      "source": "safe/example.c",
+      "label": "safe",
+      "source_metadata": {
+        "revision": "abc123"
+      }
+    },
+    {
+      "id": "case-vulnerable-001",
+      "source": "vulnerable/example.c",
+      "label": "vulnerable",
+      "source_metadata": {
+        "revision": "def456"
+      }
+    }
+  ]
+}
+```
+
+Run the capture pipeline:
+
+```bash
+python -m evidencelab capture-source-dataset \
+  --manifest source-dataset.json \
+  --out-dir /tmp/evidencelab-source-dataset \
+  --timeout 600 \
+  --slice-depth 8
+```
+
+The output directory contains `safe.json`, `vulnerable.json`, `benchmark.json`, and per-case capture artifacts. Each dataset file contains its cases, source paths and hashes when available, canonical graph references and hashes, capture status, label authority, and source metadata. Graph and capture-manifest paths are relative to the output dataset file; `source_root` identifies the source tree. The `safe` and `vulnerable` labels are ground-truth declarations, not matcher outcomes. If Joern capture fails, the labeled case is retained with `capture.status` set to `FAILED` and `analysis.status` set to `UNKNOWN`; do not treat its placeholder graph as a successful analysis.
+
+The command accepts only relative C/C++ source paths and rejects duplicate case IDs, unsupported labels, and paths that escape the manifest directory. It does not recursively guess labels from filenames or directories. Supply labels from a trusted source and record the basis in `label_authority` and `source_metadata`.
+
 ## Interpret the capture manifest
 
 Retain `capture-manifest.json` together with the generated graph artifacts and logs. Check:
