@@ -25,6 +25,97 @@ python -m evidencelab evidence run \
 
 Validation checks the definition contract; compilation produces a reusable Pattern artifact; `ir` emits an intermediate representation for inspection; `run` evaluates the definition against a graph. Use `--help` to inspect the options accepted by your checkout.
 
+## Write an ELS definition: a small worked example
+
+Start with one narrow question. This first definition asks only whether the graph contains a call named `memcpy`. It is a learning example for the ELS structure, **not** a buffer-overflow detector: finding a function call does not prove that the call is unsafe.
+
+Save the following as `memcpy-candidate.els`:
+
+```text
+evidence "example.memcpy-candidate" {
+  cwe "CWE-120"
+  name "Find memcpy call candidates"
+  version "1.0.0"
+  language "C/C++"
+  description "Identify memcpy call nodes for further evidence evaluation."
+  unknown_policy "unknown"
+  counter_unknown_policy "block_match"
+
+  concept "memory_write" {
+    selector {
+      canonical_type_any ["CALL"]
+      name_any ["memcpy"]
+    }
+  }
+
+  slot "sink" {
+    concept "memory_write"
+    max_matches 100
+  }
+
+  claim "C1" {
+    kind "node"
+    required true
+    slot "sink"
+    description "A memcpy call node exists."
+  }
+
+  witness "W1" {
+    slots ["sink"]
+    claims ["C1"]
+    counter_claims []
+    required true
+    distinct_slots true
+    max_combinations 1000
+  }
+}
+```
+
+The blocks have distinct responsibilities:
+
+1. `evidence` gives the definition a stable identifier. The metadata records its name, version, language, description, and uncertainty policies.
+2. `concept` describes the kind of graph node to consider. Its `selector` filters nodes by canonical type and name; it nominates candidates rather than proving a vulnerability.
+3. `slot` gives the selected node a role (`sink`) that claims and witnesses can refer to. `max_matches` bounds the number of candidates considered.
+4. `claim` states a check the engine must evaluate. `required true` means the witness needs this claim; `kind "node"` checks for the bound node.
+5. `witness` groups the slot and claim into one coherent candidate evaluation. `distinct_slots` and `max_combinations` control binding behavior and search cost.
+
+Validate the file from the repository root:
+
+```bash
+python -m evidencelab evidence validate --spec memcpy-candidate.els
+```
+
+If validation succeeds, compile it so you can inspect the generated Pattern:
+
+```bash
+python -m evidencelab evidence compile \
+  --spec memcpy-candidate.els \
+  --out /tmp/memcpy-candidate-pattern.json
+```
+
+Then evaluate it against a supported canonical graph:
+
+```bash
+python -m evidencelab evidence run \
+  --spec memcpy-candidate.els \
+  --graph path/to/canonical-graph.json \
+  --out /tmp/memcpy-candidate-result.json
+```
+
+Replace the graph path with an actual graph from your experiment. Read the report's `status`, witness details, warnings, and completeness fields; do not infer the result from the process exit code alone.
+
+### From a candidate to a vulnerability claim
+
+A real vulnerability definition needs more than a node-name selector. Extend the hypothesis into explicit proof obligations, based on the semantics your analyzer can actually provide:
+
+- Bind the relevant input, operation, destination object, and write extent.
+- Require the relevant data-flow and argument/object-identity relations.
+- Require evidence that the write extent exceeds the destination's proven capacity, when that is the vulnerability being claimed.
+- Evaluate safe conditions and counter-evidence against the same witness.
+- Keep unresolved properties, missing relations, and incomplete analysis from silently becoming proof of safety or vulnerability.
+
+For a fuller example, study `examples/evidence-dsl/cwe121-fixed-write-research-grade.els`. It shows multiple concepts and slots, data-flow and object relations, a numeric comparison, counter-claims, and one witness that binds those obligations together. The example is intentionally more detailed because its claim is stronger than merely finding a call. See [Getting started](getting-started.md) for running it on the bundled vulnerable and safe graphs.
+
 ## Concepts to define explicitly
 
 A well-scoped definition should make the following reviewable:

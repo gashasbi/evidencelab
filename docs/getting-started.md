@@ -33,6 +33,10 @@ python -m evidencelab doctor
 
 `doctor` reports detected capabilities; it does not install missing dependencies or guarantee that an analyzer run will succeed.
 
+## Learn how to write ELS
+
+Before changing the bundled rule, read [Write an ELS definition: a small worked example](evidence-reference.md#write-an-els-definition-a-small-worked-example). It explains the roles of `concept`, `slot`, `claim`, and `witness`, and distinguishes identifying a candidate from proving a vulnerability.
+
 ## Validate the bundled definition
 
 Run from the repository root:
