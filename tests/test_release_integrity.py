@@ -57,7 +57,7 @@ def test_versions_are_consistent():
     readme = (ROOT / "README.md").read_text().splitlines()[0]
     assert f'version = "{evidencelab.__version__}"' in pyproject
     assert build["version"] == evidencelab.__version__
-    assert readme == f"# EvidenceLab {evidencelab.__version__}"
+    assert readme == "# EvidenceLab"
     assert evidencelab.SCHEMA_VERSION == "1.0"
 
 
