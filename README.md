@@ -1,4 +1,4 @@
-# EvidenceLab 1.0.0
+# EvidenceLab
 
 **A researcher-driven framework for defining, evaluating, and auditing vulnerability evidence.**
 
